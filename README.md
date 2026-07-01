@@ -1,2 +1,4 @@
-# Delsu-Result-Advisory
-Building a Result Advisory platform for my FYP.
+# DELSU Result Advisor
+
+A web platform for uploading, viewing, and querying academic result data 
+via an autonomous advisory agent.
