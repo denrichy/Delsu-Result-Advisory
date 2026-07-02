@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from app.db import supabase
-from app.routes import students
+from app.routes import students, upload
 
 app = FastAPI()
 
 app.include_router(students.router)
+app.include_router(upload.router)
 
 @app.get("/health")
 def health_check():
