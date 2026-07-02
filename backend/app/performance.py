@@ -56,7 +56,7 @@ def calculate_gpa(results_list):
         total_units += units_int
         
     if total_units == 0:
-        return 0.0
+        return None
         
     gpa = total_grade_points / total_units
     return round(gpa, 2)
