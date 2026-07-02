@@ -95,3 +95,22 @@ def get_student_profile(auth_user_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/adviser-profile/{auth_user_id}")
+def get_adviser_profile(auth_user_id: str):
+    try:
+        res = supabase.table("advisers") \
+            .select("id, name, email, department, verified, auth_user_id") \
+            .eq("auth_user_id", auth_user_id) \
+            .execute()
+
+        if not res.data:
+            raise HTTPException(status_code=404, detail="No adviser found for this auth_user_id.")
+
+        return res.data[0]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
