@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import PublicNavbar from '../components/PublicNavbar';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-pure-canvas">
-      <Navbar />
+      <PublicNavbar />
       
       {/* Hero Section */}
       <section className="px-[24px] pt-[104px] pb-[80px] md:pt-[120px] flex flex-col items-center text-center max-w-[1280px] mx-auto">
@@ -26,17 +26,18 @@ export default function Home() {
         
         <div className="flex items-center gap-[16px] mb-[64px]">
           <Link 
-            to="/student"
+            to="/app/student/results"
             className="bg-midnight-ink text-pure-canvas text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity"
           >
             Look Up Results
           </Link>
-          <Link 
-            to="/adviser"
-            className="bg-transparent text-midnight-ink border border-midnight-ink text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-mist transition-colors"
+          <a
+            href="#for-advisers"
+            onClick={(e) => { e.preventDefault(); document.getElementById('for-advisers')?.scrollIntoView({ behavior: 'smooth' }); }}
+            className="bg-transparent text-midnight-ink border border-midnight-ink text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-mist transition-colors cursor-pointer"
           >
             For Advisers
-          </Link>
+          </a>
         </div>
 
         {/* Hero Visual — Mock Record Card */}
@@ -109,8 +110,68 @@ export default function Home() {
         </div>
       </section>
 
+      {/* For Advisers Section */}
+      <section id="for-advisers" className="py-[80px] px-[24px] bg-pure-canvas">
+        <div className="max-w-[1000px] mx-auto">
+
+          <div className="mb-[48px]">
+            <span className="text-step-xs text-ash uppercase">FOR ADVISERS</span>
+            <h2 className="mt-[8px]" style={{fontSize: '32px', fontWeight: 700, lineHeight: 1.13}}>
+              <span className="text-midnight-ink">Built for the people</span>
+              <br />
+              <span className="text-graphite" style={{fontWeight: 500}}>who manage results.</span>
+            </h2>
+            <p className="text-step-base-3 text-graphite max-w-[520px] mt-[16px]">
+              Compass gives academic advisers a secure, streamlined way to upload student broadsheets and keep result records accurate.
+            </p>
+            <div className="flex items-center gap-[16px] mt-[32px]">
+              <a
+                href="/app/signup"
+                className="bg-midnight-ink text-pure-canvas text-step-base-2 rounded-full py-[10px] px-[24px] hover:bg-opacity-90 transition-opacity"
+              >
+                Register as Adviser
+              </a>
+              <a
+                href="/app/login"
+                className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
+              >
+                Already have an account?
+              </a>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px]">
+
+            <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px]">
+              <span className="text-step-xs text-ash block mb-[12px]">01</span>
+              <h3 className="text-step-base-2 text-midnight-ink mb-[8px]">Upload Broadsheets</h3>
+              <p className="text-step-sm-2 text-graphite">
+                Submit Excel broadsheet files and let Compass parse and store student results automatically.
+              </p>
+            </div>
+
+            <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px]">
+              <span className="text-step-xs text-ash block mb-[12px]">02</span>
+              <h3 className="text-step-base-2 text-midnight-ink mb-[8px]">Verified Access</h3>
+              <p className="text-step-sm-2 text-graphite">
+                Adviser accounts require admin approval before results can be uploaded, keeping the data trustworthy.
+              </p>
+            </div>
+
+            <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px]">
+              <span className="text-step-xs text-ash block mb-[12px]">03</span>
+              <h3 className="text-step-base-2 text-midnight-ink mb-[8px]">Track Submissions</h3>
+              <p className="text-step-sm-2 text-graphite">
+                Review past uploads and their processing status from your adviser dashboard.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="text-center pt-[64px] pb-[32px] px-[24px] bg-pure-canvas">
+      <footer className="text-center pt-[64px] pb-[32px] px-[24px] bg-pure-canvas border-t border-fog">
         <p className="text-step-xs text-ash">
           Compass — Built for Delta State University
         </p>

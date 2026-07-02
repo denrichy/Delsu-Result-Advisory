@@ -12,7 +12,7 @@ export default function StudentDashboard() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !session) {
-      navigate('/student-login');
+      navigate('/app/login');
     }
   }, [loading, session, navigate]);
 
@@ -56,7 +56,7 @@ export default function StudentDashboard() {
 
             {/* Tile 1: Academic Record — active */}
             <Link
-              to="/student/results"
+              to="/app/student/results"
               className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
             >
               <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">01</p>

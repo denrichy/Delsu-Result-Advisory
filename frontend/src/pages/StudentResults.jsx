@@ -104,7 +104,7 @@ export default function StudentResults() {
                 Look up another student
               </button>
               <Link
-                to="/student"
+                to="/app/student"
                 className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
               >
                 ← Back to Dashboard
@@ -167,7 +167,7 @@ export default function StudentResults() {
 
           <div className="mt-[32px]">
             <Link
-              to="/student"
+              to="/app/student"
               className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
             >
               ← Back to Dashboard

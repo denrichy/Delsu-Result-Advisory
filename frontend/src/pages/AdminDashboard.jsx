@@ -12,7 +12,7 @@ export default function AdminDashboard() {
   // Redirect if no session
   useEffect(() => {
     if (!loading && !session) {
-      navigate('/admin-login');
+      navigate('/app/admin-login');
     }
   }, [loading, session, navigate]);
 
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/admin-login');
+    navigate('/app/admin-login');
   };
 
   if (loading) return null;

@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentResults from './pages/StudentResults';
-import StudentLogin from './pages/StudentLogin';
-import StudentSignup from './pages/StudentSignup';
 import AdviserView from './pages/AdviserView';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
@@ -13,13 +13,27 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/student" element={<StudentDashboard />} />
-        <Route path="/student/results" element={<StudentResults />} />
-        <Route path="/student-login" element={<StudentLogin />} />
-        <Route path="/student-signup" element={<StudentSignup />} />
-        <Route path="/adviser" element={<AdviserView />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        
+        {/* App Shell */}
+        <Route path="/app/login" element={<Login />} />
+        <Route path="/app/signup" element={<Signup />} />
+
+        {/* Student */}
+        <Route path="/app/student" element={<StudentDashboard />} />
+        <Route path="/app/student/results" element={<StudentResults />} />
+
+        {/* Legacy login/signup redirects kept as aliases */}
+        <Route path="/app/student-login" element={<Login />} />
+        <Route path="/app/student-signup" element={<Signup />} />
+        <Route path="/app/adviser-login" element={<Login />} />
+        <Route path="/app/adviser-signup" element={<Signup />} />
+
+        {/* Adviser */}
+        <Route path="/app/adviser" element={<AdviserView />} />
+
+        {/* Admin */}
+        <Route path="/app/admin-login" element={<AdminLogin />} />
+        <Route path="/app/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );

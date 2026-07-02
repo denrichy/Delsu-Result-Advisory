@@ -1,12 +1,112 @@
-export default function AdviserView() {
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import { useAuth } from '../context/useAuth';
+
+export default function AdviserDashboard() {
+  const { session, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  // Redirect if no session
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate('/app/login');
+    }
+  }, [loading, session, navigate]);
+
+  // Fetch adviser profile
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    setProfileLoading(true);
+    fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setProfile(data))
+      .catch(() => setProfile(null))
+      .finally(() => setProfileLoading(false));
+  }, [session]);
+
+  if (loading || profileLoading) return null;
+  if (!session) return null;
+
+  // Pending verification state
+  if (!profile || profile.verified === false) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
+          <div className="w-full max-w-[480px]">
+            <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
+            <h1 className="text-step-3xl text-midnight-ink mb-[16px]">Pending Verification</h1>
+            <div className="border border-fog rounded-[16px] p-[24px]">
+              <p className="text-step-sm-2 text-graphite">
+                Your adviser account is awaiting admin approval. You'll be able to upload results once verified.
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Verified adviser dashboard
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAF9F6]">
-      <div className="w-full max-w-[440px] bg-white p-12 border border-brand-hairline shadow-sm text-center">
-        <h1 className="font-serif text-[28px] text-brand-ink mb-4">
-          Adviser Portal
-        </h1>
-        <div className="h-[2px] w-[40px] bg-brand-accent mx-auto"></div>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-pure-canvas px-[24px] py-[64px]">
+        <div className="max-w-[800px] mx-auto">
+
+          <div className="mb-[48px]">
+            <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
+            <h1 className="text-step-3xl text-midnight-ink">
+              Welcome back, {profile.name}.
+            </h1>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px]">
+
+            {/* Tile 1: Upload Results — active */}
+            <Link
+              to="/app/adviser/upload"
+              className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
+            >
+              <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">01</p>
+              <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
+                Upload Results
+              </h2>
+              <p className="text-step-sm-2 text-graphite">
+                Upload broadsheet files and push student results to the database.
+              </p>
+            </Link>
+
+            {/* Tile 2: Analytics — coming soon */}
+            <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] opacity-50 cursor-not-allowed select-none">
+              <div className="flex items-start justify-between mb-[12px]">
+                <p className="text-step-xs text-ash uppercase tracking-widest">02</p>
+                <span className="text-step-xs text-ash border border-ash rounded-full px-[8px] py-[2px]">Coming soon</span>
+              </div>
+              <h2 className="text-step-base-2 text-midnight-ink mb-[8px]">Analytics</h2>
+              <p className="text-step-sm-2 text-graphite">
+                View aggregate performance data for your department.
+              </p>
+            </div>
+
+            {/* Tile 3: Upload History — coming soon */}
+            <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] opacity-50 cursor-not-allowed select-none">
+              <div className="flex items-start justify-between mb-[12px]">
+                <p className="text-step-xs text-ash uppercase tracking-widest">03</p>
+                <span className="text-step-xs text-ash border border-ash rounded-full px-[8px] py-[2px]">Coming soon</span>
+              </div>
+              <h2 className="text-step-base-2 text-midnight-ink mb-[8px]">Upload History</h2>
+              <p className="text-step-sm-2 text-graphite">
+                Review past uploads and their processing status.
+              </p>
+            </div>
+
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
