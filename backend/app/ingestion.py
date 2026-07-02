@@ -77,3 +77,71 @@ def parse_score_grade(cell_value):
         return {"score": score, "grade": None}
     except ValueError:
         return None
+
+def melt_wide_format(filepath, course_columns):
+    df = pd.read_excel(filepath, header=None)
+    if len(df) < 4:
+        return [], []
+        
+    row_0 = df.iloc[0].astype(str).str.strip().tolist()
+    course_indices = {}
+    for code in course_columns:
+        for i, val in enumerate(row_0):
+            if val == code:
+                course_indices[code] = i
+                break
+                
+    row_1 = df.iloc[1].tolist()
+    row_2 = df.iloc[2].astype(str).str.strip().tolist()
+    
+    course_metadata = {}
+    for code, idx in course_indices.items():
+        units_val = row_1[idx]
+        c_type = row_2[idx].upper() if pd.notna(row_2[idx]) and str(row_2[idx]).strip() != "nan" else None
+        try:
+            units = int(float(units_val))
+        except:
+            units = None
+        
+        course_metadata[code] = {
+            "course_code": code,
+            "units": units,
+            "course_type": c_type
+        }
+        
+    matric_idx = -1
+    sex_idx = -1
+    matric_regex = re.compile(r'matric|reg\s*no|registration', re.IGNORECASE)
+    for i, val in enumerate(row_0):
+        if matric_regex.search(val):
+            matric_idx = i
+        elif "sex" in val.lower():
+            sex_idx = i
+            
+    long_format_data = []
+    for _, row in df.iloc[3:].iterrows():
+        matric = row[matric_idx] if matric_idx != -1 else None
+        if pd.isna(matric) or str(matric).strip() == "":
+            continue
+            
+        sex = row[sex_idx] if sex_idx != -1 else None
+        sex = str(sex).strip() if pd.notna(sex) and str(sex).strip() != "nan" else None
+        
+        for code, idx in course_indices.items():
+            cell_val = row[idx]
+            if pd.isna(cell_val) or str(cell_val).strip() == "":
+                continue
+                
+            parsed = parse_score_grade(cell_val)
+            if parsed:
+                long_format_data.append({
+                    "matric_number": str(matric).strip(),
+                    "sex": sex,
+                    "course_code": code,
+                    "units": course_metadata[code]["units"],
+                    "course_type": course_metadata[code]["course_type"],
+                    "score": parsed["score"],
+                    "grade": parsed["grade"]
+                })
+                
+    return long_format_data, list(course_metadata.values())
