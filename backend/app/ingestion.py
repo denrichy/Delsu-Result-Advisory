@@ -51,7 +51,8 @@ def detect_sheet_format(filepath):
             return {
                 "format": "long",
                 "confidence": 0.9,
-                "detected_course_columns": []
+                "detected_course_columns": [],
+                "header_idx": header_idx
             }
 
     return {"format": "unknown", "confidence": 0.0, "detected_course_columns": []}
@@ -145,3 +146,134 @@ def melt_wide_format(filepath, course_columns):
                 })
                 
     return long_format_data, list(course_metadata.values())
+
+def detect_long_format_columns(df):
+    mapping = {
+        "matric_number": None,
+        "name": None,
+        "course_code": None,
+        "score_type": "single",
+        "score": None,
+        "ca_column": None,
+        "exam_column": None,
+        "grade": None,
+        "score_needs_parsing": False,
+        "confidence": {}
+    }
+    
+    matric_regex = re.compile(r'^[A-Za-z]{2,}(?:/[A-Za-z0-9]+)+$')
+    course_regex = re.compile(r'^[A-Za-z]{2,4}\s*\d{3}$')
+    concat_score_regex = re.compile(r'^(\d+)([A-F])$')
+    grade_regex = re.compile(r'^[A-F]$')
+    
+    sn_patterns = ["s/n", "sn", "serial", "no", "#"]
+    
+    scores_for_cols = {col: {"matric": 0, "name": 0, "course": 0, "plain_score": 0, "concat_score": 0, "grade": 0} for col in df.columns}
+    
+    for col in df.columns:
+        col_str = str(col).lower().strip()
+        if col_str in sn_patterns or col_str.replace(".", "") in sn_patterns:
+            continue
+            
+        vals = df[col].dropna().astype(str).str.strip().tolist()
+        if not vals:
+            continue
+            
+        n = min(len(vals), 50)
+        test_vals = vals[:n]
+        counts = {"matric": 0, "name": 0, "course": 0, "plain_score": 0, "concat_score": 0, "grade": 0}
+        
+        for val in test_vals:
+            if course_regex.match(val):
+                counts["course"] += 1
+            elif grade_regex.match(val.upper()):
+                counts["grade"] += 1
+            elif concat_score_regex.match(val.upper()):
+                counts["concat_score"] += 1
+            elif val.isdigit():
+                counts["plain_score"] += 1
+            elif matric_regex.match(val):
+                counts["matric"] += 1
+                
+            words = val.split()
+            if len(words) >= 2:
+                valid_name = True
+                has_alpha = False
+                for w in words:
+                    if w[0].isalpha():
+                        has_alpha = True
+                        if not w[0].isupper():
+                            valid_name = False
+                            break
+                if valid_name and has_alpha:
+                    counts["name"] += 1
+                
+        scores_for_cols[col] = {k: v/n for k, v in counts.items()}
+
+    def assign_highest(category):
+        best_col = None
+        best_score = 0.0
+        for col, scores in scores_for_cols.items():
+            if scores[category] > best_score and scores[category] > 0.3:
+                best_score = scores[category]
+                best_col = col
+        if best_col:
+            mapping["confidence"][category] = round(best_score, 2)
+            return best_col
+        return None
+        
+    mapping["matric_number"] = assign_highest("matric")
+    mapping["name"] = assign_highest("name")
+    mapping["course_code"] = assign_highest("course")
+    
+    ca_col = None
+    exam_col = None
+    best_plain_cols = []
+    
+    for col, scores in scores_for_cols.items():
+        if scores["plain_score"] > 0.3:
+            best_plain_cols.append(col)
+            
+    for col in best_plain_cols:
+        col_str = str(col).lower()
+        if any(k in col_str for k in ["ca", "test", "assignment"]):
+            ca_col = col
+        elif any(k in col_str for k in ["exam", "final"]):
+            exam_col = col
+            
+    if ca_col and exam_col:
+        mapping["score_type"] = "split"
+        mapping["ca_column"] = ca_col
+        mapping["exam_column"] = exam_col
+        mapping["confidence"]["score"] = 1.0
+    else:
+        best_score_col = None
+        best_score_val = 0.0
+        best_is_concat = False
+        
+        for col, scores in scores_for_cols.items():
+            col_str = str(col).lower()
+            if scores["concat_score"] > 0.3:
+                best_score_val = scores["concat_score"]
+                best_score_col = col
+                best_is_concat = True
+                break
+                
+            if scores["plain_score"] > 0.3:
+                score_val = scores["plain_score"]
+                if any(k in col_str for k in ["total", "score", "mark", "agg"]):
+                    score_val += 0.5
+                    
+                if score_val > best_score_val:
+                    best_score_val = score_val
+                    best_score_col = col
+                    
+        if best_score_col:
+            mapping["score"] = best_score_col
+            mapping["score_needs_parsing"] = best_is_concat
+            mapping["confidence"]["score"] = round(min(1.0, max(0.0, best_score_val)), 2)
+            
+    if not mapping.get("score_needs_parsing", False):
+        mapping["grade"] = assign_highest("grade")
+        
+    return mapping

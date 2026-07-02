@@ -2,7 +2,7 @@ import os
 import uuid
 import pandas as pd
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.ingestion import detect_sheet_format, melt_wide_format
+from app.ingestion import detect_sheet_format, melt_wide_format, detect_long_format_columns, parse_score_grade
 
 router = APIRouter(prefix="/upload-preview", tags=["upload"])
 
@@ -37,15 +37,59 @@ async def upload_preview(file: UploadFile = File(...)):
                 "course_metadata": metadata
             }
         elif fmt == "long":
-            df = pd.read_excel(temp_filepath, nrows=5)
-            df = df.fillna("")
-            raw_preview = df.to_dict(orient="records")
+            header_idx = detect_res.get("header_idx", 0)
+            df = pd.read_excel(temp_filepath, header=header_idx)
+            
+            mapping = detect_long_format_columns(df)
+            
+            preview_rows = []
+            for _, row in df.head(10).iterrows():
+                matric = str(row[mapping["matric_number"]]) if mapping["matric_number"] and pd.notna(row[mapping["matric_number"]]) else None
+                course = str(row[mapping["course_code"]]) if mapping["course_code"] and pd.notna(row[mapping["course_code"]]) else None
+                
+                score = None
+                grade = None
+                
+                if mapping.get("score_type") == "split":
+                    ca_col = mapping.get("ca_column")
+                    exam_col = mapping.get("exam_column")
+                    ca_val = row[ca_col] if ca_col and pd.notna(row[ca_col]) else 0
+                    exam_val = row[exam_col] if exam_col and pd.notna(row[exam_col]) else 0
+                    try:
+                        score = int(float(ca_val)) + int(float(exam_val))
+                    except (ValueError, TypeError):
+                        score = None
+                else:
+                    if mapping.get("score"):
+                        cell_val = row[mapping["score"]]
+                        if mapping.get("score_needs_parsing"):
+                            parsed = parse_score_grade(cell_val)
+                            if parsed:
+                                score = parsed["score"]
+                                grade = parsed["grade"]
+                        else:
+                            parsed = parse_score_grade(cell_val)
+                            if parsed:
+                                score = parsed["score"]
+                            
+                if mapping["grade"] and grade is None:
+                    g_val = row[mapping["grade"]]
+                    if pd.notna(g_val):
+                        grade = str(g_val).strip().upper()
+                        
+                preview_rows.append({
+                    "matric_number": matric,
+                    "course_code": course,
+                    "score": score,
+                    "grade": grade
+                })
             
             return {
                 "format": "long",
                 "confidence": confidence,
-                "message": "long format detected, column-mapping not yet implemented",
-                "raw_preview": raw_preview
+                "mapping": mapping,
+                "preview_rows": preview_rows,
+                "total_row_count": len(df)
             }
         else:
             return {
