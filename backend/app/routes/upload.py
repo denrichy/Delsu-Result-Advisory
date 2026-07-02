@@ -27,7 +27,7 @@ class UploadConfirmRequest(BaseModel):
 TMP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "tmp"))
 os.makedirs(TMP_DIR, exist_ok=True)
 
-@router.post("/upload-preview")
+@router.post("/preview")
 async def upload_preview(file: UploadFile = File(...)):
     if not file.filename.endswith(".xlsx"):
         raise HTTPException(status_code=400, detail="Only .xlsx files are supported")
@@ -52,6 +52,7 @@ async def upload_preview(file: UploadFile = File(...)):
                 "confidence": confidence,
                 "total_row_count": len(long_data),
                 "preview_rows": long_data[:10],
+                "all_rows": long_data,
                 "course_metadata": metadata
             }
         elif fmt == "long":
@@ -60,8 +61,8 @@ async def upload_preview(file: UploadFile = File(...)):
             
             mapping = detect_long_format_columns(df)
             
-            preview_rows = []
-            for _, row in df.head(10).iterrows():
+            all_rows = []
+            for _, row in df.iterrows():
                 matric = str(row[mapping["matric_number"]]) if mapping["matric_number"] and pd.notna(row[mapping["matric_number"]]) else None
                 course = str(row[mapping["course_code"]]) if mapping["course_code"] and pd.notna(row[mapping["course_code"]]) else None
                 
@@ -95,7 +96,7 @@ async def upload_preview(file: UploadFile = File(...)):
                     if pd.notna(g_val):
                         grade = str(g_val).strip().upper()
                         
-                preview_rows.append({
+                all_rows.append({
                     "matric_number": matric,
                     "course_code": course,
                     "score": score,
@@ -106,7 +107,8 @@ async def upload_preview(file: UploadFile = File(...)):
                 "format": "long",
                 "confidence": confidence,
                 "mapping": mapping,
-                "preview_rows": preview_rows,
+                "preview_rows": all_rows[:10],
+                "all_rows": all_rows,
                 "total_row_count": len(df)
             }
         else:
@@ -122,7 +124,7 @@ async def upload_preview(file: UploadFile = File(...)):
         if os.path.exists(temp_filepath):
             os.remove(temp_filepath)
 
-@router.post("/upload-confirm")
+@router.post("/confirm")
 async def upload_confirm(request: UploadConfirmRequest):
     try:
         courses_created = 0

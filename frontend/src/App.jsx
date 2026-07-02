@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentResults from './pages/StudentResults';
 import AdviserView from './pages/AdviserView';
+import AdviserUpload from './pages/AdviserUpload';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -30,6 +31,7 @@ function App() {
 
         {/* Adviser */}
         <Route path="/app/adviser" element={<AdviserView />} />
+        <Route path="/app/adviser/upload" element={<AdviserUpload />} />
 
         {/* Admin */}
         <Route path="/app/admin-login" element={<AdminLogin />} />
