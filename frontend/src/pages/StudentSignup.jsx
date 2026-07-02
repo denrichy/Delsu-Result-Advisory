@@ -67,18 +67,17 @@ export default function StudentSignup() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAF9F6]">
-        <div className="w-full max-w-[440px] bg-white p-12 border border-brand-hairline shadow-sm text-center">
-          <h1 className="font-serif text-[28px] text-brand-ink mb-4">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-pure-canvas">
+        <div className="w-full max-w-[440px] text-center">
+          <h1 className="text-step-3xl text-midnight-ink mb-[8px]">
             Registration Complete
           </h1>
-          <div className="h-[2px] w-[40px] bg-brand-accent mx-auto mb-6"></div>
-          <p className="text-brand-muted font-sans text-[15px] mb-8">
+          <p className="text-step-sm-2 text-graphite mb-[32px]">
             Your account has been successfully created and linked to your matriculation number.
           </p>
           <a
             href="/student"
-            className="inline-block w-full bg-brand-ink text-white font-sans font-medium py-3 px-4 rounded-[3px] hover:bg-opacity-90 transition-opacity"
+            className="inline-block bg-midnight-ink text-pure-canvas text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity"
           >
             Continue to Dashboard
           </a>
@@ -175,7 +174,9 @@ export default function StudentSignup() {
               required
             />
             {error && (
-              <p className="text-[#c75c5c] text-[13px] font-sans mt-2 absolute -bottom-4 left-0">{error}</p>
+              <div className="border border-midnight-ink rounded-[8px] px-[16px] py-[10px]">
+                <p className="text-step-sm text-midnight-ink">{error}</p>
+              </div>
             )}
           </div>
 
