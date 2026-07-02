@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #FAF9F6;
+  --color-brand-ink: #1B2A4A;
+  --color-brand-accent: #B08D57;
+  --color-brand-muted: #5B6478;
+  --color-brand-hairline: #DDD9CF;
+  
+  --font-serif: "Source Serif 4", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-ink);
+  font-family: var(--font-sans);
+  margin: 0;
+  min-height: 100vh;
+}
