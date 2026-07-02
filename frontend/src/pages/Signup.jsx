@@ -1,12 +1,45 @@
-import { useState } from 'react';
-import Navbar from '../components/Navbar';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../context/useAuth';
 
 export default function Signup() {
+  const navigate = useNavigate();
   const [role, setRole] = useState('student'); // 'student' | 'adviser'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const { session, loading: authLoading } = useAuth();
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!session?.user?.id) {
+      setCheckingRole(false);
+      return;
+    }
+
+    const checkRoleAndRedirect = async () => {
+      try {
+        const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
+        if (adviserRes.ok) {
+          navigate('/app/adviser');
+          return;
+        }
+
+        const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+        if (studentRes.ok) {
+          navigate('/app/student');
+          return;
+        }
+        
+        setCheckingRole(false);
+      } catch (err) {
+        setCheckingRole(false);
+      }
+    };
+
+    checkRoleAndRedirect();
+  }, [authLoading, session, navigate]);
 
   // Student fields
   const [matricNumber, setMatricNumber] = useState('');
@@ -21,7 +54,6 @@ export default function Signup() {
   const switchRole = (r) => {
     setRole(r);
     setError('');
-    setSuccess(false);
   };
 
   const handleSubmit = async (e) => {
@@ -62,7 +94,7 @@ export default function Signup() {
         }
       }
 
-      setSuccess(true);
+      navigate(role === 'adviser' ? '/app/adviser' : '/app/student');
     } catch (err) {
       console.error(err);
       setError(err.message || 'An error occurred.');
@@ -71,40 +103,20 @@ export default function Signup() {
     }
   };
 
-  if (success) {
+  if (authLoading || checkingRole) {
     return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
-          <div className="w-full max-w-[440px]">
-            <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ACCOUNT CREATED</p>
-            <h1 className="text-step-3xl text-midnight-ink mb-[16px]">
-              {role === 'adviser' ? 'Registration Complete' : 'Welcome to Compass'}
-            </h1>
-            <div className="border border-fog rounded-[16px] p-[24px] mb-[32px]">
-              <p className="text-step-sm-2 text-graphite">
-                {role === 'adviser'
-                  ? 'Your adviser account is pending verification by an admin before you can upload results.'
-                  : 'Your student account has been created and linked to your matriculation number.'}
-              </p>
-            </div>
-            <a
-              href="/app/login"
-              className="inline-block bg-midnight-ink text-pure-canvas text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity"
-            >
-              {role === 'adviser' ? 'Go to Sign In' : 'Sign In'}
-            </a>
-          </div>
-        </div>
-      </>
+      <div className="min-h-screen bg-pure-canvas flex items-center justify-center">
+        <p className="text-step-sm-2 text-graphite">Loading…</p>
+      </div>
     );
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
-        <div className="w-full max-w-[440px]">
+    <div className="min-h-screen relative bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
+      <div className="absolute top-[24px] left-[24px]">
+        <Link to="/" className="text-step-base-2 text-midnight-ink">Compass</Link>
+      </div>
+      <div className="w-full max-w-[440px]">
 
           <div className="mb-[32px]">
             <h1 className="text-step-3xl text-midnight-ink mb-[4px]">Create Account</h1>
@@ -243,6 +255,5 @@ export default function Signup() {
 
         </div>
       </div>
-    </>
   );
 }

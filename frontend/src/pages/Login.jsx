@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../context/useAuth';
 
 export default function Login() {
   const [role, setRole] = useState('student'); // 'student' | 'adviser'
@@ -10,6 +10,38 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { session, loading: authLoading } = useAuth();
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!session?.user?.id) {
+      setCheckingRole(false);
+      return;
+    }
+
+    const checkRoleAndRedirect = async () => {
+      try {
+        const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
+        if (adviserRes.ok) {
+          navigate('/app/adviser');
+          return;
+        }
+
+        const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+        if (studentRes.ok) {
+          navigate('/app/student');
+          return;
+        }
+        
+        setCheckingRole(false);
+      } catch (err) {
+        setCheckingRole(false);
+      }
+    };
+
+    checkRoleAndRedirect();
+  }, [authLoading, session, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,11 +61,20 @@ export default function Login() {
     navigate(role === 'adviser' ? '/app/adviser' : '/app/student');
   };
 
+  if (authLoading || checkingRole) {
+    return (
+      <div className="min-h-screen bg-pure-canvas flex items-center justify-center">
+        <p className="text-step-sm-2 text-graphite">Loading…</p>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
-        <div className="w-full max-w-[440px]">
+    <div className="min-h-screen relative bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
+      <div className="absolute top-[24px] left-[24px]">
+        <Link to="/" className="text-step-base-2 text-midnight-ink">Compass</Link>
+      </div>
+      <div className="w-full max-w-[440px]">
 
           <div className="mb-[32px]">
             <h1 className="text-step-3xl text-midnight-ink mb-[4px]">Sign In</h1>
@@ -120,6 +161,5 @@ export default function Login() {
 
         </div>
       </div>
-    </>
   );
 }

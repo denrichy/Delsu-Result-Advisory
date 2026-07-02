@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
 
 export default function StudentDashboard() {
-  const { user, loading, session } = useAuth();
+  const { user, loading, session, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -38,17 +38,25 @@ export default function StudentDashboard() {
         <div className="max-w-[800px] mx-auto">
 
           {/* Greeting */}
-          <div className="mb-[48px]">
-            <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">
-              STUDENT PORTAL
-            </p>
-            <h1 className="text-step-3xl text-midnight-ink">
-              {profileLoading
-                ? 'Welcome back.'
-                : profile?.matric_number
-                ? `Welcome back, ${profile.matric_number}.`
-                : 'Welcome back.'}
-            </h1>
+          <div className="mb-[48px] flex justify-between items-start">
+            <div>
+              <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">
+                STUDENT PORTAL
+              </p>
+              <h1 className="text-step-3xl text-midnight-ink">
+                {profileLoading
+                  ? 'Welcome back.'
+                  : profile?.matric_number
+                  ? `Welcome back, ${profile.matric_number}.`
+                  : 'Welcome back.'}
+              </h1>
+            </div>
+            <button
+              onClick={async () => { await signOut(); navigate('/'); }}
+              className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors mt-[8px]"
+            >
+              Log Out
+            </button>
           </div>
 
           {/* Tile Grid */}

@@ -55,23 +55,8 @@ export default function Navbar() {
         </a>
       </div>
 
-      {/* Right: Auth CTA */}
+      {/* Right: Empty (Log Out moved to dashboards) */}
       <div className="flex-shrink-0 flex items-center gap-4">
-        {session ? (
-          <button
-            onClick={handleSignOut}
-            className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[8px] px-[16px] hover:bg-opacity-90 transition-opacity"
-          >
-            Log Out
-          </button>
-        ) : (
-          <Link
-            to="/app/login"
-            className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[8px] px-[16px] hover:bg-opacity-90 transition-opacity"
-          >
-            Sign In
-          </Link>
-        )}
       </div>
 
     </nav>

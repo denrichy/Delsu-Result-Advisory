@@ -1,7 +1,40 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
 
 export default function PublicNavbar() {
   const navigate = useNavigate();
+  const { session } = useAuth();
+
+  const handleSignInClick = async (e) => {
+    e.preventDefault();
+    
+    if (!session?.user?.id) {
+      window.open('/app/login', '_blank');
+      return;
+    }
+
+    try {
+      // Check if adviser
+      const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
+      if (adviserRes.ok) {
+        window.open('/app/adviser', '_blank');
+        return;
+      }
+
+      // Check if student
+      const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+      if (studentRes.ok) {
+        window.open('/app/student', '_blank');
+        return;
+      }
+
+      // Fallback if neither found
+      window.open('/app/login', '_blank');
+    } catch (err) {
+      console.error(err);
+      window.open('/app/login', '_blank');
+    }
+  };
 
   // Smooth-scroll to #for-advisers on home page
   const handleForAdvisers = (e) => {
@@ -40,12 +73,12 @@ export default function PublicNavbar() {
 
       {/* Right: Auth CTA (Always says "Sign In" and points to app) */}
       <div className="flex-shrink-0 flex items-center gap-4">
-        <Link
-          to="/app/login"
+        <button
+          onClick={handleSignInClick}
           className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[8px] px-[16px] hover:bg-opacity-90 transition-opacity"
         >
           Sign In
-        </Link>
+        </button>
       </div>
 
     </nav>
