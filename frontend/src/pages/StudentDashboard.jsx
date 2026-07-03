@@ -18,14 +18,14 @@ export default function StudentDashboard() {
 
   // Fetch student profile once we have a user
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     setProfileLoading(true);
     fetch(`http://127.0.0.1:8000/auth/student-profile/${user.id}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setProfile(data))
       .catch(() => setProfile(null))
       .finally(() => setProfileLoading(false));
-  }, [user]);
+  }, [user?.id]);
 
   // While auth state resolves, show nothing
   if (loading) return null;

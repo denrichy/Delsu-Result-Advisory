@@ -7,9 +7,23 @@ export const AuthContext = createContext(null);
 // If it returns 200 → 'adviser'. Otherwise → 'student'.
 async function detectRole(userId) {
   try {
-    const res = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${userId}`);
-    return res.ok ? 'adviser' : 'student';
-  } catch {
+    // 1. Check adviser profile
+    const advRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${userId}`);
+    const advData = await advRes.json();
+    if (advData.found === true) {
+      return 'adviser';
+    }
+
+    // 2. Check student profile
+    const stuRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${userId}`);
+    const stuData = await stuRes.json();
+    if (stuData.found === true) {
+      return 'student';
+    }
+
+    return 'student'; // Default fallback
+  } catch (err) {
+    console.error('Network or unexpected error during role detection:', err);
     return 'student';
   }
 }

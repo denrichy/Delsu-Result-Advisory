@@ -16,14 +16,16 @@ export default function PublicNavbar() {
     try {
       // Check if adviser
       const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
-      if (adviserRes.ok) {
+      const adviserData = await adviserRes.json();
+      if (adviserData.found === true) {
         window.open('/app/adviser', '_blank');
         return;
       }
 
       // Check if student
       const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
-      if (studentRes.ok) {
+      const studentData = await studentRes.json();
+      if (studentData.found === true) {
         window.open('/app/student', '_blank');
         return;
       }

@@ -18,14 +18,14 @@ export default function AdminDashboard() {
 
   // Fetch pending advisers on mount
   useEffect(() => {
-    if (!session) return;
+    if (!session?.user?.id) return;
     setFetchLoading(true);
     fetch('http://127.0.0.1:8000/admin/advisers/pending')
       .then((r) => r.json())
       .then((data) => setPending(data.pending || []))
       .catch(() => setPending([]))
       .finally(() => setFetchLoading(false));
-  }, [session]);
+  }, [session?.user?.id]);
 
   const handleVerify = async (adviser) => {
     setVerifying(adviser.id);

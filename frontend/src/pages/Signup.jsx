@@ -21,13 +21,15 @@ export default function Signup() {
     const checkRoleAndRedirect = async () => {
       try {
         const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
-        if (adviserRes.ok) {
+        const adviserData = await adviserRes.json();
+        if (adviserData.found === true) {
           navigate('/app/adviser');
           return;
         }
 
         const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
-        if (studentRes.ok) {
+        const studentData = await studentRes.json();
+        if (studentData.found === true) {
           navigate('/app/student');
           return;
         }

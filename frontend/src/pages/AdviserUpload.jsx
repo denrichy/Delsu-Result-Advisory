@@ -40,11 +40,11 @@ export default function AdviserUpload() {
     if (!session?.user?.id) return;
     setProfileLoading(true);
     fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setProfile(data))
+      .then((r) => r.json())
+      .then((data) => setProfile(data.found === true ? data : null))
       .catch(() => setProfile(null))
       .finally(() => setProfileLoading(false));
-  }, [session]);
+  }, [session?.user?.id]);
 
   const handleSignOut = async () => {
     await signOut();

@@ -14,8 +14,15 @@ print(f'   Department: {data["department"]}')
 print(f'   verified:   {data["verified"]}')
 print(f'   id:         {data["id"]}')
 
+assert r1.status_code == 200
+assert data["found"] == True
+
 # 2. 404 case
 r2 = httpx.get(f'{base}/adviser-profile/00000000-0000-0000-0000-000000000000')
 print(f'\n2. GET /auth/adviser-profile/{{non-existent}}')
 print(f'   Status: {r2.status_code}')
 print(f'   Body:   {r2.json()}')
+
+assert r2.status_code == 200
+assert r2.json() == {"found": False}
+print("\nAll assertions passed!")
