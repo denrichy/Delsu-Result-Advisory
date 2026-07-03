@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.db import supabase
+import traceback
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -51,6 +52,7 @@ def student_signup(data: StudentSignup):
     except HTTPException:
         raise
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/adviser-signup")
@@ -76,6 +78,7 @@ def adviser_signup(data: AdviserSignup):
     except HTTPException:
         raise
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/student-profile/{auth_user_id}")
@@ -96,6 +99,7 @@ def get_student_profile(auth_user_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/adviser-profile/{auth_user_id}")
@@ -116,5 +120,6 @@ def get_adviser_profile(auth_user_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 

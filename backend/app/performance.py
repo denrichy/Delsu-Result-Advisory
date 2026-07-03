@@ -72,3 +72,82 @@ def get_cumulative_gpa(matric_number: str):
 
 def get_course_breakdown(matric_number: str):
     return get_student_results(matric_number)
+
+def simulate_gpa(matric_number: str, course_code: str, hypothetical_input: str):
+    results = get_student_results(matric_number)
+    if not results:
+        return {"error": "Student not found or has no results."}
+    
+    current_gpa = calculate_gpa(results)
+    
+    letter = str(hypothetical_input).upper().strip()
+    if letter == 'A':
+        hypothetical_score = 75.0
+    elif letter == 'B':
+        hypothetical_score = 65.0
+    elif letter == 'C':
+        hypothetical_score = 55.0
+    elif letter == 'D':
+        hypothetical_score = 45.0
+    elif letter == 'F':
+        hypothetical_score = 0.0
+    else:
+        try:
+            hypothetical_score = float(hypothetical_input)
+        except ValueError:
+            return {"error": f"Invalid hypothetical_input: {hypothetical_input}"}
+    
+    course_found = False
+    current_grade = None
+    for r in results:
+        if r.get("course_code") and r.get("course_code").upper() == course_code.upper():
+            current_grade = r.get("grade")
+            r["score"] = hypothetical_score
+            course_found = True
+            break
+            
+    if not course_found:
+        return {"error": f"Course {course_code} not found in student's record."}
+        
+    hypothetical_gpa = calculate_gpa(results)
+    
+    return {
+        "hypothetical_gpa": hypothetical_gpa,
+        "current_gpa": current_gpa,
+        "course": course_code,
+        "current_grade": current_grade,
+        "hypothetical_score": hypothetical_score
+    }
+
+def simulate_gpa_uniform(matric_number: str, hypothetical_grade_letter: str):
+    results = get_student_results(matric_number)
+    if not results:
+        return {"error": "Student not found or has no results."}
+    
+    current_gpa = calculate_gpa(results)
+    
+    # Map letter to canonical score
+    letter = hypothetical_grade_letter.upper().strip()
+    if letter == 'A':
+        score = 75.0
+    elif letter == 'B':
+        score = 65.0
+    elif letter == 'C':
+        score = 55.0
+    elif letter == 'D':
+        score = 45.0
+    elif letter == 'F':
+        score = 0.0
+    else:
+        return {"error": f"Invalid grade letter: {hypothetical_grade_letter}"}
+        
+    for r in results:
+        r["score"] = score
+        
+    hypothetical_gpa = calculate_gpa(results)
+    
+    return {
+        "hypothetical_gpa": hypothetical_gpa,
+        "current_gpa": current_gpa,
+        "hypothetical_grade": letter
+    }

@@ -10,6 +10,8 @@ class ChatRequest(BaseModel):
     message: str
     conversation_history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
 
+import traceback
+
 @router.post("/chat")
 def chat_with_agent(data: ChatRequest):
     try:
@@ -20,4 +22,5 @@ def chat_with_agent(data: ChatRequest):
         )
         return {"response": response}
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
