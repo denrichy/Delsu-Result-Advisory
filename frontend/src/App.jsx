@@ -4,10 +4,12 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentResults from './pages/StudentResults';
+import StudentAdvisor from './pages/StudentAdvisor';
 import AdviserView from './pages/AdviserView';
 import AdviserUpload from './pages/AdviserUpload';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AdviserHistory from './pages/AdviserHistory';
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
         {/* Student */}
         <Route path="/app/student" element={<StudentDashboard />} />
         <Route path="/app/student/results" element={<StudentResults />} />
+        <Route path="/app/student/advisor" element={<StudentAdvisor />} />
 
         {/* Legacy login/signup redirects kept as aliases */}
         <Route path="/app/student-login" element={<Login />} />
@@ -32,6 +35,7 @@ function App() {
         {/* Adviser */}
         <Route path="/app/adviser" element={<AdviserView />} />
         <Route path="/app/adviser/upload" element={<AdviserUpload />} />
+        <Route path="/app/adviser/history" element={<AdviserHistory />} />
 
         {/* Admin */}
         <Route path="/app/admin-login" element={<AdminLogin />} />

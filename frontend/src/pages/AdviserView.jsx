@@ -128,17 +128,19 @@ export default function AdviserDashboard() {
             </p>
           </div>
 
-          {/* Tile 3: Upload History — coming soon */}
-          <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] opacity-50 cursor-not-allowed select-none">
-            <div className="flex items-start justify-between mb-[12px]">
-              <p className="text-step-xs text-ash uppercase tracking-widest">03</p>
-              <span className="text-step-xs text-ash border border-ash rounded-full px-[8px] py-[2px]">Coming soon</span>
-            </div>
-            <h2 className="text-step-base-2 text-midnight-ink mb-[8px]">Upload History</h2>
+          {/* Tile 3: Upload History — active */}
+          <Link
+            to="/app/adviser/history"
+            className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
+          >
+            <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">03</p>
+            <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
+              Upload History
+            </h2>
             <p className="text-step-sm-2 text-graphite">
-              Review past uploads and their processing status.
+              Review past uploads and delete them if needed.
             </p>
-          </div>
+          </Link>
 
         </div>
       </main>

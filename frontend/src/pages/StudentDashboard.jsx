@@ -76,21 +76,19 @@ export default function StudentDashboard() {
               </p>
             </Link>
 
-            {/* Tile 2: Ask the Advisor — coming soon */}
-            <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] opacity-50 cursor-not-allowed select-none">
-              <div className="flex items-start justify-between mb-[12px]">
-                <p className="text-step-xs text-ash uppercase tracking-widest">02</p>
-                <span className="text-step-xs text-ash border border-ash rounded-full px-[8px] py-[2px]">
-                  Coming soon
-                </span>
-              </div>
-              <h2 className="text-step-base-2 text-midnight-ink mb-[8px]">
+            {/* Tile 2: Ask the Advisor — active */}
+            <Link
+              to="/app/student/advisor"
+              className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
+            >
+              <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">02</p>
+              <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
                 Ask the Advisor
               </h2>
               <p className="text-step-sm-2 text-graphite">
                 Ask questions about your academic standing and get instant answers.
               </p>
-            </div>
+            </Link>
 
             {/* Tile 3: Notifications — coming soon */}
             <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] opacity-50 cursor-not-allowed select-none">

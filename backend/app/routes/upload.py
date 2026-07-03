@@ -180,7 +180,17 @@ async def upload_confirm(request: UploadConfirmRequest):
                     student_id_map[matric] = s_res.data[0]["id"]
                     students_created += 1
 
-        # 3. Insert Results
+        # 3. Create Upload Record
+        upload_data = {
+            "adviser_id": request.adviser_id,
+            "filename": request.filename,
+            "status": "published",
+            "raw_row_count": len(request.rows)
+        }
+        u_res = supabase.table("uploads").insert(upload_data).execute()
+        upload_id = u_res.data[0]["id"] if u_res.data else None
+
+        # 4. Insert Results
         results_data = []
         for row in request.rows:
             if not row.matric_number or not row.course_code:
@@ -197,23 +207,14 @@ async def upload_confirm(request: UploadConfirmRequest):
                     "grade": row.grade,
                     "semester": request.semester,
                     "session": request.session,
-                    "uploaded_by": request.adviser_id
+                    "uploaded_by": request.adviser_id,
+                    "upload_id": upload_id
                 })
                 
         if results_data:
             r_res = supabase.table("results").insert(results_data).execute()
             if r_res.data:
                 results_inserted = len(r_res.data)
-                
-        # 4. Create Upload Record
-        upload_data = {
-            "adviser_id": request.adviser_id,
-            "filename": request.filename,
-            "status": "published",
-            "raw_row_count": len(request.rows)
-        }
-        u_res = supabase.table("uploads").insert(upload_data).execute()
-        upload_id = u_res.data[0]["id"] if u_res.data else None
         
         return {
             "students_created": students_created,
@@ -223,3 +224,59 @@ async def upload_confirm(request: UploadConfirmRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload confirm failed: {str(e)}")
+
+@router.delete("/{upload_id}")
+async def delete_upload(upload_id: str):
+    try:
+        # First, check how many results are associated so we can report back
+        res_count = supabase.table("results").select("*", count="exact").eq("upload_id", upload_id).execute()
+        results_deleted = res_count.count if res_count and hasattr(res_count, 'count') and res_count.count is not None else 0
+
+        # Delete from uploads (Supabase will ON DELETE CASCADE results)
+        d_res = supabase.table("uploads").delete().eq("id", upload_id).execute()
+        if not d_res.data:
+            raise HTTPException(status_code=404, detail="Upload not found or already deleted")
+            
+        return {
+            "success": True,
+            "message": "Upload deleted successfully",
+            "results_deleted": results_deleted
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete upload: {str(e)}")
+
+@router.get("/history/{adviser_id}")
+async def get_upload_history(adviser_id: str):
+    try:
+        # Get all uploads for this adviser
+        uploads_res = supabase.table("uploads").select("*").eq("adviser_id", adviser_id).order("created_at", desc=True).execute()
+        
+        if not uploads_res.data:
+            return []
+            
+        history = []
+        for upload in uploads_res.data:
+            upload_id = upload["id"]
+            # Fetch semester/session from one of its results
+            results_res = supabase.table("results").select("semester, session").eq("upload_id", upload_id).limit(1).execute()
+            
+            semester = None
+            session = None
+            if results_res.data:
+                semester = results_res.data[0].get("semester")
+                session = results_res.data[0].get("session")
+                
+            history.append({
+                "id": upload_id,
+                "filename": upload.get("filename"),
+                "semester": semester,
+                "session": session,
+                "raw_row_count": upload.get("raw_row_count"),
+                "created_at": upload.get("created_at")
+            })
+            
+        return history
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch upload history: {str(e)}")

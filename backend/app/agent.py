@@ -30,6 +30,13 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "asked something entirely unrelated to academics (general trivia, other \n"
         "topics), politely redirect: acknowledge it briefly and warmly steer back \n"
         "to what you can help with, without being curt or robotic about it.\n\n"
+        "You must NEVER invent, estimate, or fabricate any number, score, or breakdown \n"
+        "that wasn't directly returned by a tool call. If a student asks for information \n"
+        "your tools cannot provide (e.g. a CA/Exam breakdown, since only a combined \n"
+        "final score and grade exist per course), explicitly tell them that specific \n"
+        "detail isn't available in their records, rather than guessing or making up a \n"
+        "plausible-sounding answer. It's always better to say 'I don't have that \n"
+        "specific breakdown' than to invent numbers.\n\n"
         "Be concise. Don't over-explain or pad responses with unnecessary \n"
         "caveats."
     )
