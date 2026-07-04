@@ -80,9 +80,37 @@ export default function StudentResults() {
       <div className="min-h-screen bg-pure-canvas px-[24px] py-[64px]">
         <div className="max-w-[600px] mx-auto">
           {loading ? (
-            <div className="flex justify-center items-center h-[200px]">
-              <p className="text-step-sm-2 text-graphite">Loading results...</p>
-            </div>
+            <>
+              <div className="flex items-center justify-between mb-[40px]">
+                <div>
+                  <p className="text-step-xs text-ash uppercase tracking-widest mb-[4px]">ACADEMIC RECORD</p>
+                  <div className="skeleton w-[240px] h-[32px] rounded-lg mt-[8px]"></div>
+                </div>
+                <div className="text-right">
+                  <p className="text-step-xs text-ash uppercase tracking-widest mb-[4px]">CGPA</p>
+                  <div className="skeleton w-[80px] h-[56px] rounded-lg mt-[4px]"></div>
+                </div>
+              </div>
+
+              <div className="border-t border-fog pt-[24px] space-y-[0px]">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex justify-between items-center py-[14px] border-b border-fog last:border-0">
+                    <div>
+                      <div className="skeleton w-[64px] h-[20px] rounded mb-[6px]"></div>
+                      <div className="skeleton w-[120px] h-[16px] rounded"></div>
+                    </div>
+                    <div className="flex items-center gap-[24px]">
+                      <div className="skeleton w-[24px] h-[20px] rounded"></div>
+                      <div className="skeleton w-[16px] h-[24px] rounded text-right"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-[40px]">
+                <div className="skeleton w-[140px] h-[20px] rounded"></div>
+              </div>
+            </>
           ) : error ? (
             <div className="py-[32px] text-center border border-fog rounded-[16px]">
               <p className="text-step-sm-2 text-ash">{error}</p>

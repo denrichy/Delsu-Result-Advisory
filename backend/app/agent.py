@@ -71,7 +71,10 @@ def _execute_tool(function_name, function_args, matric_number):
 def run_agent(matric_number: str, user_message: str, conversation_history=None):
     if conversation_history is None:
         conversation_history = []
-        
+    
+    # Trim conversation history to the last 8 messages (4 user + 4 assistant turns)
+    conversation_history = conversation_history[-8:]
+    
     system_prompt = (
         "You are Compass, an academic advisory assistant for a DELSU Computer \n"
         "Science student. You're warm, direct, and conversational — not robotic. \n\n"
@@ -83,9 +86,14 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "all relate to their GPA/performance).\n\n"
         "You can have natural conversation — greetings, small talk, follow-up \n"
         "questions — but you stay in character as their academic advisor. If \n"
-        "asked something entirely unrelated to academics (general trivia, other \n"
-        "topics), politely redirect: acknowledge it briefly and warmly steer back \n"
-        "to what you can help with, without being curt or robotic about it.\n\n"
+        "the student greets you (hello, hi, good day, good morning, how are you, etc.) \n"
+        "or makes small talk, respond warmly and naturally like a real person would — a \n"
+        "short greeting back, maybe ask how their day/studies are going. Do NOT call \n"
+        "any tool for a plain greeting with no academic question attached. Never return \n"
+        "an empty or overly clipped response to a greeting. If asked something entirely \n"
+        "unrelated to academics (general trivia, other topics), politely redirect: \n"
+        "acknowledge it briefly and warmly steer back to what you can help with, \n"
+        "without being curt or robotic about it.\n\n"
         "You must NEVER invent, estimate, or fabricate any number, score, or breakdown \n"
         "that wasn't directly returned by a tool call. If a student asks for information \n"
         "your tools cannot provide (e.g. a CA/Exam breakdown, since only a combined \n"
@@ -260,7 +268,56 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
             print("[DIAGNOSTIC] Groq API failed after retries on final call.")
             return "I'm having trouble processing that — could you rephrase your question?"
         final_text = second_response.choices[0].message.content
+        
+        if not final_text or not final_text.strip():
+            print("[DIAGNOSTIC] Final response is empty. Forcing a retry with explicit instructions.")
+            messages.append({
+                "role": "user",
+                "content": "Summarize the tool result above in a clear, direct sentence for the student. Do not return an empty response."
+            })
+            try:
+                third_response = _call_groq(messages, tools, tool_choice="auto", temperature=0)
+                final_text = third_response.choices[0].message.content
+            except BadRequestError:
+                pass
+                
+            if not final_text or not final_text.strip():
+                print("[DIAGNOSTIC] Fallback to raw Python string because model returned empty twice.")
+                # We use the 'result' from the last executed tool in the loop
+                if result is None:
+                    final_text = "I couldn't find any results for that query."
+                elif isinstance(result, (int, float)):
+                    final_text = f"Your result is {result}."
+                elif isinstance(result, dict) and "hypothetical_gpa" in result:
+                    final_text = f"Your hypothetical GPA would be {result['hypothetical_gpa']}."
+                elif isinstance(result, list):
+                    if len(result) == 0:
+                        final_text = "There are no records to show."
+                    else:
+                        final_text = f"I found {len(result)} records matching your query."
+                else:
+                    final_text = f"Here is the result: {result}"
+                    
         print(f"[DIAGNOSTIC] Final model response: {repr(final_text)}")
         return final_text
         
-    return response_message.content
+    final_text = response_message.content
+    
+    if not final_text or not final_text.strip():
+        print("[DIAGNOSTIC] Final response is empty for no-tool path. Forcing a retry with explicit instructions.")
+        messages.append({
+            "role": "user",
+            "content": "Please respond warmly to the greeting or small talk above. Do not return an empty response."
+        })
+        try:
+            retry_response = _call_groq(messages, tools, tool_choice="auto", temperature=0)
+            final_text = retry_response.choices[0].message.content
+        except BadRequestError:
+            pass
+            
+        if not final_text or not final_text.strip():
+            print("[DIAGNOSTIC] Fallback to hardcoded greeting because model returned empty twice.")
+            final_text = "Hello! I'm here to help with your academic records. How are your studies going?"
+            
+    print(f"[DIAGNOSTIC] Final model response: {repr(final_text)}")
+    return final_text

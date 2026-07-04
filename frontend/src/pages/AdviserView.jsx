@@ -49,7 +49,7 @@ export default function AdviserDashboard() {
     navigate('/');
   };
 
-  if (loading || profileLoading) return null;
+  if (loading) return null;
   if (!session) return null;
 
   const header = (
@@ -68,7 +68,7 @@ export default function AdviserDashboard() {
   );
 
   // Pending verification state
-  if (!profile || profile.verified === false) {
+  if (!profileLoading && (!profile || profile.verified === false)) {
     return (
       <div className="min-h-screen bg-pure-canvas">
         {header}
@@ -96,7 +96,9 @@ export default function AdviserDashboard() {
         <div className="mb-[48px]">
           <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
           <h1 className="text-step-3xl text-midnight-ink">
-            Welcome back, {profile.name}.
+            {profileLoading 
+              ? <>Welcome back, <span className="skeleton inline-block w-[200px] h-[32px] rounded-lg align-middle mb-[4px]" /></>
+              : `Welcome back, ${profile.name}.`}
           </h1>
         </div>
 

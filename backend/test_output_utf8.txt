@@ -1,0 +1,227 @@
+﻿Starting test with matric number: FOS/22/23/100006
+============================================================
+
+============================================================
+MESSAGE 1/50
+USER: good morning!
+============================================================
+
+[DIAGNOSTIC] User message: 'good morning!'
+[DIAGNOSTIC] Initial model response text: 'Good morning! How are you doing today? How are your studies going?'
+[DIAGNOSTIC] tool_calls present? NO
+[DIAGNOSTIC] Final model response: 'Good morning! How are you doing today? How are your studies going?'
+
+AGENT RESPONSE:
+Good morning! How are you doing today? How are your studies going?
+
+============================================================
+MESSAGE 2/50
+USER: how's your day going?
+============================================================
+
+[DIAGNOSTIC] User message: "how's your day going?"
+[DIAGNOSTIC] Initial model response text: "My day is going well, thank you for asking! I'm ready to help you with any academic questions you might have. Is there anything specific you'd like to discuss about your courses or performance today?"
+[DIAGNOSTIC] tool_calls present? NO
+[DIAGNOSTIC] Final model response: "My day is going well, thank you for asking! I'm ready to help you with any academic questions you might have. Is there anything specific you'd like to discuss about your courses or performance today?"
+
+AGENT RESPONSE:
+My day is going well, thank you for asking! I'm ready to help you with any academic questions you might have. Is there anything specific you'd like to discuss about your courses or performance today?
+
+============================================================
+MESSAGE 3/50
+USER: what if I scored A in all my courses?
+============================================================
+
+[DIAGNOSTIC] User message: 'what if I scored A in all my courses?'
+[DIAGNOSTIC] Initial model response text: None
+[DIAGNOSTIC] tool_calls present? YES ù simulate_gpa_uniform
+[DIAGNOSTIC] Executed tool: simulate_gpa_uniform({'hypothetical_grade_letter': 'A'}), Returned: {'hypothetical_gpa': 5.0, 'current_gpa': 4.45, 'hypothetical_grade': 'A'}
+[DIAGNOSTIC] Final model response: "If you scored an 'A' in all your courses, your cumulative GPA would be 5.0. Your current cumulative GPA is 4.45."
+
+AGENT RESPONSE:
+If you scored an 'A' in all your courses, your cumulative GPA would be 5.0. Your current cumulative GPA is 4.45.
+
+============================================================
+MESSAGE 4/50
+USER: what if I scored F in all my courses?
+============================================================
+
+[DIAGNOSTIC] User message: 'what if I scored F in all my courses?'
+[DIAGNOSTIC] Initial model response text: None
+[DIAGNOSTIC] tool_calls present? YES ù simulate_gpa_uniform
+[DIAGNOSTIC] Executed tool: simulate_gpa_uniform({'hypothetical_grade_letter': 'F'}), Returned: {'hypothetical_gpa': 0.0, 'current_gpa': 4.45, 'hypothetical_grade': 'F'}
+[DIAGNOSTIC] Final model response: "If you scored an 'F' in all your courses, your cumulative GPA would be 0.0. Your current cumulative GPA is 4.45."
+
+AGENT RESPONSE:
+If you scored an 'F' in all your courses, your cumulative GPA would be 0.0. Your current cumulative GPA is 4.45.
+
+============================================================
+MESSAGE 5/50
+USER: what was my CA and exam breakdown for MTH213?
+============================================================
+
+[DIAGNOSTIC] User message: 'what was my CA and exam breakdown for MTH213?'
+[DIAGNOSTIC] Initial model response text: "I don't have the specific breakdown of CA and exam scores for MTH213 in your records. My tools only provide the final score and grade for each course."
+[DIAGNOSTIC] tool_calls present? NO
+[DIAGNOSTIC] Safety net TRIGGERED ù response contains suspicious patterns, retrying with tool_choice='auto'
+[DIAGNOSTIC] Safety net retried model response text: "I don't have the specific breakdown of CA and exam scores for MTH213 in your records. My tools only provide the final score and grade for each course."
+[DIAGNOSTIC] tool_calls present after retry? NO
+[DIAGNOSTIC] Final model response: "I don't have the specific breakdown of CA and exam scores for MTH213 in your records. My tools only provide the final score and grade for each course."
+
+AGENT RESPONSE:
+I don't have the specific breakdown of CA and exam scores for MTH213 in your records. My tools only provide the final score and grade for each course.
+
+============================================================
+MESSAGE 6/50
+USER: what's my attendance record?
+============================================================
+
+[DIAGNOSTIC] User message: "what's my attendance record?"
+[DIAGNOSTIC] Initial model response text: "I don't have access to your attendance records. I can only provide information about your grades, GPA, and course performance."
+[DIAGNOSTIC] tool_calls present? NO
+[DIAGNOSTIC] Safety net TRIGGERED ù response contains suspicious patterns, retrying with tool_choice='auto'
+[DIAGNOSTIC] Safety net retried model response text: "I'm sorry, but I don't have access to your attendance records. My tools can provide information about your grades, GPA, and course performance, but not attendance."
+[DIAGNOSTIC] tool_calls present after retry? NO
+[DIAGNOSTIC] Final model response: "I'm sorry, but I don't have access to your attendance records. My tools can provide information about your grades, GPA, and course performance, but not attendance."
+
+AGENT RESPONSE:
+I'm sorry, but I don't have access to your attendance records. My tools can provide information about your grades, GPA, and course performance, but not attendance.
+
+============================================================
+MESSAGE 7/50
+USER: what's my rank compared to my classmates?
+============================================================
+
+[DIAGNOSTIC] User message: "what's my rank compared to my classmates?"
+[DIAGNOSTIC] Initial model response text: "I'm sorry, but I don't have access to information about your rank compared to your classmates. My tools can provide details about your individual academic performance, such as your GPA and course scores, but not comparative class rankings."
+[DIAGNOSTIC] tool_calls present? NO
+[DIAGNOSTIC] Safety net TRIGGERED ù response contains suspicious patterns, retrying with tool_choice='auto'
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash\nPlease retry in 28.875276945s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '28s'}]}}]
+
+============================================================
+MESSAGE 8/50
+USER: am I on track to graduate with a First Class?
+============================================================
+
+[DIAGNOSTIC] User message: 'am I on track to graduate with a First Class?'
+[DIAGNOSTIC] Initial model response text: "I can't tell you if you're on track to graduate with a First Class degree. My tools don't have information about specific degree requirements or classifications. I can help you with your GPA and course performance, though!"
+[DIAGNOSTIC] tool_calls present? NO
+[DIAGNOSTIC] Safety net TRIGGERED ù response contains suspicious patterns, retrying with tool_choice='auto'
+[DIAGNOSTIC] Safety net retried model response text: "I can't tell you if you're on track to graduate with a First Class degree. My tools don't have information about specific degree requirements or classifications. I can help you with your GPA and course performance, though!"
+[DIAGNOSTIC] tool_calls present after retry? NO
+[DIAGNOSTIC] Final model response: "I can't tell you if you're on track to graduate with a First Class degree. My tools don't have information about specific degree requirements or classifications. I can help you with your GPA and course performance, though!"
+
+AGENT RESPONSE:
+I can't tell you if you're on track to graduate with a First Class degree. My tools don't have information about specific degree requirements or classifications. I can help you with your GPA and course performance, though!
+
+============================================================
+MESSAGE 9/50
+USER: what did I score in CSC999?
+============================================================
+
+[DIAGNOSTIC] User message: 'what did I score in CSC999?'
+[DIAGNOSTIC] Initial model response text: None
+[DIAGNOSTIC] tool_calls present? YES ù get_course_breakdown
+[DIAGNOSTIC] Executed tool: get_course_breakdown({}), Returned: [{'course_code': 'CSC401', 'units': 3, 'course_type': 'core', 'score': 86.0, 'grade': 'A', 'semester': 'First Semester', 'session': '2025/2026'}, {'course_code': 'CSC402', 'units': 2, 'course_type': 'elective', 'score': 73.0, 'grade': 'A', 'semester': 'First Semester', 'session': '2025/2026'}, {'course_code': 'CSC403', 'units': 3, 'course_type': 'core', 'score': 84.0, 'grade': 'A', 'semester': 'First Semester', 'session': '2025/2026'}, {'course_code': 'MTH213', 'units': 3, 'course_type': 'core', 'score': 53.0, 'grade': 'C', 'semester': 'First Semester', 'session': '2025/2026'}]
+[DIAGNOSTIC] Final model response: "You haven't taken CSC999. I can only see records for CSC401, CSC402, CSC403, and MTH213."
+
+AGENT RESPONSE:
+You haven't taken CSC999. I can only see records for CSC401, CSC402, CSC403, and MTH213.
+
+============================================================
+MESSAGE 10/50
+USER: what if I scored 150 in CSC401?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 43.12791223s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '43s'}]}}]
+
+============================================================
+MESSAGE 11/50
+USER: what if I scored -10 in CSC401?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 28.718189845s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '28s'}]}}]
+
+============================================================
+MESSAGE 12/50
+USER: what if I scored an A in a course I've never taken, like PHY999?
+============================================================
+
+[DIAGNOSTIC] User message: "what if I scored an A in a course I've never taken, like PHY999?"
+[DIAGNOSTIC] Initial model response text: "I can only simulate GPA changes for courses you have already taken. PHY999 isn't in your records."
+[DIAGNOSTIC] tool_calls present? NO
+[DIAGNOSTIC] Safety net TRIGGERED ù response contains suspicious patterns, retrying with tool_choice='auto'
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 12.116125675s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.5-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '12s'}]}}]
+
+============================================================
+MESSAGE 13/50
+USER: what's the weather like today?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 57.630438409s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '57s'}]}}]
+
+============================================================
+MESSAGE 14/50
+USER: sorry, back to my results ù what was my GPA again?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 42.974552004s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '42s'}]}}]
+
+============================================================
+MESSAGE 15/50
+USER: what if I had scored a B in MTH213 AND an A in CSC401, what would my GPA be?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 28.196465611s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.5-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '28s'}]}}]
+
+============================================================
+MESSAGE 16/50
+USER: what's the minimum I'd need across all courses to reach a 4.5 GPA?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 12.895981926s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.5-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '12s'}]}}]
+
+============================================================
+MESSAGE 17/50
+USER: do I have any failed courses?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 58.561688462s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.5-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '58s'}]}}]
+
+============================================================
+MESSAGE 18/50
+USER: am I eligible to graduate this semester?
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 43.161295334s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '43s'}]}}]
+
+============================================================
+MESSAGE 19/50
+USER: thanks, this is helpful
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 28.25427606s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.5-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '28s'}]}}]
+
+============================================================
+MESSAGE 20/50
+USER: thank you, goodbye
+============================================================
+
+AGENT RESPONSE:
+ERROR: Error code: 429 - [{'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 13.588513513s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '13s'}]}}]
+
+============================================================
+TEST COMPLETE.

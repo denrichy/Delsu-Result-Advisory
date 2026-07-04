@@ -45,7 +45,7 @@ export default function StudentDashboard() {
               </p>
               <h1 className="text-step-3xl text-midnight-ink">
                 {profileLoading
-                  ? 'Welcome back.'
+                  ? <>Welcome back, <span className="skeleton inline-block w-[200px] h-[32px] rounded-lg align-middle mb-[4px]" /></>
                   : profile?.matric_number
                   ? `Welcome back, ${profile.matric_number}.`
                   : 'Welcome back.'}

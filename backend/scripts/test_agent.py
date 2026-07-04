@@ -9,7 +9,10 @@ from app.agent import run_agent
 def main():
     matric = "FOS/22/23/100001"
     messages = [
-        "what was my CA and exam breakdown for MTH213?"
+        "hello",
+        "good day",
+        "how are you doing?",
+        "good morning"
     ]
 
     print(f"Testing agent for {matric}...\n")

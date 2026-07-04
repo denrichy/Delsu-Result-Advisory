@@ -98,11 +98,17 @@ export default function AdviserHistory() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                      Loading history...
-                    </td>
-                  </tr>
+                  [1, 2, 3].map((i) => (
+                    <tr key={i}>
+                      <td className="px-6 py-4"><div className="skeleton w-[160px] h-[20px] rounded"></div></td>
+                      <td className="px-6 py-4"><div className="skeleton w-[120px] h-[20px] rounded"></div></td>
+                      <td className="px-6 py-4"><div className="skeleton w-[40px] h-[20px] rounded"></div></td>
+                      <td className="px-6 py-4"><div className="skeleton w-[90px] h-[20px] rounded"></div></td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="skeleton inline-block w-[64px] h-[32px] rounded-full"></div>
+                      </td>
+                    </tr>
+                  ))
                 ) : history.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="px-6 py-12 text-center text-slate-500">

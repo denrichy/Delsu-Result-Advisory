@@ -78,8 +78,20 @@ export default function AdminDashboard() {
         </div>
 
         {fetchLoading ? (
-          <div className="py-[48px] text-center">
-            <p className="text-step-sm-2 text-ash">Loading…</p>
+          <div className="flex flex-col gap-[12px]">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between bg-pure-canvas border border-fog rounded-[16px] px-[24px] py-[20px]"
+              >
+                <div className="flex flex-col gap-[4px]">
+                  <div className="skeleton w-[160px] h-[24px] rounded"></div>
+                  <div className="skeleton w-[200px] h-[20px] rounded"></div>
+                  <div className="skeleton w-[120px] h-[16px] rounded"></div>
+                </div>
+                <div className="skeleton w-[80px] h-[36px] rounded-full flex-shrink-0 ml-[24px]"></div>
+              </div>
+            ))}
           </div>
         ) : pending.length === 0 ? (
           <div className="py-[48px] text-center border border-fog rounded-[16px]">
