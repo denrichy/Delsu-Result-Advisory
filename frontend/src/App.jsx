@@ -10,6 +10,7 @@ import AdviserUpload from './pages/AdviserUpload';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdviserHistory from './pages/AdviserHistory';
+import AdviserAnalytics from './pages/AdviserAnalytics';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/app/adviser" element={<AdviserView />} />
         <Route path="/app/adviser/upload" element={<AdviserUpload />} />
         <Route path="/app/adviser/history" element={<AdviserHistory />} />
+        <Route path="/app/adviser/analytics" element={<AdviserAnalytics />} />
 
         {/* Admin */}
         <Route path="/app/admin-login" element={<AdminLogin />} />

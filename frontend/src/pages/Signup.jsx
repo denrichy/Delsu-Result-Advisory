@@ -48,6 +48,7 @@ export default function Signup() {
   // Adviser fields
   const [name, setName] = useState('');
   const [department, setDepartment] = useState('');
+  const [level, setLevel] = useState('100');
   // Shared
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,7 +89,7 @@ export default function Signup() {
         const res = await fetch('http://127.0.0.1:8000/auth/adviser-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, department, auth_user_id: userId }),
+          body: JSON.stringify({ name, email, department, level: parseInt(level, 10), auth_user_id: userId }),
         });
         if (!res.ok) {
           const err = await res.json();
@@ -204,6 +205,24 @@ export default function Signup() {
                   disabled={loading} required
                   className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
                 />
+              </div>
+            )}
+
+            {/* Adviser-only: Level */}
+            {role === 'adviser' && (
+              <div className="flex flex-col gap-[6px]">
+                <label htmlFor="level" className="text-step-xs text-graphite uppercase tracking-widest">LEVEL</label>
+                <select
+                  id="level" value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                  disabled={loading} required
+                  className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                >
+                  <option value="100">100 Level</option>
+                  <option value="200">200 Level</option>
+                  <option value="300">300 Level</option>
+                  <option value="400">400 Level</option>
+                </select>
               </div>
             )}
 

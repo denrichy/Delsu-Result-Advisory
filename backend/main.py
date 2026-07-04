@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.db import supabase
-from app.routes import students, upload, auth, admin, agent_routes
+from app.routes import students, upload, auth, admin, agent_routes, notifications, analytics_routes
 
 app = FastAPI()
 
@@ -18,6 +18,8 @@ app.include_router(upload.router, prefix="/upload")
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(agent_routes.router)
+app.include_router(notifications.router)
+app.include_router(analytics_routes.router)
 
 @app.get("/health")
 def health_check():

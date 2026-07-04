@@ -14,6 +14,7 @@ class AdviserSignup(BaseModel):
     name: str
     email: str
     department: str
+    level: int
     auth_user_id: str
 
 @router.post("/student-signup")
@@ -58,6 +59,11 @@ def student_signup(data: StudentSignup):
 @router.post("/adviser-signup")
 def adviser_signup(data: AdviserSignup):
     try:
+        # Check for conflict: same department and same level, verified=true, revoked=false
+        conflict_res = supabase.table("advisers").select("*").eq("department", data.department).eq("level", data.level).eq("verified", True).eq("revoked", False).execute()
+        if conflict_res.data:
+            raise HTTPException(status_code=400, detail=f"An adviser is already assigned to {data.department} - {data.level} Level. Contact admin if this needs to change.")
+
         res = supabase.table("advisers").select("*").eq("email", data.email).execute()
         if res.data:
             if res.data[0].get("auth_user_id"):
@@ -67,6 +73,7 @@ def adviser_signup(data: AdviserSignup):
             "name": data.name,
             "email": data.email,
             "department": data.department,
+            "level": data.level,
             "auth_user_id": data.auth_user_id,
             "verified": False
         }).execute()
