@@ -11,7 +11,9 @@ from app.analytics import (
     get_grade_distribution,
     get_top_students,
     get_at_risk_students,
-    get_pass_fail_rate
+    get_pass_fail_rate,
+    get_student_carryovers,
+    get_all_carryovers
 )
 
 def run_tests():
@@ -38,6 +40,12 @@ def run_tests():
             print(f"   - {s['matric_number']}: {s['gpa']}")
     else:
         print("   - None found below threshold.")
+        
+    print("\n--- Carryover Analytics ---")
+    print("6. All System Carryovers:")
+    import json
+    all_c = get_all_carryovers()
+    print(json.dumps(all_c, indent=2))
         
 if __name__ == "__main__":
     run_tests()

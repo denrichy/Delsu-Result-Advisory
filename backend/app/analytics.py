@@ -80,3 +80,57 @@ def get_pass_fail_rate(course_code: str):
         "pass_rate": round((pass_count / total) * 100, 2),
         "fail_rate": round((fail_count / total) * 100, 2)
     }
+
+def parse_term(session: str, semester: str):
+    try:
+        year = int(session.split('/')[0].strip())
+    except Exception:
+        year = 0
+    sem = 1 if semester and semester.strip().lower() == 'first' else 2
+    return (year, sem)
+
+def get_student_carryovers(matric_number: str):
+    results = get_student_results(matric_number)
+    
+    outstanding = []
+    
+    for r in results:
+        if r.get('grade') == 'F':
+            course_code = r.get('course_code')
+            failed_term = parse_term(r.get('session', ''), r.get('semester', ''))
+            
+            later_pass = False
+            for later_r in results:
+                if later_r.get('course_code') == course_code and later_r.get('grade') != 'F':
+                    later_term = parse_term(later_r.get('session', ''), later_r.get('semester', ''))
+                    if later_term > failed_term:
+                        later_pass = True
+                        break
+            
+            if not later_pass:
+                if not any(x['course_code'] == course_code for x in outstanding):
+                    outstanding.append({
+                        "course_code": course_code,
+                        "session": r.get('session'),
+                        "semester": r.get('semester')
+                    })
+                    
+    return outstanding
+
+def get_all_carryovers():
+    students_res = supabase.table('students').select('matric_number').execute()
+    all_carryovers = []
+    
+    for s in students_res.data:
+        matric = s['matric_number']
+        student_carryovers = get_student_carryovers(matric)
+        for c in student_carryovers:
+            all_carryovers.append({
+                "matric_number": matric,
+                "course_code": c["course_code"],
+                "session": c["session"],
+                "semester": c["semester"]
+            })
+            
+    return all_carryovers
+
