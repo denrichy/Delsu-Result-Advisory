@@ -67,8 +67,28 @@ export default function AdviserDashboard() {
     </header>
   );
 
+  // Missing profile state
+  if (!profileLoading && (!profile || profile.found === false)) {
+    return (
+      <div className="min-h-screen bg-pure-canvas">
+        {header}
+        <main className="max-w-[720px] mx-auto px-[24px] py-[64px]">
+          <div className="mb-[40px]">
+            <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
+            <h1 className="text-step-3xl text-midnight-ink">Profile Not Found</h1>
+          </div>
+          <div className="py-[48px] px-[24px] text-center border border-fog rounded-[16px]">
+            <p className="text-step-sm-2 text-ash">
+              No adviser profile found for this account. Please contact support or sign up again.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   // Pending verification state
-  if (!profileLoading && (!profile || profile.verified === false)) {
+  if (!profileLoading && profile.verified === false) {
     return (
       <div className="min-h-screen bg-pure-canvas">
         {header}

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.db import supabase
+from app.db import supabase, supabase_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -45,6 +45,14 @@ def reject_adviser(adviser_id: str):
         if adviser.get("verified") == True:
             raise HTTPException(status_code=400, detail="Cannot reject an already approved adviser — use revoke instead")
         
+        # Delete the corresponding Supabase Auth user
+        auth_user_id = adviser.get("auth_user_id")
+        if auth_user_id:
+            if supabase_admin:
+                supabase_admin.auth.admin.delete_user(auth_user_id)
+            else:
+                print("Warning: SUPABASE_SERVICE_ROLE_KEY is not set. Skipping auth user deletion.")
+            
         res = supabase.table("advisers").delete().eq("id", adviser_id).execute()
         return {"success": True}
     except HTTPException:

@@ -6,6 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from app.ingestion import detect_sheet_format, melt_wide_format, detect_long_format_columns, parse_score_grade
 from app.db import supabase
+import re
 
 router = APIRouter(tags=["upload"])
 
@@ -131,6 +132,9 @@ async def upload_confirm(request: UploadConfirmRequest):
         students_created = 0
         results_inserted = 0
         
+        adviser_res = supabase.table("advisers").select("level").eq("id", request.adviser_id).execute()
+        adviser_level = adviser_res.data[0].get("level") if adviser_res.data else None
+        
         # 1. Process Courses
         course_id_map = {}
         unique_courses = {}
@@ -153,10 +157,16 @@ async def upload_confirm(request: UploadConfirmRequest):
                     else:
                         c_type = str(c_type).lower()
                 
+                level = None
+                match = re.search(r'\d', code)
+                if match:
+                    level = int(match.group(0)) * 100
+                
                 insert_data = {
                     "course_code": code,
                     "units": row.units,
-                    "course_type": c_type
+                    "course_type": c_type,
+                    "level": level
                 }
                 c_res = supabase.table("courses").insert(insert_data).execute()
                 if c_res.data:
@@ -170,11 +180,17 @@ async def upload_confirm(request: UploadConfirmRequest):
         for matric in unique_matrics:
             res = supabase.table("students").select("id").eq("matric_number", matric).execute()
             if res.data:
-                student_id_map[matric] = res.data[0]["id"]
+                student_id = res.data[0]["id"]
+                student_id_map[matric] = student_id
+                if adviser_level is not None:
+                    supabase.table("students").update({"current_level": adviser_level}).eq("id", student_id).execute()
             else:
                 insert_data = {
                     "matric_number": matric
                 }
+                if adviser_level is not None:
+                    insert_data["current_level"] = adviser_level
+                    
                 s_res = supabase.table("students").insert(insert_data).execute()
                 if s_res.data:
                     student_id_map[matric] = s_res.data[0]["id"]

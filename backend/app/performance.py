@@ -7,13 +7,14 @@ def get_student_results(matric_number: str):
         
     student_id = res.data[0]["id"]
     
-    r_res = supabase.table("results").select("*, courses(course_code, units, course_type)").eq("student_id", student_id).execute()
+    r_res = supabase.table("results").select("*, courses(course_code, units, course_type, level)").eq("student_id", student_id).execute()
     
     formatted_results = []
     for r in r_res.data:
         course = r.get("courses", {})
         formatted_results.append({
             "course_code": course.get("course_code"),
+            "level": course.get("level"),
             "units": course.get("units"),
             "course_type": course.get("course_type"),
             "score": r.get("score"),

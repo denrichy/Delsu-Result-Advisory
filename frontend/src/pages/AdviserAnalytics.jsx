@@ -31,11 +31,13 @@ export default function AdviserAnalytics() {
     async function fetchData() {
       setDataLoading(true);
       try {
+        const headers = { 'auth-user-id': session.user.id };
+        console.log('Sending auth-user-id header:', session.user.id);
         const [cRes, topRes, atRiskRes, carryRes] = await Promise.all([
-          fetch(`${API_BASE}/analytics/courses`),
-          fetch(`${API_BASE}/analytics/top-students?limit=5`),
-          fetch(`${API_BASE}/analytics/at-risk?threshold=2.5`),
-          fetch(`${API_BASE}/analytics/carryovers`)
+          fetch(`${API_BASE}/analytics/courses`, { headers }),
+          fetch(`${API_BASE}/analytics/top-students?limit=5`, { headers }),
+          fetch(`${API_BASE}/analytics/at-risk?threshold=2.5`, { headers }),
+          fetch(`${API_BASE}/analytics/carryovers`, { headers })
         ]);
 
         if (cRes.ok) setCourses(await cRes.json());

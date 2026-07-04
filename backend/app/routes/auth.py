@@ -17,9 +17,22 @@ class AdviserSignup(BaseModel):
     level: int
     auth_user_id: str
 
+def check_role_conflict(auth_user_id: str):
+    tables = [("student", "students"), ("adviser", "advisers"), ("admin", "admins")]
+    for role, table in tables:
+        res = supabase.table(table).select("auth_user_id").eq("auth_user_id", auth_user_id).execute()
+        if res.data:
+            return role
+    return None
+
 @router.post("/student-signup")
 def student_signup(data: StudentSignup):
     try:
+        # Cross-role conflict check
+        existing_role = check_role_conflict(data.auth_user_id)
+        if existing_role:
+            raise HTTPException(status_code=400, detail=f"This account is already registered as a {existing_role}. One account can only have one role.")
+
         # Check if student exists
         res = supabase.table("students").select("*").eq("matric_number", data.matric_number).execute()
         
@@ -59,6 +72,11 @@ def student_signup(data: StudentSignup):
 @router.post("/adviser-signup")
 def adviser_signup(data: AdviserSignup):
     try:
+        # Cross-role conflict check
+        existing_role = check_role_conflict(data.auth_user_id)
+        if existing_role:
+            raise HTTPException(status_code=400, detail=f"This account is already registered as a {existing_role}. One account can only have one role.")
+
         # Check for conflict: same department and same level, verified=true, revoked=false
         conflict_res = supabase.table("advisers").select("*").eq("department", data.department).eq("level", data.level).eq("verified", True).eq("revoked", False).execute()
         if conflict_res.data:

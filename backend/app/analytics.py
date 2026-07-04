@@ -32,11 +32,14 @@ def get_grade_distribution(course_code: str):
             
     return distribution
 
-def get_top_students(limit: int = 5):
-    students_res = supabase.table('students').select('matric_number').execute()
+def get_top_students(limit: int = 5, level: int = None):
+    students_res = supabase.table('students').select('matric_number, current_level').execute()
     student_gpas = []
     
     for s in students_res.data:
+        if level and s.get("current_level") != level:
+            continue
+            
         matric = s['matric_number']
         results = get_student_results(matric)
         if not results:
@@ -49,11 +52,14 @@ def get_top_students(limit: int = 5):
     student_gpas.sort(key=lambda x: x['gpa'], reverse=True)
     return student_gpas[:limit]
 
-def get_at_risk_students(gpa_threshold: float = 2.0):
-    students_res = supabase.table('students').select('matric_number').execute()
+def get_at_risk_students(gpa_threshold: float = 2.0, level: int = None):
+    students_res = supabase.table('students').select('matric_number, current_level').execute()
     at_risk = []
     
     for s in students_res.data:
+        if level and s.get("current_level") != level:
+            continue
+            
         matric = s['matric_number']
         results = get_student_results(matric)
         if not results:
@@ -117,11 +123,14 @@ def get_student_carryovers(matric_number: str):
                     
     return outstanding
 
-def get_all_carryovers():
-    students_res = supabase.table('students').select('matric_number').execute()
+def get_all_carryovers(level: int = None):
+    students_res = supabase.table('students').select('matric_number, current_level').execute()
     all_carryovers = []
     
     for s in students_res.data:
+        if level and s.get("current_level") != level:
+            continue
+            
         matric = s['matric_number']
         student_carryovers = get_student_carryovers(matric)
         for c in student_carryovers:
