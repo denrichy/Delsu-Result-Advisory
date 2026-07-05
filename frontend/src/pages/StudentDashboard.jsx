@@ -8,6 +8,7 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -16,13 +17,28 @@ export default function StudentDashboard() {
     }
   }, [loading, session, navigate]);
 
-  // Fetch student profile once we have a user
+  // Fetch student profile and notifications once we have a user
   useEffect(() => {
     if (!user?.id) return;
     setProfileLoading(true);
+    
+    // Fetch profile
     fetch(`http://127.0.0.1:8000/auth/student-profile/${user.id}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setProfile(data))
+      .then((data) => {
+        setProfile(data);
+        if (data?.id) {
+          // Fetch notifications to get unread count
+          fetch(`http://127.0.0.1:8000/notifications/student/${data.id}`)
+            .then(r => r.json())
+            .then(notifs => {
+              if (Array.isArray(notifs)) {
+                setUnreadCount(notifs.filter(n => !n.read).length);
+              }
+            })
+            .catch(console.error);
+        }
+      })
       .catch(() => setProfile(null))
       .finally(() => setProfileLoading(false));
   }, [user?.id]);
@@ -46,17 +62,38 @@ export default function StudentDashboard() {
               <h1 className="text-step-3xl text-midnight-ink">
                 {profileLoading
                   ? <>Welcome back, <span className="skeleton inline-block w-[200px] h-[32px] rounded-lg align-middle mb-[4px]" /></>
+                  : profile?.name
+                  ? `Welcome back, ${profile.name}.`
                   : profile?.matric_number
                   ? `Welcome back, ${profile.matric_number}.`
                   : 'Welcome back.'}
               </h1>
+              {!profileLoading && profile?.name && profile?.matric_number && (
+                <p className="text-step-sm-2 text-graphite mt-[4px]">
+                  {profile.matric_number}
+                </p>
+              )}
             </div>
-            <button
-              onClick={async () => { await signOut(); navigate('/'); }}
-              className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors mt-[8px]"
-            >
-              Log Out
-            </button>
+            <div className="flex items-center gap-[24px]">
+              <Link to="/app/student/notifications" className="relative text-graphite hover:text-midnight-ink transition-colors mt-[8px]">
+                {/* Bell Icon SVG */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-[5px] py-[1px] rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
+              <button
+                onClick={async () => { await signOut(); navigate('/'); }}
+                className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors mt-[8px]"
+              >
+                Log Out
+              </button>
+            </div>
           </div>
 
           {/* Tile Grid */}
@@ -90,21 +127,26 @@ export default function StudentDashboard() {
               </p>
             </Link>
 
-            {/* Tile 3: Notifications — coming soon */}
-            <div className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] opacity-50 cursor-not-allowed select-none">
+            {/* Tile 3: Notifications — active */}
+            <Link
+              to="/app/student/notifications"
+              className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block relative"
+            >
               <div className="flex items-start justify-between mb-[12px]">
                 <p className="text-step-xs text-ash uppercase tracking-widest">03</p>
-                <span className="text-step-xs text-ash border border-ash rounded-full px-[8px] py-[2px]">
-                  Coming soon
-                </span>
+                {unreadCount > 0 && (
+                  <span className="text-[11px] font-bold bg-red-50 text-red-600 border border-red-200 rounded-full px-[8px] py-[2px]">
+                    {unreadCount} New
+                  </span>
+                )}
               </div>
-              <h2 className="text-step-base-2 text-midnight-ink mb-[8px]">
+              <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
                 Notifications
               </h2>
               <p className="text-step-sm-2 text-graphite">
                 Stay updated on new results and announcements from your department.
               </p>
-            </div>
+            </Link>
 
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/useAuth';
@@ -12,10 +12,17 @@ export default function Login() {
   const navigate = useNavigate();
   const { session, loading: authLoading } = useAuth();
   const [checkingRole, setCheckingRole] = useState(true);
+  const isSubmitting = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
     if (!session?.user?.id) {
+      setCheckingRole(false);
+      return;
+    }
+    
+    // If the user is actively submitting the form, let handleSubmit take over the validation & routing
+    if (isSubmitting.current) {
       setCheckingRole(false);
       return;
     }
@@ -48,15 +55,50 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password) return;
+    
+    isSubmitting.current = true;
     setLoading(true);
     setError('');
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       setError(authError.message || 'Invalid email or password.');
       setLoading(false);
+      isSubmitting.current = false;
       return;
+    }
+
+    if (data?.user?.id) {
+      if (role === 'student') {
+        const { data: studentData, error: studentError } = await supabase
+          .from('students')
+          .select('id')
+          .eq('auth_user_id', data.user.id)
+          .single();
+
+        if (studentError || !studentData) {
+          await supabase.auth.signOut();
+          setError('Unauthorized: Student account required.');
+          setLoading(false);
+          isSubmitting.current = false;
+          return;
+        }
+      } else if (role === 'adviser') {
+        const { data: adviserData, error: adviserError } = await supabase
+          .from('advisers')
+          .select('id, revoked')
+          .eq('auth_user_id', data.user.id)
+          .single();
+
+        if (adviserError || !adviserData || adviserData.revoked) {
+          await supabase.auth.signOut();
+          setError('Unauthorized: Adviser account required or access revoked.');
+          setLoading(false);
+          isSubmitting.current = false;
+          return;
+        }
+      }
     }
 
     // Redirect based on chosen role

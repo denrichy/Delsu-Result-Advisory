@@ -11,12 +11,17 @@ def detect_sheet_format(filepath):
     matric_regex = re.compile(r'matric|reg\s*no|registration', re.IGNORECASE)
 
     # 1. Check for WIDE format
-    # The first row's headers include multiple values that look like course codes
-    row_0 = df.iloc[0].astype(str).tolist()
     wide_course_cols = []
-    for val in row_0:
-        if course_code_regex.match(val.strip()):
-            wide_course_cols.append(val.strip())
+    course_row_idx = -1
+    for i in range(min(10, len(df))):
+        row_vals = df.iloc[i].astype(str).tolist()
+        cols = []
+        for val in row_vals:
+            if course_code_regex.match(val.strip()):
+                cols.append(val.strip())
+        if len(cols) >= 1 and len(cols) > len(wide_course_cols):
+            wide_course_cols = cols
+            course_row_idx = i
 
     if len(wide_course_cols) >= 1:
         # Confidence increases with the number of course columns detected
@@ -24,7 +29,8 @@ def detect_sheet_format(filepath):
         return {
             "format": "wide",
             "confidence": round(confidence, 2),
-            "detected_course_columns": wide_course_cols
+            "detected_course_columns": wide_course_cols,
+            "course_row_idx": course_row_idx
         }
 
     # 2. Check for LONG format
@@ -79,26 +85,26 @@ def parse_score_grade(cell_value):
     except ValueError:
         return None
 
-def melt_wide_format(filepath, course_columns):
+def melt_wide_format(filepath, course_columns, course_row_idx=0):
     df = pd.read_excel(filepath, header=None)
-    if len(df) < 4:
+    if len(df) < course_row_idx + 4:
         return [], []
         
-    row_0 = df.iloc[0].astype(str).str.strip().tolist()
+    row_course = df.iloc[course_row_idx].astype(str).str.strip().tolist()
     course_indices = {}
     for code in course_columns:
-        for i, val in enumerate(row_0):
+        for i, val in enumerate(row_course):
             if val == code:
                 course_indices[code] = i
                 break
                 
-    row_1 = df.iloc[1].tolist()
-    row_2 = df.iloc[2].astype(str).str.strip().tolist()
+    row_units = df.iloc[course_row_idx + 1].tolist()
+    row_status = df.iloc[course_row_idx + 2].astype(str).str.strip().tolist()
     
     course_metadata = {}
     for code, idx in course_indices.items():
-        units_val = row_1[idx]
-        c_type = row_2[idx].upper() if pd.notna(row_2[idx]) and str(row_2[idx]).strip() != "nan" else None
+        units_val = row_units[idx]
+        c_type = row_status[idx].upper() if pd.notna(row_status[idx]) and str(row_status[idx]).strip() != "nan" else None
         try:
             units = int(float(units_val))
         except:
@@ -111,22 +117,63 @@ def melt_wide_format(filepath, course_columns):
         }
         
     matric_idx = -1
+    name_idx = -1
     sex_idx = -1
+    baseline_units_idx = -1
+    baseline_gps_idx = -1
+    outstanding_idx = -1
     matric_regex = re.compile(r'matric|reg\s*no|registration', re.IGNORECASE)
-    for i, val in enumerate(row_0):
-        if matric_regex.search(val):
-            matric_idx = i
-        elif "sex" in val.lower():
-            sex_idx = i
+    name_regex = re.compile(r'\bname\b|\bstudent\b', re.IGNORECASE)
+    
+    for row_idx in range(course_row_idx + 3):
+        row_vals = df.iloc[row_idx].astype(str).str.strip().tolist()
+        for i, val in enumerate(row_vals):
+            v_lower = val.lower()
+            if matric_regex.search(val):
+                matric_idx = i
+            elif name_regex.search(val):
+                name_idx = i
+            elif "sex" == v_lower or "sex " in v_lower:
+                sex_idx = i
+            elif "total units taken so far" in v_lower:
+                if baseline_units_idx == -1:
+                    baseline_units_idx = i
+            elif "cumulative grade points" in v_lower and "average" not in v_lower:
+                if baseline_gps_idx == -1:
+                    baseline_gps_idx = i
+            elif "compulsory courses outstanding" in v_lower:
+                outstanding_idx = i
             
     long_format_data = []
-    for _, row in df.iloc[3:].iterrows():
+    for _, row in df.iloc[course_row_idx + 3:].iterrows():
         matric = row[matric_idx] if matric_idx != -1 else None
         if pd.isna(matric) or str(matric).strip() == "":
             continue
             
+        name = row[name_idx] if name_idx != -1 else None
+        name = str(name).strip() if pd.notna(name) and str(name).strip() != "nan" else None
+            
         sex = row[sex_idx] if sex_idx != -1 else None
         sex = str(sex).strip() if pd.notna(sex) and str(sex).strip() != "nan" else None
+        
+        baseline_units = 0
+        baseline_gps = 0
+        if baseline_units_idx != -1:
+            try:
+                baseline_units = int(float(row[baseline_units_idx]))
+            except:
+                pass
+        if baseline_gps_idx != -1:
+            try:
+                baseline_gps = float(row[baseline_gps_idx])
+            except:
+                pass
+                
+        outstanding_courses_str = ""
+        if outstanding_idx != -1:
+            val = row[outstanding_idx]
+            if pd.notna(val) and str(val).strip() != "nan":
+                outstanding_courses_str = str(val).strip()
         
         for code, idx in course_indices.items():
             cell_val = row[idx]
@@ -137,7 +184,11 @@ def melt_wide_format(filepath, course_columns):
             if parsed:
                 long_format_data.append({
                     "matric_number": str(matric).strip(),
+                    "name": name,
                     "sex": sex,
+                    "baseline_units": baseline_units,
+                    "baseline_gps": baseline_gps,
+                    "outstanding_courses": outstanding_courses_str,
                     "course_code": code,
                     "units": course_metadata[code]["units"],
                     "course_type": course_metadata[code]["course_type"],
@@ -157,6 +208,8 @@ def detect_long_format_columns(df):
         "ca_column": None,
         "exam_column": None,
         "grade": None,
+        "units": None,
+        "course_type": None,
         "score_needs_parsing": False,
         "confidence": {}
     }
@@ -276,4 +329,11 @@ def detect_long_format_columns(df):
     if not mapping.get("score_needs_parsing", False):
         mapping["grade"] = assign_highest("grade")
         
+    for col in df.columns:
+        col_str = str(col).lower()
+        if mapping["units"] is None and ("unit" in col_str or "credit" in col_str):
+            mapping["units"] = col
+        if mapping["course_type"] is None and ("type" in col_str or "status" in col_str):
+            mapping["course_type"] = col
+            
     return mapping

@@ -37,7 +37,8 @@ function StudentView() {
 
       setStudentData({
         gpa: gpaData.gpa,
-        courses: coursesData.courses || []
+        courses: coursesData.courses || [],
+        outstanding: coursesData.outstanding || []
       });
       
     } catch (err) {
@@ -80,8 +81,10 @@ function StudentView() {
               studentData.courses.map((c, i) => (
                 <div key={i} className="flex justify-between items-center pb-4 border-b border-brand-hairline last:border-0 last:pb-0">
                   <div>
-                    <div className="font-mono font-medium text-brand-ink mb-1 text-sm">{c.course_code}</div>
-                    <div className="font-sans text-[13px] text-brand-muted">{c.semester} Sem, {c.session}</div>
+                    <div className="font-mono font-medium text-brand-ink mb-1 text-sm">
+                      {c.course_code} <span className="font-sans text-brand-muted font-normal ml-1">{c.title || ''}</span>
+                    </div>
+                    <div className="font-sans text-[13px] text-brand-muted">{c.semester} Sem, {c.session} • {c.units} Units</div>
                   </div>
                   <div className="text-right">
                     <div className="font-sans font-medium text-brand-ink mb-1">{c.score}</div>
@@ -95,6 +98,21 @@ function StudentView() {
               </div>
             )}
           </div>
+
+          {studentData.outstanding && studentData.outstanding.length > 0 && (
+            <div className="border-t border-brand-hairline pt-6 mb-8">
+              <h2 className="font-sans text-[11px] font-medium uppercase tracking-widest text-brand-muted mb-4">
+                Outstanding Compulsory Courses
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {studentData.outstanding.map((o, idx) => (
+                  <span key={idx} className="bg-[#fff0f0] text-[#c75c5c] text-xs px-2 py-1 rounded-[3px] font-mono border border-[#ffd6d6]">
+                    {o.course_code}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="text-center">
             <button 

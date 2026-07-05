@@ -17,7 +17,7 @@ export default function StudentLogin() {
     setLoading(true);
     setError('');
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -26,6 +26,21 @@ export default function StudentLogin() {
       setError(authError.message || 'Invalid email or password.');
       setLoading(false);
       return;
+    }
+
+    if (data?.user?.id) {
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('auth_user_id', data.user.id)
+        .single();
+
+      if (studentError || !studentData) {
+        await supabase.auth.signOut();
+        setError('Unauthorized: Student account required.');
+        setLoading(false);
+        return;
+      }
     }
 
     navigate('/student');

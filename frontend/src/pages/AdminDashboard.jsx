@@ -25,9 +25,24 @@ export default function AdminDashboard() {
     if (!session?.user?.id) return;
     setFetchLoading(true);
     
+    const headers = { 'auth-user-id': session.user.id };
+
+    const fetchWithAuth = async (url) => {
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          await signOut();
+          navigate('/app/admin-login');
+          throw new Error('Unauthorized admin access');
+        }
+        throw new Error(`Error: ${res.status}`);
+      }
+      return res.json();
+    };
+
     Promise.all([
-      fetch('http://127.0.0.1:8000/admin/advisers/pending').then(r => r.json()),
-      fetch('http://127.0.0.1:8000/admin/advisers/active').then(r => r.json())
+      fetchWithAuth('http://127.0.0.1:8000/admin/advisers/pending'),
+      fetchWithAuth('http://127.0.0.1:8000/admin/advisers/active')
     ])
       .then(([pendingData, activeData]) => {
         setPending(pendingData.pending || []);
@@ -35,13 +50,14 @@ export default function AdminDashboard() {
       })
       .catch((err) => console.error(err))
       .finally(() => setFetchLoading(false));
-  }, [session?.user?.id]);
+  }, [session?.user?.id, navigate, signOut]);
 
   const handleVerify = async (adviser) => {
     setVerifying(adviser.id);
     try {
       const res = await fetch(`http://127.0.0.1:8000/admin/advisers/${adviser.id}/verify`, {
         method: 'PATCH',
+        headers: { 'auth-user-id': session.user.id }
       });
       if (res.ok) {
         setPending((prev) => prev.filter((a) => a.id !== adviser.id));
@@ -62,6 +78,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`http://127.0.0.1:8000/admin/advisers/${adviser.id}/reject`, {
         method: 'DELETE',
+        headers: { 'auth-user-id': session.user.id }
       });
       if (res.ok) {
         setPending((prev) => prev.filter((a) => a.id !== adviser.id));
@@ -80,6 +97,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`http://127.0.0.1:8000/admin/advisers/${adviser.id}/revoke`, {
         method: 'PATCH',
+        headers: { 'auth-user-id': session.user.id }
       });
       if (res.ok) {
         setActiveAdvisers((prev) => prev.filter((a) => a.id !== adviser.id));

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import PublicNavbar from '../components/PublicNavbar';
 
 export default function AdviserHistory() {
-  const { user, session } = useAuth();
+  const { user, session, signOut } = useAuth();
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,13 +11,22 @@ export default function AdviserHistory() {
 
   useEffect(() => {
     if (!session) {
-      navigate('/app/adviser-login');
+      navigate('/app/login');
       return;
     }
 
     async function fetchHistory() {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/upload/history/${user.id}`);
+        // 1. Get the adviser profile ID (since user.id is the auth_user_id)
+        const profileRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${user.id}`);
+        const profileData = await profileRes.json();
+        
+        if (!profileData.found) {
+          throw new Error('Adviser profile not found');
+        }
+
+        // 2. Fetch history using the actual adviser table ID
+        const res = await fetch(`http://127.0.0.1:8000/upload/history/${profileData.id}`);
         if (!res.ok) {
           throw new Error('Failed to fetch history');
         }
@@ -58,9 +66,27 @@ export default function AdviserHistory() {
     }
   };
 
+  const header = (
+    <header className="sticky top-0 z-50 h-[60px] px-[24px] bg-pure-canvas border-b border-fog flex items-center justify-between">
+      <div className="flex items-center gap-[16px]">
+        <span className="text-step-base-2 text-midnight-ink">Compass</span>
+        <span className="text-step-xs text-ash border border-fog rounded-full px-[8px] py-[2px]">Adviser</span>
+      </div>
+      <button
+        onClick={() => {
+          signOut();
+          navigate('/app/login');
+        }}
+        className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
+      >
+        Sign out
+      </button>
+    </header>
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
-      <PublicNavbar />
+      {header}
       
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-16">
         <div className="flex items-center justify-between mb-8">

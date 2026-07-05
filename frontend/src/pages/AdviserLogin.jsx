@@ -17,12 +17,28 @@ export default function AdviserLogin() {
     setLoading(true);
     setError('');
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       setError(authError.message || 'Invalid email or password.');
       setLoading(false);
       return;
+    }
+
+    // Verify if the user is actually an adviser in our database
+    if (data?.user?.id) {
+      const { data: adviserData, error: adviserError } = await supabase
+        .from('advisers')
+        .select('id')
+        .eq('auth_user_id', data.user.id)
+        .single();
+
+      if (adviserError || !adviserData) {
+        await supabase.auth.signOut();
+        setError('Unauthorized: Adviser account required.');
+        setLoading(false);
+        return;
+      }
     }
 
     navigate('/adviser');

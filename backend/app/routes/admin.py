@@ -1,7 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header, Depends
 from app.db import supabase, supabase_admin
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+def verify_admin(auth_user_id: str = Header(None)):
+    if not auth_user_id:
+        raise HTTPException(status_code=401, detail="Missing auth-user-id header")
+    res = supabase.table("admins").select("id").eq("auth_user_id", auth_user_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    return auth_user_id
+
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(verify_admin)])
 
 
 @router.get("/advisers/pending")
@@ -70,6 +78,14 @@ def revoke_adviser(adviser_id: str):
         if adviser.get("verified") == False:
             raise HTTPException(status_code=400, detail="Cannot revoke a pending applicant — use reject instead")
         
+        # Delete the corresponding Supabase Auth user to prevent future logins
+        auth_user_id = adviser.get("auth_user_id")
+        if auth_user_id:
+            if supabase_admin:
+                supabase_admin.auth.admin.delete_user(auth_user_id)
+            else:
+                print("Warning: SUPABASE_SERVICE_ROLE_KEY is not set. Skipping auth user deletion on revoke.")
+
         res = supabase.table("advisers").update({"revoked": True}).eq("id", adviser_id).execute()
         return {"success": True}
     except HTTPException:

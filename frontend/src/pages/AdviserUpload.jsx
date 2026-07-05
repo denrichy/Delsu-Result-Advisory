@@ -17,6 +17,7 @@ export default function AdviserUpload() {
   // Preview State
   const [previewData, setPreviewData] = useState(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Success State
   const [uploadResult, setUploadResult] = useState(null);
@@ -81,6 +82,15 @@ export default function AdviserUpload() {
     if (!previewData?.all_rows || !profile?.id) return;
     
     setIsConfirming(true);
+    setUploadProgress(0);
+    
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) return 90;
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+
     try {
       const res = await fetch('http://127.0.0.1:8000/upload/confirm', {
         method: 'POST',
@@ -93,6 +103,12 @@ export default function AdviserUpload() {
           filename: file.name
         }),
       });
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      await new Promise(r => setTimeout(r, 300));
+      
       const data = await res.json();
       if (res.ok) {
         setUploadResult(data);
@@ -100,10 +116,12 @@ export default function AdviserUpload() {
         alert(data.detail || 'Confirmation failed');
       }
     } catch (err) {
+      clearInterval(progressInterval);
       console.error(err);
       alert('Network error occurred during confirmation.');
     } finally {
       setIsConfirming(false);
+      setUploadProgress(0);
     }
   };
 
@@ -176,7 +194,7 @@ export default function AdviserUpload() {
 
             <div className="border border-fog rounded-[16px] p-[24px] mb-[32px]">
               <p className="text-step-sm-2 text-midnight-ink mb-[8px]">
-                Detected: <strong className="capitalize">{previewData.format}</strong> format ({previewData.confidence}% confidence)
+                Detected: <strong className="capitalize">{previewData.format}</strong> format ({Math.round(previewData.confidence * 100)}% confidence)
               </p>
               <p className="text-step-sm-2 text-graphite mb-[24px]">
                 Total rows detected: <strong>{previewData.total_row_count}</strong>
@@ -186,7 +204,11 @@ export default function AdviserUpload() {
                 <div className="mb-[24px]">
                   <p className="text-step-sm-2 text-midnight-ink font-medium mb-[8px]">Detected Courses:</p>
                   <div className="flex flex-wrap gap-[8px]">
-                    {Object.entries(previewData.course_metadata).map(([code, meta]) => (
+                    {Array.isArray(previewData.course_metadata) ? previewData.course_metadata.map((meta) => (
+                      <span key={meta.course_code} className="text-step-xs text-ash border border-fog rounded-[4px] px-[8px] py-[4px]">
+                        {meta.course_code} ({meta.units}U, {meta.course_type})
+                      </span>
+                    )) : Object.entries(previewData.course_metadata).map(([code, meta]) => (
                       <span key={code} className="text-step-xs text-ash border border-fog rounded-[4px] px-[8px] py-[4px]">
                         {code} ({meta.units}U, {meta.course_type})
                       </span>
@@ -219,20 +241,31 @@ export default function AdviserUpload() {
               </div>
             </div>
 
-            <div className="flex gap-[16px]">
-              <button
-                onClick={handleConfirmUpload}
-                disabled={isConfirming}
-                className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 flex-1"
-              >
-                {isConfirming ? 'Processing...' : 'Confirm & Upload'}
-              </button>
-              <button
-                onClick={() => setPreviewData(null)}
-                className="bg-pure-canvas border border-fog text-midnight-ink text-step-sm rounded-full py-[12px] px-[24px] hover:border-graphite transition-colors flex-1"
-              >
-                Cancel
-              </button>
+            <div className="flex flex-col gap-[16px]">
+              {isConfirming && (
+                <div className="w-full bg-fog rounded-full h-[6px] overflow-hidden">
+                  <div 
+                    className="bg-midnight-ink h-full rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              )}
+              <div className="flex gap-[16px]">
+                <button
+                  onClick={handleConfirmUpload}
+                  disabled={isConfirming}
+                  className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 flex-1"
+                >
+                  {isConfirming ? 'Processing...' : 'Confirm & Upload'}
+                </button>
+                <button
+                  onClick={() => setPreviewData(null)}
+                  disabled={isConfirming}
+                  className="bg-pure-canvas border border-fog text-midnight-ink text-step-sm rounded-full py-[12px] px-[24px] hover:border-graphite transition-colors flex-1 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         ) : (

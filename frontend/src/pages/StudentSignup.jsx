@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 export default function StudentSignup() {
+  const [name, setName] = useState('');
   const [matricNumber, setMatricNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,7 +14,7 @@ export default function StudentSignup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!matricNumber.trim() || !email.trim() || !password || !confirmPassword) return;
+    if (!name.trim() || !matricNumber.trim() || !email.trim() || !password || !confirmPassword) return;
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
@@ -43,6 +44,7 @@ export default function StudentSignup() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          name: name.trim(),
           matric_number: matricNumber,
           email: email,
           auth_user_id: authData.user.id
@@ -101,6 +103,25 @@ export default function StudentSignup() {
           
           <div className="flex flex-col space-y-2">
             <label 
+              htmlFor="name" 
+              className="text-[11px] font-sans font-medium uppercase tracking-widest text-brand-muted"
+            >
+              FULL NAME
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. John Doe"
+              disabled={loading}
+              className="font-sans text-[15px] text-brand-ink bg-transparent border-0 border-b border-brand-hairline py-2 focus:ring-0 focus:outline-none focus:border-brand-accent transition-colors w-full disabled:opacity-50"
+              required
+            />
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <label 
               htmlFor="matric" 
               className="text-[11px] font-sans font-medium uppercase tracking-widest text-brand-muted"
             >
@@ -110,7 +131,7 @@ export default function StudentSignup() {
               id="matric"
               type="text"
               value={matricNumber}
-              onChange={(e) => setMatricNumber(e.target.value)}
+              onChange={(e) => setMatricNumber(e.target.value.toUpperCase())}
               placeholder="e.g. FOS/22/23/123456"
               disabled={loading}
               className="font-mono text-[15px] text-brand-ink bg-transparent border-0 border-b border-brand-hairline py-2 focus:ring-0 focus:outline-none focus:border-brand-accent transition-colors w-full disabled:opacity-50"

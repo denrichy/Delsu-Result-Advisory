@@ -7,13 +7,14 @@ def get_student_results(matric_number: str):
         
     student_id = res.data[0]["id"]
     
-    r_res = supabase.table("results").select("*, courses(course_code, units, course_type, level)").eq("student_id", student_id).execute()
+    r_res = supabase.table("results").select("*, courses(course_code, course_title, units, course_type, level)").eq("student_id", student_id).execute()
     
     formatted_results = []
     for r in r_res.data:
         course = r.get("courses", {})
         formatted_results.append({
             "course_code": course.get("course_code"),
+            "title": course.get("course_title"),
             "level": course.get("level"),
             "units": course.get("units"),
             "course_type": course.get("course_type"),
@@ -25,9 +26,9 @@ def get_student_results(matric_number: str):
         
     return formatted_results
 
-def calculate_gpa(results_list):
-    total_grade_points = 0.0
-    total_units = 0
+def calculate_gpa(results_list, baseline_units=0, baseline_gps=0.0):
+    total_grade_points = float(baseline_gps)
+    total_units = int(baseline_units)
     
     for r in results_list:
         score = r.get("score")
@@ -67,12 +68,50 @@ def get_semester_gpa(matric_number: str, semester: str, session: str):
     filtered = [r for r in results if r.get("semester") == semester and r.get("session") == session]
     return calculate_gpa(filtered)
 
-def get_cumulative_gpa(matric_number: str):
+def get_cumulative_gpa(matric_number: str, baseline_units=0, baseline_gps=0.0):
     results = get_student_results(matric_number)
-    return calculate_gpa(results)
+    return calculate_gpa(results, baseline_units, baseline_gps)
 
 def get_course_breakdown(matric_number: str):
     return get_student_results(matric_number)
+
+def get_full_academic_record(matric_number: str):
+    from app.analytics import get_student_carryovers
+    import re
+    
+    response = supabase.table("students").select("*").eq("matric_number", matric_number).execute()
+    if not response.data:
+        return {"error": "Student not found"}
+        
+    student = response.data[0]
+    courses = get_student_results(matric_number)
+    
+    baseline_units = student.get("baseline_units") or 0
+    baseline_gps = student.get("baseline_gps") or 0.0
+    cgpa = calculate_gpa(courses, baseline_units, baseline_gps)
+    
+    previous_outstanding_str = student.get("outstanding_courses") or ""
+    prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', previous_outstanding_str)
+    outstanding = [{"course_code": c.upper().replace(" ", "")} for c in prev_courses]
+    
+    if courses:
+        dynamic_carryovers = get_student_carryovers(matric_number)
+        for dc in dynamic_carryovers:
+            if not any(o["course_code"] == dc["course_code"] for o in outstanding):
+                outstanding.append(dc)
+                
+    return {
+        "student_info": {
+            "name": student.get("name"),
+            "matric_number": matric_number,
+            "current_level": student.get("current_level"),
+            "cgpa": cgpa,
+            "baseline_units": baseline_units,
+            "baseline_gps": baseline_gps
+        },
+        "outstanding_courses": outstanding,
+        "courses": courses
+    }
 
 def simulate_gpa(matric_number: str, course_code: str, hypothetical_input: str):
     results = get_student_results(matric_number)

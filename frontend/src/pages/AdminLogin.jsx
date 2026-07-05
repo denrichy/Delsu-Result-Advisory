@@ -16,12 +16,28 @@ export default function AdminLogin() {
     setLoading(true);
     setError('');
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       setError(authError.message || 'Invalid credentials.');
       setLoading(false);
       return;
+    }
+
+    // Verify if the user is actually an admin in our database
+    if (data?.user?.id) {
+      const { data: adminData, error: adminError } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('auth_user_id', data.user.id)
+        .single();
+
+      if (adminError || !adminData) {
+        await supabase.auth.signOut();
+        setError('Unauthorized: Admin access required.');
+        setLoading(false);
+        return;
+      }
     }
 
     navigate('/app/admin');

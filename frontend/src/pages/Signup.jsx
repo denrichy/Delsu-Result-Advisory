@@ -79,7 +79,7 @@ export default function Signup() {
         const res = await fetch('http://127.0.0.1:8000/auth/student-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ matric_number: matricNumber, email, auth_user_id: userId }),
+          body: JSON.stringify({ name: name.trim(), matric_number: matricNumber, email, auth_user_id: userId }),
         });
         if (!res.ok) {
           const err = await res.json();
@@ -154,19 +154,17 @@ export default function Signup() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-[20px]">
 
-            {/* Adviser-only: Name */}
-            {role === 'adviser' && (
-              <div className="flex flex-col gap-[6px]">
-                <label htmlFor="name" className="text-step-xs text-graphite uppercase tracking-widest">FULL NAME</label>
-                <input
-                  id="name" type="text" value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Dr. Jane Smith"
-                  disabled={loading} required
-                  className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
-                />
-              </div>
-            )}
+            {/* Shared: Name */}
+            <div className="flex flex-col gap-[6px]">
+              <label htmlFor="name" className="text-step-xs text-graphite uppercase tracking-widest">FULL NAME</label>
+              <input
+                id="name" type="text" value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={role === 'adviser' ? "Dr. Jane Smith" : "Jane Doe"}
+                disabled={loading} required
+                className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+              />
+            </div>
 
             {/* Student-only: Matric Number */}
             {role === 'student' && (
@@ -174,7 +172,7 @@ export default function Signup() {
                 <label htmlFor="matric" className="text-step-xs text-graphite uppercase tracking-widest">MATRICULATION NUMBER</label>
                 <input
                   id="matric" type="text" value={matricNumber}
-                  onChange={(e) => setMatricNumber(e.target.value)}
+                  onChange={(e) => setMatricNumber(e.target.value.toUpperCase())}
                   placeholder="e.g. FOS/22/23/123456"
                   disabled={loading} required
                   className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink font-mono placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"

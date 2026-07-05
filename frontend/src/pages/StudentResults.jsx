@@ -3,6 +3,27 @@ import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
 
+function calculateGPA(coursesArray) {
+  let totalGradePoints = 0;
+  let totalUnits = 0;
+  coursesArray.forEach(c => {
+    if (c.score != null && c.units != null) {
+      let gp = 0;
+      const scoreFloat = parseFloat(c.score);
+      const unitsInt = parseInt(c.units);
+      if (scoreFloat >= 70) gp = 5.0;
+      else if (scoreFloat >= 60) gp = 4.0;
+      else if (scoreFloat >= 50) gp = 3.0;
+      else if (scoreFloat >= 45) gp = 2.0;
+      else gp = 0.0;
+      totalGradePoints += (gp * unitsInt);
+      totalUnits += unitsInt;
+    }
+  });
+  if (totalUnits === 0) return null;
+  return (totalGradePoints / totalUnits).toFixed(2);
+}
+
 export default function StudentResults() {
   const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -11,6 +32,7 @@ export default function StudentResults() {
   const [error, setError] = useState('');
   const [studentData, setStudentData] = useState(null);
   const [matric, setMatric] = useState('');
+  const [selectedSession, setSelectedSession] = useState('All');
 
   // Redirect if no session
   useEffect(() => {
@@ -58,7 +80,8 @@ export default function StudentResults() {
 
         setStudentData({
           gpa: gpaData.gpa,
-          courses: coursesData.courses || []
+          courses: coursesData.courses || [],
+          outstanding: coursesData.outstanding || []
         });
       } catch (err) {
         console.error(err);
@@ -138,22 +161,128 @@ export default function StudentResults() {
                 </div>
               </div>
 
-              <div className="border-t border-fog pt-[24px] space-y-[0px]">
+              {studentData.outstanding && studentData.outstanding.length > 0 && (
+                <div className="mb-[32px] p-[16px] border border-[#ffd6d6] bg-[#fff0f0] rounded-[8px]">
+                  <h2 className="text-step-xs text-[#c75c5c] uppercase tracking-widest mb-[12px] font-medium">
+                    Outstanding Compulsory Courses
+                  </h2>
+                  <div className="flex flex-wrap gap-[8px]">
+                    {studentData.outstanding.map((o, idx) => (
+                      <span key={idx} className="bg-white text-[#c75c5c] border border-[#ffd6d6] text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
+                        {o.course_code}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {studentData.courses.length > 0 && Array.from(new Set(studentData.courses.map(c => c.session || 'Unknown Session'))).length > 1 && (
+                <div className="mb-[32px] flex items-center justify-end">
+                  <label htmlFor="sessionFilter" className="text-step-sm-2 text-graphite mr-[12px]">Filter by Session:</label>
+                  <select
+                    id="sessionFilter"
+                    value={selectedSession}
+                    onChange={(e) => setSelectedSession(e.target.value)}
+                    className="border border-fog rounded-[8px] px-[16px] py-[8px] text-step-sm text-midnight-ink focus:outline-none focus:border-midnight-ink transition-colors"
+                  >
+                    <option value="All">All Sessions</option>
+                    {Array.from(new Set(studentData.courses.map(c => c.session || 'Unknown Session')))
+                      .sort((a, b) => b.localeCompare(a))
+                      .map(session => (
+                        <option key={session} value={session}>{session}</option>
+                      ))
+                    }
+                  </select>
+                </div>
+              )}
+
+              <div className="pt-[24px] border-t border-fog">
                 {studentData.courses.length > 0 ? (
-                  studentData.courses.map((c, i) => (
-                    <div key={i} className="flex justify-between items-center py-[14px] border-b border-fog last:border-0">
-                      <div>
-                        <div className="text-step-sm text-midnight-ink font-mono mb-[2px]">{c.course_code}</div>
-                        <div className="text-step-xs text-graphite">{c.semester} Sem · {c.session}</div>
-                      </div>
-                      <div className="flex items-center gap-[24px]">
-                        <span className="text-step-sm-2 text-graphite">{c.score}</span>
-                        <span className="text-step-base-2 text-midnight-ink w-[20px] text-right">{c.grade}</span>
-                      </div>
+                  Object.entries(
+                    studentData.courses
+                      .filter(c => selectedSession === 'All' || (c.session || 'Unknown Session') === selectedSession)
+                      .reduce((acc, c) => {
+
+                      const session = c.session || 'Unknown Session';
+                      if (!acc[session]) acc[session] = { first: [], second: [] };
+                      
+                      const digitsMatch = c.course_code.match(/\d{3}/);
+                      let isSecond = false;
+                      if (digitsMatch) {
+                        const secondDigit = digitsMatch[0].charAt(1);
+                        if (secondDigit === '1') isSecond = true;
+                      }
+                      
+                      if (isSecond) {
+                        acc[session].second.push(c);
+                      } else {
+                        acc[session].first.push(c);
+                      }
+                      return acc;
+                    }, {})
+                  ).sort((a, b) => b[0].localeCompare(a[0])).map(([session, semesters]) => (
+                    <div key={session} className="mb-[48px] last:mb-0">
+                      <h2 className="text-step-base-2 text-midnight-ink mb-[24px] border-b border-fog pb-[8px]">
+                        Session: {session}
+                      </h2>
+                      
+                      {semesters.first.length > 0 && (
+                        <div className="mb-[32px] last:mb-0">
+                          <div className="flex items-center justify-between mb-[12px]">
+                            <h3 className="text-step-xs text-ash uppercase tracking-widest">First Semester</h3>
+                            <span className="text-step-xs font-mono text-midnight-ink bg-fog/30 px-[8px] py-[2px] rounded">
+                              GPA: {calculateGPA(semesters.first) || '-.--'}
+                            </span>
+                          </div>
+                          <div className="border-t border-fog space-y-[0px]">
+                            {semesters.first.map((c, i) => (
+                              <div key={i} className="flex justify-between items-center py-[14px] border-b border-fog last:border-0">
+                                <div>
+                                  <div className="text-step-sm text-midnight-ink font-mono mb-[4px]">
+                                    {c.course_code} <span className="font-sans text-graphite font-normal ml-[8px]">{c.title || ''}</span>
+                                  </div>
+                                  <div className="text-step-xs text-graphite uppercase tracking-widest">{c.units} Units</div>
+                                </div>
+                                <div className="flex items-center gap-[24px]">
+                                  <span className="text-step-sm-2 text-graphite">{c.score}</span>
+                                  <span className="text-step-base-2 text-midnight-ink w-[20px] text-right">{c.grade}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {semesters.second.length > 0 && (
+                        <div className="mb-[32px] last:mb-0">
+                          <div className="flex items-center justify-between mb-[12px]">
+                            <h3 className="text-step-xs text-ash uppercase tracking-widest">Second Semester</h3>
+                            <span className="text-step-xs font-mono text-midnight-ink bg-fog/30 px-[8px] py-[2px] rounded">
+                              GPA: {calculateGPA(semesters.second) || '-.--'}
+                            </span>
+                          </div>
+                          <div className="border-t border-fog space-y-[0px]">
+                            {semesters.second.map((c, i) => (
+                              <div key={i} className="flex justify-between items-center py-[14px] border-b border-fog last:border-0">
+                                <div>
+                                  <div className="text-step-sm text-midnight-ink font-mono mb-[4px]">
+                                    {c.course_code} <span className="font-sans text-graphite font-normal ml-[8px]">{c.title || ''}</span>
+                                  </div>
+                                  <div className="text-step-xs text-graphite uppercase tracking-widest">{c.units} Units</div>
+                                </div>
+                                <div className="flex items-center gap-[24px]">
+                                  <span className="text-step-sm-2 text-graphite">{c.score}</span>
+                                  <span className="text-step-base-2 text-midnight-ink w-[20px] text-right">{c.grade}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))
                 ) : (
-                  <div className="py-[32px] text-center">
+                  <div className="py-[32px] text-center border-t border-fog">
                     <p className="text-step-sm-2 text-ash">No courses recorded yet.</p>
                   </div>
                 )}

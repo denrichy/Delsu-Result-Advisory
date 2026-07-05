@@ -21,10 +21,21 @@ export default function AdviserDashboard() {
     setProfileLoading(true);
     fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`)
       .then((r) => r.json())
-      .then((data) => setProfile(data.found === true ? data : null))
+      .then((data) => {
+        if (data.found === true) {
+          if (data.revoked === true) {
+            signOut(); // Kick revoked users out immediately
+            setProfile(null);
+          } else {
+            setProfile(data);
+          }
+        } else {
+          setProfile(null);
+        }
+      })
       .catch(() => setProfile(null))
       .finally(() => setProfileLoading(false));
-  }, [session?.user?.id]);
+  }, [session?.user?.id, signOut]);
 
   // Poll for verification status if currently pending
   useEffect(() => {

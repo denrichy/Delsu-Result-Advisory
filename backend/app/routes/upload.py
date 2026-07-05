@@ -1,22 +1,28 @@
 import os
 import uuid
 import pandas as pd
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from typing import List, Optional
 from pydantic import BaseModel
 from app.ingestion import detect_sheet_format, melt_wide_format, detect_long_format_columns, parse_score_grade
 from app.db import supabase
+from app.utils.email import send_result_notifications_async
 import re
 
 router = APIRouter(tags=["upload"])
 
 class ResultRow(BaseModel):
     matric_number: Optional[str] = None
+    name: Optional[str] = None
+    sex: Optional[str] = None
     course_code: Optional[str] = None
     score: Optional[float] = None
     grade: Optional[str] = None
     units: Optional[int] = None
     course_type: Optional[str] = None
+    baseline_units: Optional[int] = 0
+    baseline_gps: Optional[float] = 0.0
+    outstanding_courses: Optional[str] = None
 
 class UploadConfirmRequest(BaseModel):
     rows: List[ResultRow]
@@ -47,7 +53,8 @@ async def upload_preview(file: UploadFile = File(...)):
         course_cols = detect_res.get("detected_course_columns", [])
         
         if fmt == "wide":
-            long_data, metadata = melt_wide_format(temp_filepath, course_cols)
+            course_row_idx = detect_res.get("course_row_idx", 0)
+            long_data, metadata = melt_wide_format(temp_filepath, course_cols, course_row_idx)
             return {
                 "format": "wide",
                 "confidence": confidence,
@@ -97,11 +104,24 @@ async def upload_preview(file: UploadFile = File(...)):
                     if pd.notna(g_val):
                         grade = str(g_val).strip().upper()
                         
+                units = None
+                if mapping.get("units") and pd.notna(row[mapping["units"]]):
+                    try:
+                        units = int(float(row[mapping["units"]]))
+                    except:
+                        pass
+                        
+                c_type = None
+                if mapping.get("course_type") and pd.notna(row[mapping["course_type"]]):
+                    c_type = str(row[mapping["course_type"]]).strip()
+                        
                 all_rows.append({
                     "matric_number": matric,
                     "course_code": course,
                     "score": score,
-                    "grade": grade
+                    "grade": grade,
+                    "units": units,
+                    "course_type": c_type
                 })
             
             return {
@@ -126,7 +146,7 @@ async def upload_preview(file: UploadFile = File(...)):
             os.remove(temp_filepath)
 
 @router.post("/confirm")
-async def upload_confirm(request: UploadConfirmRequest):
+async def upload_confirm(request: UploadConfirmRequest, background_tasks: BackgroundTasks):
     try:
         courses_created = 0
         students_created = 0
@@ -142,11 +162,13 @@ async def upload_confirm(request: UploadConfirmRequest):
             if r.course_code:
                 unique_courses[r.course_code] = r
                 
-        for code, row in unique_courses.items():
-            res = supabase.table("courses").select("id").eq("course_code", code).execute()
-            if res.data:
-                course_id_map[code] = res.data[0]["id"]
-            else:
+        if unique_courses:
+            res = supabase.table("courses").select("id, course_code, units, course_type").in_("course_code", list(unique_courses.keys())).execute()
+            existing_courses = {c["course_code"]: c for c in res.data} if res.data else {}
+            
+            new_courses_to_insert = []
+            
+            for code, row in unique_courses.items():
                 c_type = row.course_type
                 if c_type:
                     c_type_upper = str(c_type).upper()
@@ -157,44 +179,110 @@ async def upload_confirm(request: UploadConfirmRequest):
                     else:
                         c_type = str(c_type).lower()
                 
-                level = None
-                match = re.search(r'\d', code)
-                if match:
-                    level = int(match.group(0)) * 100
-                
-                insert_data = {
-                    "course_code": code,
-                    "units": row.units,
-                    "course_type": c_type,
-                    "level": level
-                }
-                c_res = supabase.table("courses").insert(insert_data).execute()
+                if code in existing_courses:
+                    existing_course = existing_courses[code]
+                    course_id_map[code] = existing_course["id"]
+                    
+                    needs_update = False
+                    update_data = {}
+                    if existing_course.get("units") is None and row.units is not None:
+                        update_data["units"] = row.units
+                        needs_update = True
+                    if existing_course.get("course_type") is None and c_type is not None:
+                        update_data["course_type"] = c_type
+                        needs_update = True
+                        
+                    if needs_update:
+                        supabase.table("courses").update(update_data).eq("id", existing_course["id"]).execute()
+                else:
+                    level = None
+                    match = re.search(r'\d', code)
+                    if match:
+                        level = int(match.group(0)) * 100
+                    
+                    new_courses_to_insert.append({
+                        "course_code": code,
+                        "units": row.units,
+                        "course_type": c_type,
+                        "level": level
+                    })
+                    
+            if new_courses_to_insert:
+                c_res = supabase.table("courses").insert(new_courses_to_insert).execute()
                 if c_res.data:
-                    course_id_map[code] = c_res.data[0]["id"]
-                    courses_created += 1
+                    for c in c_res.data:
+                        course_id_map[c["course_code"]] = c["id"]
+                    courses_created += len(c_res.data)
                     
         # 2. Process Students
         student_id_map = {}
-        unique_matrics = set(r.matric_number for r in request.rows if r.matric_number)
+        student_email_map = {}
         
-        for matric in unique_matrics:
-            res = supabase.table("students").select("id").eq("matric_number", matric).execute()
-            if res.data:
-                student_id = res.data[0]["id"]
-                student_id_map[matric] = student_id
-                if adviser_level is not None:
-                    supabase.table("students").update({"current_level": adviser_level}).eq("id", student_id).execute()
-            else:
-                insert_data = {
-                    "matric_number": matric
-                }
-                if adviser_level is not None:
-                    insert_data["current_level"] = adviser_level
+        student_baselines = {}
+        for r in request.rows:
+            if r.matric_number:
+                if r.matric_number not in student_baselines:
+                    student_baselines[r.matric_number] = {
+                        "name": r.name,
+                        "baseline_units": r.baseline_units or 0,
+                        "baseline_gps": r.baseline_gps or 0.0,
+                        "outstanding_courses": r.outstanding_courses or ""
+                    }
                     
-                s_res = supabase.table("students").insert(insert_data).execute()
+        unique_matrics = list(student_baselines.keys())
+        
+        if unique_matrics:
+            res = supabase.table("students").select("id, email, matric_number, name, current_level, baseline_units, baseline_gps, outstanding_courses").in_("matric_number", unique_matrics).execute()
+            existing_students = {s["matric_number"]: s for s in res.data} if res.data else {}
+            
+            new_students_to_insert = []
+            
+            for matric in unique_matrics:
+                if matric in existing_students:
+                    existing = existing_students[matric]
+                    student_id = existing["id"]
+                    student_id_map[matric] = student_id
+                    student_email_map[matric] = existing.get("email")
+                    
+                    update_data = {}
+                    if adviser_level is not None and existing.get("current_level") != adviser_level:
+                        update_data["current_level"] = adviser_level
+                        
+                    new_name = student_baselines[matric].get("name")
+                    if new_name and existing.get("name") != new_name:
+                        update_data["name"] = new_name
+                        
+                    # Always update baselines to the latest broadsheet values
+                    new_baseline_units = student_baselines[matric].get("baseline_units")
+                    new_baseline_gps = student_baselines[matric].get("baseline_gps")
+                    new_outstanding = student_baselines[matric].get("outstanding_courses")
+                    if new_baseline_units is not None and existing.get("baseline_units") != new_baseline_units:
+                        update_data["baseline_units"] = new_baseline_units
+                    if new_baseline_gps is not None and existing.get("baseline_gps") != new_baseline_gps:
+                        update_data["baseline_gps"] = new_baseline_gps
+                    if new_outstanding is not None and existing.get("outstanding_courses") != new_outstanding:
+                        update_data["outstanding_courses"] = new_outstanding
+                        
+                    if update_data:
+                        supabase.table("students").update(update_data).eq("id", student_id).execute()
+                else:
+                    insert_data = {
+                        "matric_number": matric,
+                        "name": student_baselines[matric].get("name"),
+                        "password_hash": get_password_hash("password123"), # default password
+                        "current_level": adviser_level if adviser_level else 100,
+                        "baseline_units": student_baselines[matric].get("baseline_units"),
+                        "baseline_gps": student_baselines[matric].get("baseline_gps"),
+                        "outstanding_courses": student_baselines[matric].get("outstanding_courses")
+                    }
+                    new_students_to_insert.append(insert_data)
+                    
+            if new_students_to_insert:
+                s_res = supabase.table("students").insert(new_students_to_insert).execute()
                 if s_res.data:
-                    student_id_map[matric] = s_res.data[0]["id"]
-                    students_created += 1
+                    for s in s_res.data:
+                        student_id_map[s["matric_number"]] = s["id"]
+                    students_created += len(s_res.data)
 
         # 3. Create Upload Record
         upload_data = {
@@ -231,6 +319,38 @@ async def upload_confirm(request: UploadConfirmRequest):
             r_res = supabase.table("results").insert(results_data).execute()
             if r_res.data:
                 results_inserted = len(r_res.data)
+                
+        # 5. Dispatch notifications to affected students
+        notification_data = []
+        student_emails_for_resend = []
+        
+        for matric, student_id in student_id_map.items():
+            # For DB notifications
+            notification_data.append({
+                "student_id": student_id,
+                "message": f"New results have been published for {request.semester} - {request.session}."
+            })
+            
+            # For Email notifications
+            email = student_email_map.get(matric)
+            if email:
+                student_emails_for_resend.append({
+                    "email": email,
+                    "matric": matric
+                })
+                
+        # Insert DB notifications
+        if notification_data:
+            supabase.table("notifications").insert(notification_data).execute()
+            
+        # Dispatch emails in background
+        if student_emails_for_resend:
+            background_tasks.add_task(
+                send_result_notifications_async,
+                student_emails_for_resend,
+                request.semester,
+                request.session
+            )
         
         return {
             "students_created": students_created,
@@ -244,6 +364,10 @@ async def upload_confirm(request: UploadConfirmRequest):
 @router.delete("/{upload_id}")
 async def delete_upload(upload_id: str):
     try:
+        # Get all student IDs associated with this upload before deleting
+        res_students = supabase.table("results").select("student_id").eq("upload_id", upload_id).execute()
+        student_ids = list(set([r["student_id"] for r in res_students.data])) if res_students.data else []
+
         # First, check how many results are associated so we can report back
         res_count = supabase.table("results").select("*", count="exact").eq("upload_id", upload_id).execute()
         results_deleted = res_count.count if res_count and hasattr(res_count, 'count') and res_count.count is not None else 0
@@ -252,6 +376,17 @@ async def delete_upload(upload_id: str):
         d_res = supabase.table("uploads").delete().eq("id", upload_id).execute()
         if not d_res.data:
             raise HTTPException(status_code=404, detail="Upload not found or already deleted")
+            
+        # Clean up baseline data for students who no longer have any results
+        for sid in student_ids:
+            remain_res = supabase.table("results").select("id").eq("student_id", sid).limit(1).execute()
+            if not remain_res.data:
+                # No more results for this student, wipe their baselines
+                supabase.table("students").update({
+                    "baseline_units": 0,
+                    "baseline_gps": 0.0,
+                    "outstanding_courses": ""
+                }).eq("id", sid).execute()
             
         return {
             "success": True,

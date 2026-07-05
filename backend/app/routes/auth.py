@@ -6,6 +6,7 @@ import traceback
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 class StudentSignup(BaseModel):
+    name: str
     matric_number: str
     email: str
     auth_user_id: str
@@ -33,8 +34,10 @@ def student_signup(data: StudentSignup):
         if existing_role:
             raise HTTPException(status_code=400, detail=f"This account is already registered as a {existing_role}. One account can only have one role.")
 
+        matric = data.matric_number.strip().upper()
+        
         # Check if student exists
-        res = supabase.table("students").select("*").eq("matric_number", data.matric_number).execute()
+        res = supabase.table("students").select("*").eq("matric_number", matric).execute()
         
         if res.data:
             existing = res.data[0]
@@ -42,10 +45,14 @@ def student_signup(data: StudentSignup):
                 raise HTTPException(status_code=400, detail="Account already claimed by another user.")
             
             # Update the existing record
-            update_res = supabase.table("students").update({
+            update_data = {
                 "email": data.email,
                 "auth_user_id": data.auth_user_id
-            }).eq("matric_number", data.matric_number).execute()
+            }
+            # Always update name to what they provided during signup (since they know their own name)
+            update_data["name"] = data.name
+            
+            update_res = supabase.table("students").update(update_data).eq("matric_number", matric).execute()
             
             if not update_res.data:
                 raise HTTPException(status_code=500, detail="Failed to claim account.")
@@ -54,7 +61,8 @@ def student_signup(data: StudentSignup):
         else:
             # Insert new record
             insert_res = supabase.table("students").insert({
-                "matric_number": data.matric_number,
+                "matric_number": matric,
+                "name": data.name,
                 "email": data.email,
                 "auth_user_id": data.auth_user_id
             }).execute()
@@ -110,7 +118,7 @@ def adviser_signup(data: AdviserSignup):
 def get_student_profile(auth_user_id: str):
     try:
         res = supabase.table("students") \
-            .select("matric_number, name, email, auth_user_id, department") \
+            .select("id, matric_number, name, email, auth_user_id, department") \
             .eq("auth_user_id", auth_user_id) \
             .execute()
 
@@ -131,7 +139,7 @@ def get_student_profile(auth_user_id: str):
 def get_adviser_profile(auth_user_id: str):
     try:
         res = supabase.table("advisers") \
-            .select("id, name, email, department, verified, auth_user_id") \
+            .select("id, name, email, department, verified, revoked, auth_user_id") \
             .eq("auth_user_id", auth_user_id) \
             .execute()
 

@@ -11,7 +11,7 @@ load_dotenv(_env_path)
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-from app.performance import get_semester_gpa, get_cumulative_gpa, get_course_breakdown, simulate_gpa, simulate_gpa_uniform
+from app.performance import get_semester_gpa, get_cumulative_gpa, get_course_breakdown, get_full_academic_record, simulate_gpa, simulate_gpa_uniform
 
 # Maximum retries for Groq tool_use_failed errors
 MAX_RETRIES = 2
@@ -54,6 +54,8 @@ def _execute_tool(function_name, function_args, matric_number):
         return get_cumulative_gpa(matric_number)
     elif function_name == "get_course_breakdown":
         return get_course_breakdown(matric_number)
+    elif function_name == "get_full_academic_record":
+        return get_full_academic_record(matric_number)
     elif function_name == "simulate_gpa":
         return simulate_gpa(
             matric_number,
@@ -79,10 +81,10 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "You are Compass, an academic advisory assistant for a DELSU Computer \n"
         "Science student. You're warm, direct, and conversational — not robotic. \n\n"
         "You have access to tools that retrieve the student's real academic data \n"
-        "(GPA, course scores, breakdowns). Always use these tools to answer any \n"
-        "question about their performance, grades, or academic standing — never \n"
+        "(GPA, course scores, breakdowns, outstanding courses, carryovers). Always use these tools to answer any \n"
+        "question about their performance, grades, outstanding courses, or academic standing — never \n"
         "guess or estimate numbers. Recognize varied ways students might ask the \n"
-        "same thing (e.g. 'how am I doing', 'am I on track', 'should I be worried' \n"
+        "same thing (e.g. 'how am I doing', 'am I on track', 'what carryovers do I have', 'should I be worried' \n"
         "all relate to their GPA/performance).\n\n"
         "You can have natural conversation — greetings, small talk, follow-up \n"
         "questions — but you stay in character as their academic advisor. If \n"
@@ -163,8 +165,8 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         {
             "type": "function",
             "function": {
-                "name": "get_course_breakdown",
-                "description": "Get the full list of all courses the student has taken, including scores and grades.",
+                "name": "get_full_academic_record",
+                "description": "Get the student's full academic profile, including their overall CGPA, course breakdown, outstanding courses (carryovers), and total units.",
                 "parameters": {
                     "type": "object",
                     "properties": {},
@@ -254,11 +256,17 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
             result = _execute_tool(function_name, function_args, matric_number)
             print(f"[DIAGNOSTIC] Executed tool: {function_name}({function_args}), Returned: {result}")
             
+            # Prevent sending a raw "null" to the LLM, which it often misinterprets as a missing tool call
+            if result is None:
+                tool_response_content = json.dumps({"status": "No records found or GPA calculation returned empty."})
+            else:
+                tool_response_content = json.dumps(result)
+                
             messages.append({
                 "tool_call_id": tool_call.id,
                 "role": "tool",
                 "name": function_name,
-                "content": json.dumps(result)
+                "content": tool_response_content
             })
             
         # 3. Final call to model with tool results
