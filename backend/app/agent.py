@@ -88,6 +88,8 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "guess or estimate numbers. Recognize varied ways students might ask the \n"
         "same thing (e.g. 'how am I doing', 'am I on track', 'what carryovers do I have', 'should I be worried' \n"
         "all relate to their GPA/performance).\n\n"
+        "CRITICAL RULE: Do NOT mention the names of your internal tools (e.g. 'check_graduation_prospects', 'get_full_academic_record') "
+        "to the student. Frame your responses naturally, as if you are directly accessing their records.\n\n"
         "When the student asks a broad, holistic question about their overall academic standing \n"
         "(e.g., 'how am I doing academically', 'give me a summary of my performance', 'am I on track'), \n"
         "ALWAYS use the get_full_academic_record tool. Do NOT just fetch a single metric like their cumulative GPA. \n"
