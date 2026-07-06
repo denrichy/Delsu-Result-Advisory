@@ -60,7 +60,7 @@ export default function AdviserUpload() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('${import.meta.env.VITE_API_BASE}/upload/preview', {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/upload/preview`, {
         method: 'POST',
         body: formData,
       });
@@ -92,7 +92,7 @@ export default function AdviserUpload() {
     }, 200);
 
     try {
-      const res = await fetch('${import.meta.env.VITE_API_BASE}/upload/confirm', {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/upload/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

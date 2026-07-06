@@ -41,8 +41,8 @@ export default function AdminDashboard() {
     };
 
     Promise.all([
-      fetchWithAuth('${import.meta.env.VITE_API_BASE}/admin/advisers/pending'),
-      fetchWithAuth('${import.meta.env.VITE_API_BASE}/admin/advisers/active')
+      fetchWithAuth(`${import.meta.env.VITE_API_BASE}/admin/advisers/pending`),
+      fetchWithAuth(`${import.meta.env.VITE_API_BASE}/admin/advisers/active`)
     ])
       .then(([pendingData, activeData]) => {
         setPending(pendingData.pending || []);

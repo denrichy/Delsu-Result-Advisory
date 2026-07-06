@@ -32,7 +32,7 @@ export default function AdviserSignup() {
       if (!authData?.user?.id) throw new Error('No user returned from Supabase.');
 
       // 2. Register adviser profile via backend
-      const res = await fetch('${import.meta.env.VITE_API_BASE}/auth/adviser-signup', {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

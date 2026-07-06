@@ -76,7 +76,7 @@ export default function Signup() {
       const userId = authData.user.id;
 
       if (role === 'student') {
-        const res = await fetch('${import.meta.env.VITE_API_BASE}/auth/student-signup', {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: name.trim(), matric_number: matricNumber, email, auth_user_id: userId }),
@@ -86,7 +86,7 @@ export default function Signup() {
           throw new Error(err.detail || 'Failed to link student account.');
         }
       } else {
-        const res = await fetch('${import.meta.env.VITE_API_BASE}/auth/adviser-signup', {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, department, level: parseInt(level, 10), auth_user_id: userId }),

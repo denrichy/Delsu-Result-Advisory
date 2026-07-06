@@ -65,7 +65,7 @@ export default function StudentAdvisor() {
     const history = messages.map((m) => ({ role: m.role, content: m.content }));
 
     try {
-      const res = await fetch('${import.meta.env.VITE_API_BASE}/agent/chat', {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/agent/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
