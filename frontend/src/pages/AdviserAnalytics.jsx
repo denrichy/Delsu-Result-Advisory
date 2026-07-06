@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+let globalAnalyticsCache = null;
+let globalAnalyticsFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export default function AdviserAnalytics() {
   const { session, loading } = useAuth();
@@ -21,7 +25,7 @@ export default function AdviserAnalytics() {
   const [dataLoading, setDataLoading] = useState(true);
 
   // Notification states
-  const [notifyState, setNotifyState] = useState({}); // { [matric]: { open: boolean, message: string } }
+  const [notifying, setNotifying] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) navigate('/app/login');
@@ -29,10 +33,18 @@ export default function AdviserAnalytics() {
 
   useEffect(() => {
     async function fetchData() {
+      if (globalAnalyticsCache && Date.now() - globalAnalyticsFetchTime < CACHE_DURATION) {
+        setCourses(globalAnalyticsCache.courses);
+        setTopStudents(globalAnalyticsCache.topStudents);
+        setAtRiskStudents(globalAnalyticsCache.atRiskStudents);
+        setCarryovers(globalAnalyticsCache.carryovers);
+        setDataLoading(false);
+        return;
+      }
+      
       setDataLoading(true);
       try {
         const headers = { 'auth-user-id': session.user.id };
-        console.log('Sending auth-user-id header:', session.user.id);
         const [cRes, topRes, atRiskRes, carryRes] = await Promise.all([
           fetch(`${API_BASE}/analytics/courses`, { headers }),
           fetch(`${API_BASE}/analytics/top-students?limit=5`, { headers }),
@@ -40,10 +52,23 @@ export default function AdviserAnalytics() {
           fetch(`${API_BASE}/analytics/carryovers`, { headers })
         ]);
 
-        if (cRes.ok) setCourses(await cRes.json());
-        if (topRes.ok) setTopStudents(await topRes.json());
-        if (atRiskRes.ok) setAtRiskStudents(await atRiskRes.json());
-        if (carryRes.ok) setCarryovers(await carryRes.json());
+        const cData = cRes.ok ? await cRes.json() : [];
+        const topData = topRes.ok ? await topRes.json() : [];
+        const atRiskData = atRiskRes.ok ? await atRiskRes.json() : [];
+        const carryData = carryRes.ok ? await carryRes.json() : [];
+
+        setCourses(cData);
+        setTopStudents(topData);
+        setAtRiskStudents(atRiskData);
+        setCarryovers(carryData);
+        
+        globalAnalyticsCache = {
+          courses: cData,
+          topStudents: topData,
+          atRiskStudents: atRiskData,
+          carryovers: carryData
+        };
+        globalAnalyticsFetchTime = Date.now();
       } catch (err) {
         console.error("Error fetching analytics data", err);
       } finally {
@@ -91,42 +116,38 @@ export default function AdviserAnalytics() {
     fetchCourseStats();
   }, [selectedCourse]);
 
-  const handleNotifySubmit = async (matric_number) => {
-    const msg = notifyState[matric_number]?.message;
-    if (!msg) return;
-
+  const handleBulkNotify = async () => {
+    if (!window.confirm("This will send an in-app notification and email to ALL students with carryovers. Continue?")) return;
+    
+    setNotifying(true);
     try {
-      const res = await fetch(`${API_BASE}/notifications/send`, {
+      const headers = { 'auth-user-id': session.user.id };
+      const res = await fetch(`${API_BASE}/analytics/notify-carryovers`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_matric_number: matric_number, message: msg })
+        headers
       });
       if (res.ok) {
-        alert('Notification sent!');
-        setNotifyState(prev => ({ ...prev, [matric_number]: { open: false, message: '' } }));
+        alert("Notifications successfully sent to all students with carryovers!");
       } else {
-        alert('Failed to send notification.');
+        alert("Failed to send notifications.");
       }
     } catch (e) {
-      alert('Error sending notification.');
+      alert("Error sending notifications.");
+    } finally {
+      setNotifying(false);
     }
   };
 
-  const toggleNotify = (identifier) => {
-    setNotifyState(prev => ({
-      ...prev,
-      [identifier]: {
-        open: !prev[identifier]?.open,
-        message: prev[identifier]?.message || ''
-      }
-    }));
-  };
-
-  const updateNotifyMsg = (identifier, val) => {
-    setNotifyState(prev => ({
-      ...prev,
-      [identifier]: { ...prev[identifier], message: val }
-    }));
+  const handleRefresh = () => {
+    globalAnalyticsCache = null;
+    globalAnalyticsFetchTime = 0;
+    setCourseStats(null);
+    setSelectedCourse('');
+    setDataLoading(true);
+    // The trick is to force the effect to re-run. Since we only depend on session,
+    // we can just duplicate the fetch logic here, or extract fetchData into a callback.
+    // For simplicity, we just clear the cache and reload the page or call window.location.reload()
+    window.location.reload();
   };
 
   if (loading || dataLoading) {
@@ -136,6 +157,14 @@ export default function AdviserAnalytics() {
       </div>
     );
   }
+
+  const carryoversByStudent = {};
+  carryovers.forEach(c => {
+    if (!carryoversByStudent[c.matric_number]) {
+      carryoversByStudent[c.matric_number] = [];
+    }
+    carryoversByStudent[c.matric_number].push(c);
+  });
 
   return (
     <div className="min-h-screen bg-pure-canvas pb-24">
@@ -150,9 +179,21 @@ export default function AdviserAnalytics() {
       </header>
 
       <main className="max-w-[1000px] mx-auto px-[24px] py-[64px]">
-        <div className="mb-[64px]">
-          <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
-          <h1 className="text-step-3xl text-midnight-ink">Analytics</h1>
+        <div className="mb-[64px] flex items-start justify-between">
+          <div>
+            <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
+            <h1 className="text-step-3xl text-midnight-ink">Analytics</h1>
+          </div>
+          <button 
+            onClick={handleRefresh}
+            className="text-step-xs text-midnight-ink border border-fog hover:bg-fog transition-colors rounded-full px-[16px] py-[6px] flex items-center gap-[6px]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+            Refresh Data
+          </button>
         </div>
 
         {/* SECTION 1: COURSE PERFORMANCE */}
@@ -239,24 +280,9 @@ export default function AdviserAnalytics() {
                     <span className="text-step-lg text-midnight-ink">{s.gpa}</span>
                   </div>
                   
-                  <button onClick={() => toggleNotify(s.matric_number)} className="text-step-xs text-graphite hover:text-midnight-ink underline underline-offset-4">
+                  <button className="text-step-xs text-graphite opacity-50 cursor-not-allowed line-through" disabled>
                     Send Reminder
                   </button>
-
-                  {notifyState[s.matric_number]?.open && (
-                    <div className="mt-4 flex gap-2">
-                      <input 
-                        type="text" 
-                        placeholder="Type a message..."
-                        className="flex-1 bg-transparent border border-fog rounded-md px-3 py-1.5 text-step-sm text-midnight-ink focus:outline-none focus:border-midnight-ink"
-                        value={notifyState[s.matric_number].message}
-                        onChange={(e) => updateNotifyMsg(s.matric_number, e.target.value)}
-                      />
-                      <button onClick={() => handleNotifySubmit(s.matric_number)} className="bg-midnight-ink text-pure-canvas text-step-sm px-4 py-1.5 rounded-md hover:bg-graphite transition-colors">
-                        Send
-                      </button>
-                    </div>
-                  )}
                 </div>
               ))}
               {atRiskStudents.length === 0 && <p className="text-step-sm text-ash">No at-risk students found.</p>}
@@ -266,50 +292,49 @@ export default function AdviserAnalytics() {
 
         {/* SECTION 4: CARRYOVERS */}
         <section>
-          <h2 className="text-step-xl text-midnight-ink mb-[24px]">Outstanding Carryovers</h2>
+          <div className="flex items-center justify-between mb-[24px]">
+            <h2 className="text-step-xl text-midnight-ink">Outstanding Carryovers</h2>
+            <button 
+              onClick={handleBulkNotify}
+              disabled={notifying || Object.keys(carryoversByStudent).length === 0}
+              className="bg-midnight-ink text-pure-canvas px-[20px] py-[8px] rounded-lg hover:bg-graphite transition-colors text-step-sm-2 disabled:opacity-50"
+            >
+              {notifying ? "Sending..." : "Notify All Carryover Students"}
+            </button>
+          </div>
           <div className="bg-pure-canvas border border-fog rounded-[16px] overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-fog bg-fog/20">
                   <th className="p-[16px] text-step-xs text-ash font-normal tracking-widest uppercase">Student</th>
-                  <th className="p-[16px] text-step-xs text-ash font-normal tracking-widest uppercase">Course</th>
-                  <th className="p-[16px] text-step-xs text-ash font-normal tracking-widest uppercase">Session Failed</th>
-                  <th className="p-[16px] text-step-xs text-ash font-normal tracking-widest uppercase">Action</th>
+                  <th className="p-[16px] text-step-xs text-ash font-normal tracking-widest uppercase">Courses</th>
                 </tr>
               </thead>
               <tbody>
-                {carryovers.map((c, i) => {
-                  const identifier = `${c.matric_number}-${c.course_code}`;
+                {Object.keys(carryoversByStudent).map((matric, i) => {
+                  const studentCarryovers = carryoversByStudent[matric];
                   return (
                     <tr key={i} className="border-b border-fog last:border-0 hover:bg-fog/10 transition-colors">
-                      <td className="p-[16px] text-step-sm-2 text-midnight-ink">{c.matric_number}</td>
-                      <td className="p-[16px] text-step-sm-2 text-midnight-ink">{c.course_code}</td>
-                      <td className="p-[16px] text-step-sm-2 text-graphite">{c.session} ({c.semester})</td>
+                      <td className="p-[16px] text-step-sm-2 text-midnight-ink font-medium">{matric}</td>
                       <td className="p-[16px]">
-                        <button onClick={() => toggleNotify(identifier)} className="text-step-xs text-graphite hover:text-midnight-ink underline underline-offset-4">
-                          Notify
-                        </button>
-                        {notifyState[identifier]?.open && (
-                          <div className="mt-3 flex gap-2 w-max">
-                            <input 
-                              type="text" 
-                              placeholder="Type a message..."
-                              className="bg-transparent border border-fog rounded-md px-3 py-1 text-step-xs text-midnight-ink focus:outline-none focus:border-midnight-ink"
-                              value={notifyState[identifier].message}
-                              onChange={(e) => updateNotifyMsg(identifier, e.target.value)}
-                            />
-                            <button onClick={() => handleNotifySubmit(c.matric_number)} className="bg-midnight-ink text-pure-canvas text-step-xs px-3 py-1 rounded-md hover:bg-graphite transition-colors">
-                              Send
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex flex-wrap gap-[8px]">
+                          {studentCarryovers.map((c, idx) => (
+                            <span 
+                              key={idx} 
+                              className="bg-white border border-[#ffd6d6] text-[#c75c5c] text-[11px] px-[8px] py-[4px] rounded-[4px] font-mono whitespace-nowrap"
+                              title={`${c.session} (${c.semester})`}
+                            >
+                              {c.course_code}
+                            </span>
+                          ))}
+                        </div>
                       </td>
                     </tr>
                   )
                 })}
-                {carryovers.length === 0 && (
+                {Object.keys(carryoversByStudent).length === 0 && (
                   <tr>
-                    <td colSpan="4" className="p-[16px] text-step-sm text-ash text-center">No outstanding carryovers found.</td>
+                    <td colSpan="2" className="p-[16px] text-step-sm text-ash text-center">No outstanding carryovers found.</td>
                   </tr>
                 )}
               </tbody>

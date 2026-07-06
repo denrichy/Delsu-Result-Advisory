@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
+import { supabase } from '../lib/supabaseClient';
 
 export default function StudentDashboard() {
   const { user, loading, session, signOut } = useAuth();
@@ -9,6 +10,8 @@ export default function StudentDashboard() {
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -20,16 +23,16 @@ export default function StudentDashboard() {
   // Fetch student profile and notifications once we have a user
   useEffect(() => {
     if (!user?.id) return;
-    setProfileLoading(true);
+    if (refreshTrigger === 0) setProfileLoading(true);
     
     // Fetch profile
-    fetch(`http://127.0.0.1:8000/auth/student-profile/${user.id}`)
+    fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${user.id}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         setProfile(data);
         if (data?.id) {
           // Fetch notifications to get unread count
-          fetch(`http://127.0.0.1:8000/notifications/student/${data.id}`)
+          fetch(`${import.meta.env.VITE_API_BASE}/notifications/student/${data.id}`)
             .then(r => r.json())
             .then(notifs => {
               if (Array.isArray(notifs)) {
@@ -40,7 +43,41 @@ export default function StudentDashboard() {
         }
       })
       .catch(() => setProfile(null))
-      .finally(() => setProfileLoading(false));
+      .finally(() => {
+        if (refreshTrigger === 0) setProfileLoading(false);
+      });
+  }, [user?.id, refreshTrigger]);
+
+  // Supabase Realtime Subscription
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    let timeoutId;
+    const handleUpdate = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setRefreshTrigger(prev => prev + 1);
+      }, 2000);
+    };
+    
+    const channel = supabase
+      .channel('student-dashboard-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications' },
+        handleUpdate
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'students' },
+        handleUpdate
+      )
+      .subscribe();
+
+    return () => {
+      clearTimeout(timeoutId);
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
 
   // While auth state resolves, show nothing

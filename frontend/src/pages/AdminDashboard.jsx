@@ -41,8 +41,8 @@ export default function AdminDashboard() {
     };
 
     Promise.all([
-      fetchWithAuth('http://127.0.0.1:8000/admin/advisers/pending'),
-      fetchWithAuth('http://127.0.0.1:8000/admin/advisers/active')
+      fetchWithAuth('${import.meta.env.VITE_API_BASE}/admin/advisers/pending'),
+      fetchWithAuth('${import.meta.env.VITE_API_BASE}/admin/advisers/active')
     ])
       .then(([pendingData, activeData]) => {
         setPending(pendingData.pending || []);
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   const handleVerify = async (adviser) => {
     setVerifying(adviser.id);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/admin/advisers/${adviser.id}/verify`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/admin/advisers/${adviser.id}/verify`, {
         method: 'PATCH',
         headers: { 'auth-user-id': session.user.id }
       });
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
     
     setRejecting(adviser.id);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/admin/advisers/${adviser.id}/reject`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/admin/advisers/${adviser.id}/reject`, {
         method: 'DELETE',
         headers: { 'auth-user-id': session.user.id }
       });
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
     
     setRevoking(adviser.id);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/admin/advisers/${adviser.id}/revoke`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/admin/advisers/${adviser.id}/revoke`, {
         method: 'PATCH',
         headers: { 'auth-user-id': session.user.id }
       });

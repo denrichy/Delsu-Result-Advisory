@@ -40,7 +40,7 @@ export default function StudentSignup() {
       }
 
       // 2. Link the auth_user_id to the students table via our backend
-      const res = await fetch('http://127.0.0.1:8000/auth/student-signup', {
+      const res = await fetch('${import.meta.env.VITE_API_BASE}/auth/student-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

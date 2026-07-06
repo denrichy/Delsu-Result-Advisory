@@ -122,6 +122,14 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
     baseline_units_idx = -1
     baseline_gps_idx = -1
     outstanding_idx = -1
+    
+    # Official totals indices
+    curr_tcp_idx = -1
+    curr_tgp_idx = -1
+    cum_tcp_idx = -1
+    cum_tgp_idx = -1
+    cum_cgpa_idx = -1
+    
     matric_regex = re.compile(r'matric|reg\s*no|registration', re.IGNORECASE)
     name_regex = re.compile(r'\bname\b|\bstudent\b', re.IGNORECASE)
     
@@ -141,7 +149,22 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
             elif "cumulative grade points" in v_lower and "average" not in v_lower:
                 if baseline_gps_idx == -1:
                     baseline_gps_idx = i
+                else:
+                    cum_tgp_idx = i
+            elif "cumulative grade point average" in v_lower:
+                cum_cgpa_idx = i # Will overwrite if there's an earlier one, we want the last one!
+            elif "total units taken" in v_lower and "so far" not in v_lower:
+                if curr_tcp_idx == -1:
+                    curr_tcp_idx = i
+            elif "total grade points" in v_lower and "cumulative" not in v_lower:
+                if curr_tgp_idx == -1:
+                    curr_tgp_idx = i
+            elif "cumulative units taken so far" in v_lower:
+                if cum_tcp_idx == -1:
+                    cum_tcp_idx = i
             elif "compulsory courses outstanding" in v_lower and "units" not in v_lower:
+                outstanding_idx = i
+            elif "remarks" in v_lower:
                 outstanding_idx = i
             
     long_format_data = []
@@ -156,18 +179,22 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
         sex = row[sex_idx] if sex_idx != -1 else None
         sex = str(sex).strip() if pd.notna(sex) and str(sex).strip() != "nan" else None
         
-        baseline_units = 0
-        baseline_gps = 0
-        if baseline_units_idx != -1:
-            try:
-                baseline_units = int(float(row[baseline_units_idx]))
-            except:
-                pass
-        if baseline_gps_idx != -1:
-            try:
-                baseline_gps = float(row[baseline_gps_idx])
-            except:
-                pass
+        def safe_float(idx):
+            if idx != -1:
+                try:
+                    return float(row[idx])
+                except:
+                    pass
+            return None
+            
+        baseline_units = safe_float(baseline_units_idx) or 0
+        baseline_gps = safe_float(baseline_gps_idx) or 0.0
+        
+        curr_tcp = safe_float(curr_tcp_idx)
+        curr_tgp = safe_float(curr_tgp_idx)
+        cum_tcp = safe_float(cum_tcp_idx)
+        cum_tgp = safe_float(cum_tgp_idx)
+        cum_cgpa = safe_float(cum_cgpa_idx)
                 
         outstanding_courses_str = ""
         if outstanding_idx != -1:
@@ -186,9 +213,14 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
                     "matric_number": str(matric).strip(),
                     "name": name,
                     "sex": sex,
-                    "baseline_units": baseline_units,
+                    "baseline_units": int(baseline_units),
                     "baseline_gps": baseline_gps,
                     "outstanding_courses": outstanding_courses_str,
+                    "official_curr_tcp": curr_tcp,
+                    "official_curr_tgp": curr_tgp,
+                    "official_cum_tcp": cum_tcp,
+                    "official_cum_tgp": cum_tgp,
+                    "official_cgpa": cum_cgpa,
                     "course_code": code,
                     "units": course_metadata[code]["units"],
                     "course_type": course_metadata[code]["course_type"],

@@ -40,7 +40,7 @@ export default function AdviserUpload() {
   useEffect(() => {
     if (!session?.user?.id) return;
     setProfileLoading(true);
-    fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`)
+    fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`)
       .then((r) => r.json())
       .then((data) => setProfile(data.found === true ? data : null))
       .catch(() => setProfile(null))
@@ -60,7 +60,7 @@ export default function AdviserUpload() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/upload/preview', {
+      const res = await fetch('${import.meta.env.VITE_API_BASE}/upload/preview', {
         method: 'POST',
         body: formData,
       });
@@ -92,7 +92,7 @@ export default function AdviserUpload() {
     }, 200);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/upload/confirm', {
+      const res = await fetch('${import.meta.env.VITE_API_BASE}/upload/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,6 +214,20 @@ export default function AdviserUpload() {
                       </span>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {previewData.anomalies && previewData.anomalies.length > 0 && (
+                <div className="mb-[24px] border border-[#f5c6cb] bg-[#f8d7da] rounded-[8px] p-[16px]">
+                  <h3 className="text-[#721c24] text-step-sm-2 font-semibold mb-[8px]">⚠️ Anomalies Detected ({previewData.anomalies.length})</h3>
+                  <p className="text-[#721c24] text-step-xs mb-[12px]">The system detected discrepancies between the computed math and the official math in the broadsheet. You can proceed with the upload, or cancel the upload.</p>
+                  <ul className="space-y-[8px]">
+                    {previewData.anomalies.map((anomaly, idx) => (
+                      <li key={idx} className="bg-white/50 rounded-[4px] p-[8px] text-step-xs text-[#721c24]">
+                        <strong>{anomaly.matric_number}</strong>: {anomaly.details}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 

@@ -29,14 +29,14 @@ export default function Login() {
 
     const checkRoleAndRedirect = async () => {
       try {
-        const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
+        const adviserRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`);
         const adviserData = await adviserRes.json();
         if (adviserData.found === true) {
           navigate('/app/adviser');
           return;
         }
 
-        const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+        const studentRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
         const studentData = await studentRes.json();
         if (studentData.found === true) {
           navigate('/app/student');

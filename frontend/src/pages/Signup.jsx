@@ -20,14 +20,14 @@ export default function Signup() {
 
     const checkRoleAndRedirect = async () => {
       try {
-        const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
+        const adviserRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`);
         const adviserData = await adviserRes.json();
         if (adviserData.found === true) {
           navigate('/app/adviser');
           return;
         }
 
-        const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+        const studentRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
         const studentData = await studentRes.json();
         if (studentData.found === true) {
           navigate('/app/student');
@@ -76,7 +76,7 @@ export default function Signup() {
       const userId = authData.user.id;
 
       if (role === 'student') {
-        const res = await fetch('http://127.0.0.1:8000/auth/student-signup', {
+        const res = await fetch('${import.meta.env.VITE_API_BASE}/auth/student-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: name.trim(), matric_number: matricNumber, email, auth_user_id: userId }),
@@ -86,7 +86,7 @@ export default function Signup() {
           throw new Error(err.detail || 'Failed to link student account.');
         }
       } else {
-        const res = await fetch('http://127.0.0.1:8000/auth/adviser-signup', {
+        const res = await fetch('${import.meta.env.VITE_API_BASE}/auth/adviser-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, department, level: parseInt(level, 10), auth_user_id: userId }),

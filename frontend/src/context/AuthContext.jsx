@@ -8,14 +8,14 @@ export const AuthContext = createContext(null);
 async function detectRole(userId) {
   try {
     // 1. Check adviser profile
-    const advRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${userId}`);
+    const advRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${userId}`);
     const advData = await advRes.json();
     if (advData.found === true) {
       return 'adviser';
     }
 
     // 2. Check student profile
-    const stuRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${userId}`);
+    const stuRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${userId}`);
     const stuData = await stuRes.json();
     if (stuData.found === true) {
       return 'student';

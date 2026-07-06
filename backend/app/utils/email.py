@@ -66,3 +66,49 @@ def send_result_notifications_async(student_emails: list[dict], semester: str, s
             print(f"Sent email to {email}: {r}")
         except Exception as e:
             print(f"Failed to send email to {email}: {e}")
+
+def render_carryover_email(matric_number: str) -> str:
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+            <h2 style="color: #1a1a1a;">Important Academic Notice</h2>
+            <p>Hello <strong>{matric_number}</strong>,</p>
+            <p>This is a reminder from your academic adviser. You have outstanding carryover courses that require your attention.</p>
+            <p>Please log in to your student portal to review your carryover courses, and ensure you register and attend classes for them.</p>
+            <br/>
+            <a href="http://localhost:5173/app/login" style="display: inline-block; padding: 10px 20px; background-color: #c75c5c; color: #ffffff; text-decoration: none; border-radius: 5px;">View Carryovers</a>
+            <br/><br/>
+            <p style="font-size: 12px; color: #666;">
+                This is an automated notification from the Delsu Result Advisory System. Please do not reply to this email.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    return html
+
+def send_carryover_notifications_async(student_emails: list[dict]):
+    if not resend.api_key:
+        print("RESEND_API_KEY is not set. Skipping email dispatch.")
+        return
+
+    for student in student_emails:
+        email = student.get("email")
+        matric = student.get("matric")
+        
+        if not email:
+            continue
+            
+        try:
+            html_content = render_carryover_email(matric)
+            r = resend.Emails.send({
+                "from": "Adviser <onboarding@resend.dev>",
+                "to": email,
+                "subject": f"Action Required: Outstanding Carryover Courses",
+                "html": html_content
+            })
+            print(f"Sent carryover email to {email}: {r}")
+        except Exception as e:
+            print(f"Failed to send carryover email to {email}: {e}")

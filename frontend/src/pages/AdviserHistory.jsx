@@ -18,7 +18,7 @@ export default function AdviserHistory() {
     async function fetchHistory() {
       try {
         // 1. Get the adviser profile ID (since user.id is the auth_user_id)
-        const profileRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${user.id}`);
+        const profileRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${user.id}`);
         const profileData = await profileRes.json();
         
         if (!profileData.found) {
@@ -26,7 +26,7 @@ export default function AdviserHistory() {
         }
 
         // 2. Fetch history using the actual adviser table ID
-        const res = await fetch(`http://127.0.0.1:8000/upload/history/${profileData.id}`);
+        const res = await fetch(`${import.meta.env.VITE_API_BASE}/upload/history/${profileData.id}`);
         if (!res.ok) {
           throw new Error('Failed to fetch history');
         }
@@ -48,7 +48,7 @@ export default function AdviserHistory() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/upload/${uploadId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/upload/${uploadId}`, {
         method: 'DELETE',
       });
       
@@ -162,10 +162,16 @@ export default function AdviserHistory() {
                           day: 'numeric',
                         })}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right space-x-2">
+                        <button
+                          onClick={() => navigate(`/app/adviser/upload/${item.id}`)}
+                          className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-full border border-slate-300 text-slate-600 bg-white hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1 transition-all"
+                        >
+                          View
+                        </button>
                         <button
                           onClick={() => handleDelete(item.id, item.raw_row_count)}
-                          className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-full border border-slate-300 text-slate-600 bg-white hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1 transition-all"
+                          className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-full border border-red-200 text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 transition-all"
                         >
                           Delete
                         </button>

@@ -19,7 +19,7 @@ export default function AdviserDashboard() {
   useEffect(() => {
     if (!session?.user?.id) return;
     setProfileLoading(true);
-    fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`)
+    fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.found === true) {
@@ -42,7 +42,7 @@ export default function AdviserDashboard() {
     if (!session?.user?.id || !profile || profile.verified !== false) return;
 
     const intervalId = setInterval(() => {
-      fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`)
+      fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`)
         .then((r) => r.json())
         .then((data) => {
           if (data.found === true && data.verified === true) {

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from app.db import supabase
-from app.performance import get_semester_gpa, get_cumulative_gpa, get_course_breakdown
+from app.performance import get_semester_gpa, get_cumulative_gpa, get_course_breakdown, get_full_academic_record
 
 router = APIRouter(prefix="/students", tags=["students"])
 
@@ -65,33 +65,20 @@ def get_student_cumulative_gpa(matric_number: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-from app.analytics import get_student_carryovers
 
 @router.get("/{matric_number:path}/courses")
 def get_student_courses(matric_number: str):
     try:
-        response = supabase.table("students").select("id, outstanding_courses").eq("matric_number", matric_number).execute()
-        if not response.data:
-            raise HTTPException(status_code=404, detail="Student not found")
+        record = get_full_academic_record(matric_number)
+        if "error" in record:
+            raise HTTPException(status_code=404, detail=record["error"])
             
-        student_record = response.data[0]
-        
-        courses = get_course_breakdown(matric_number)
-        
-        # Parse previous outstanding courses from broadsheet
-        previous_outstanding_str = student_record.get("outstanding_courses") or ""
-        import re
-        prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', previous_outstanding_str)
-        outstanding = [{"course_code": c.upper().replace(" ", "")} for c in prev_courses]
-        
-        # Add dynamic carryovers from this semester
-        if courses:
-            dynamic_carryovers = get_student_carryovers(matric_number)
-            for dc in dynamic_carryovers:
-                if not any(o["course_code"] == dc["course_code"] for o in outstanding):
-                    outstanding.append(dc)
-                    
-        return {"courses": courses if courses else [], "outstanding": outstanding}
+        return {
+            "courses": record.get("courses", []),
+            "outstanding": record.get("outstanding_courses", []),
+            "previous_outstanding": record.get("previous_outstanding", []),
+            "current_outstanding": record.get("current_outstanding", [])
+        }
     except HTTPException:
         raise
     except Exception as e:

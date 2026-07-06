@@ -15,7 +15,7 @@ function StudentView() {
     setError('');
     
     try {
-      const gpaRes = await fetch(`http://127.0.0.1:8000/students/${matric}/gpa/cumulative`);
+      const gpaRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matric}/gpa/cumulative`);
       
       if (gpaRes.status === 404) {
         setError('No results found for this matriculation number.');
@@ -27,7 +27,7 @@ function StudentView() {
         throw new Error('Failed to fetch GPA data');
       }
 
-      const coursesRes = await fetch(`http://127.0.0.1:8000/students/${matric}/courses`);
+      const coursesRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matric}/courses`);
       if (!coursesRes.ok) {
         throw new Error('Failed to fetch courses data');
       }
@@ -38,7 +38,9 @@ function StudentView() {
       setStudentData({
         gpa: gpaData.gpa,
         courses: coursesData.courses || [],
-        outstanding: coursesData.outstanding || []
+        outstanding: coursesData.outstanding || [],
+        previous_outstanding: coursesData.previous_outstanding || [],
+        current_outstanding: coursesData.current_outstanding || []
       });
       
     } catch (err) {
@@ -99,20 +101,38 @@ function StudentView() {
             )}
           </div>
 
-          {studentData.outstanding && studentData.outstanding.length > 0 && (
-            <div className="border-t border-brand-hairline pt-6 mb-8">
-              <h2 className="font-sans text-[11px] font-medium uppercase tracking-widest text-brand-muted mb-4">
-                Outstanding Compulsory Courses
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {studentData.outstanding.map((o, idx) => (
-                  <span key={idx} className="bg-[#fff0f0] text-[#c75c5c] text-xs px-2 py-1 rounded-[3px] font-mono border border-[#ffd6d6]">
-                    {o.course_code}
-                  </span>
-                ))}
-              </div>
+          {(studentData.previous_outstanding && studentData.previous_outstanding.length > 0) || (studentData.current_outstanding && studentData.current_outstanding.length > 0) ? (
+            <div className="border-t border-brand-hairline pt-6 mb-8 flex flex-col gap-6">
+              {studentData.previous_outstanding && studentData.previous_outstanding.length > 0 && (
+                <div>
+                  <h2 className="font-sans text-[11px] font-medium uppercase tracking-widest text-brand-muted mb-4">
+                    Previous Outstanding Courses
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {studentData.previous_outstanding.map((o, idx) => (
+                      <span key={`prev-${idx}`} className="bg-[#fff0f0] text-[#c75c5c] text-xs px-2 py-1 rounded-[3px] font-mono border border-[#ffd6d6]">
+                        {o.course_code}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {studentData.current_outstanding && studentData.current_outstanding.length > 0 && (
+                <div>
+                  <h2 className="font-sans text-[11px] font-medium uppercase tracking-widest text-brand-muted mb-4">
+                    Current Semester Carryovers
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {studentData.current_outstanding.map((o, idx) => (
+                      <span key={`curr-${idx}`} className="bg-[#fff0f0] text-[#c75c5c] text-xs px-2 py-1 rounded-[3px] font-mono border border-[#ffd6d6]">
+                        {o.course_code}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          ) : null}
 
           <div className="text-center">
             <button 

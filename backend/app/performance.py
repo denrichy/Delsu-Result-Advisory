@@ -58,6 +58,8 @@ def calculate_gpa(results_list, baseline_units=0, baseline_gps=0.0):
         total_units += units_int
         
     if total_units == 0:
+        if len(results_list) > 0 and baseline_units == 0:
+            return 0.0
         return None
         
     gpa = total_grade_points / total_units
@@ -82,8 +84,42 @@ def get_cumulative_gpa(matric_number: str, baseline_units=0, baseline_gps=0.0):
 def get_course_breakdown(matric_number: str):
     return get_student_results(matric_number)
 
+def parse_term(session: str, semester: str):
+    try:
+        year = int(session.split('/')[0].strip())
+    except Exception:
+        year = 0
+    sem = 1 if semester and semester.strip().lower() == 'first' else 2
+    return (year, sem)
+
+def get_student_carryovers(matric_number: str):
+    results = get_student_results(matric_number)
+    outstanding = []
+    
+    for r in results:
+        if r.get('grade') == 'F':
+            course_code = r.get('course_code')
+            failed_term = parse_term(r.get('session', ''), r.get('semester', ''))
+            
+            later_pass = False
+            for later_r in results:
+                if later_r.get('course_code') == course_code and later_r.get('grade') != 'F':
+                    later_term = parse_term(later_r.get('session', ''), later_r.get('semester', ''))
+                    if later_term > failed_term:
+                        later_pass = True
+                        break
+            
+            if not later_pass:
+                if not any(x['course_code'] == course_code for x in outstanding):
+                    outstanding.append({
+                        "course_code": course_code,
+                        "session": r.get('session'),
+                        "semester": r.get('semester')
+                    })
+                    
+    return outstanding
+
 def get_full_academic_record(matric_number: str):
-    from app.analytics import get_student_carryovers
     import re
     
     response = supabase.table("students").select("*").eq("matric_number", matric_number).execute()
@@ -99,13 +135,18 @@ def get_full_academic_record(matric_number: str):
     
     previous_outstanding_str = student.get("outstanding_courses") or ""
     prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', previous_outstanding_str)
-    outstanding = [{"course_code": c.upper().replace(" ", "")} for c in prev_courses]
+    previous_outstanding = [{"course_code": c.upper().replace(" ", "")} for c in prev_courses]
+    outstanding = list(previous_outstanding)
     
+    current_outstanding = []
     if courses:
         dynamic_carryovers = get_student_carryovers(matric_number)
         for dc in dynamic_carryovers:
-            if not any(o["course_code"] == dc["course_code"] for o in outstanding):
+            # Normalize the dynamic course code (remove spaces) for comparison
+            normalized_dc = str(dc.get("course_code", "")).upper().replace(" ", "")
+            if not any(o.get("course_code", "").upper().replace(" ", "") == normalized_dc for o in outstanding):
                 outstanding.append(dc)
+                current_outstanding.append(dc)
                 
     return {
         "student_info": {
@@ -117,6 +158,8 @@ def get_full_academic_record(matric_number: str):
             "baseline_gps": baseline_gps
         },
         "outstanding_courses": outstanding,
+        "previous_outstanding": previous_outstanding,
+        "current_outstanding": current_outstanding,
         "courses": courses
     }
 
@@ -141,6 +184,8 @@ def simulate_gpa(matric_number: str, course_code: str, hypothetical_input: str):
     else:
         try:
             hypothetical_score = float(hypothetical_input)
+            if hypothetical_score < 0 or hypothetical_score > 100:
+                return {"error": "that's not a valid score — scores range from 0 to 100"}
         except ValueError:
             return {"error": f"Invalid hypothetical_input: {hypothetical_input}"}
     

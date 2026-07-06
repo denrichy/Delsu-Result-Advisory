@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
+import { supabase } from '../lib/supabaseClient';
 
 export default function StudentNotifications() {
   const { user, loading, session } = useAuth();
@@ -9,6 +10,7 @@ export default function StudentNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [profileLoading, setProfileLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -18,14 +20,14 @@ export default function StudentNotifications() {
 
   useEffect(() => {
     if (!user?.id) return;
-    setProfileLoading(true);
+    if (refreshTrigger === 0) setProfileLoading(true);
     
     // Fetch profile to get the student.id
-    fetch(`http://127.0.0.1:8000/auth/student-profile/${user.id}`)
+    fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${user.id}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.id) {
-          return fetch(`http://127.0.0.1:8000/notifications/student/${data.id}`);
+          return fetch(`${import.meta.env.VITE_API_BASE}/notifications/student/${data.id}`);
         } else {
           throw new Error("Student profile not found");
         }
@@ -42,12 +44,41 @@ export default function StudentNotifications() {
         console.error(err);
         setError("Failed to load notifications.");
       })
-      .finally(() => setProfileLoading(false));
-  }, [user?.id]);
+      .finally(() => {
+        if (refreshTrigger === 0) setProfileLoading(false);
+      });
+  }, [user?.id, refreshTrigger]);
+
+  // Setup realtime listener for new notifications
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    
+    let timeoutId;
+    const handleUpdate = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setRefreshTrigger(prev => prev + 1);
+      }, 2000);
+    };
+
+    const channel = supabase
+      .channel('student-notifications-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications' },
+        handleUpdate
+      )
+      .subscribe();
+
+    return () => {
+      clearTimeout(timeoutId);
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id]);
 
   const markAsRead = async (id) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/notifications/${id}/read`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/notifications/${id}/read`, {
         method: 'PATCH',
       });
       if (res.ok) {

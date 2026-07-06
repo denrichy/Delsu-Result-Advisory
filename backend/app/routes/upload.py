@@ -23,6 +23,11 @@ class ResultRow(BaseModel):
     baseline_units: Optional[int] = 0
     baseline_gps: Optional[float] = 0.0
     outstanding_courses: Optional[str] = None
+    official_curr_tcp: Optional[float] = None
+    official_curr_tgp: Optional[float] = None
+    official_cum_tcp: Optional[float] = None
+    official_cum_tgp: Optional[float] = None
+    official_cgpa: Optional[float] = None
 
 class UploadConfirmRequest(BaseModel):
     rows: List[ResultRow]
@@ -33,6 +38,14 @@ class UploadConfirmRequest(BaseModel):
 
 TMP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "tmp"))
 os.makedirs(TMP_DIR, exist_ok=True)
+
+def calculate_gpa(score):
+    if score is None: return 0.0
+    if score >= 70: return 5.0
+    elif score >= 60: return 4.0
+    elif score >= 50: return 3.0
+    elif score >= 45: return 2.0
+    else: return 0.0
 
 @router.post("/preview")
 async def upload_preview(file: UploadFile = File(...)):
@@ -55,13 +68,65 @@ async def upload_preview(file: UploadFile = File(...)):
         if fmt == "wide":
             course_row_idx = detect_res.get("course_row_idx", 0)
             long_data, metadata = melt_wide_format(temp_filepath, course_cols, course_row_idx)
+            
+            # Run Anomaly Scan
+            anomalies = []
+            student_courses = {}
+            for row in long_data:
+                matric = row["matric_number"]
+                if matric not in student_courses:
+                    student_courses[matric] = {
+                        "baseline_units": row["baseline_units"],
+                        "baseline_gps": row["baseline_gps"],
+                        "official_cum_tcp": row.get("official_cum_tcp"),
+                        "official_cum_tgp": row.get("official_cum_tgp"),
+                        "official_cgpa": row.get("official_cgpa"),
+                        "calculated_curr_tcp": 0,
+                        "calculated_curr_tgp": 0.0
+                    }
+                units = row["units"] or 0
+                score = row["score"]
+                gp = calculate_gpa(score)
+                student_courses[matric]["calculated_curr_tcp"] += units
+                student_courses[matric]["calculated_curr_tgp"] += (gp * units)
+                
+            for matric, data in student_courses.items():
+                if data["official_cum_tcp"] is not None and data["official_cgpa"] is not None:
+                    calc_cum_tcp = data["baseline_units"] + data["calculated_curr_tcp"]
+                    calc_cum_tgp = data["baseline_gps"] + data["calculated_curr_tgp"]
+                    calc_cgpa = round(calc_cum_tgp / calc_cum_tcp, 2) if calc_cum_tcp > 0 else 0.0
+                    
+                    if abs(calc_cgpa - data["official_cgpa"]) > 0.02 or calc_cum_tcp != data["official_cum_tcp"]:
+                        diff_units = calc_cum_tcp - data["official_cum_tcp"]
+                        cause_str = ""
+                        if diff_units > 0:
+                            cause_str = f" ➔ Cause: The system counted {int(diff_units)} extra units that aren't on the official totals."
+                        elif diff_units < 0:
+                            cause_str = f" ➔ Cause: The official totals include {int(abs(diff_units))} extra units not found in this upload's calculations."
+                        else:
+                            if data.get("official_cum_tgp"):
+                                diff_tgp = calc_cum_tgp - data["official_cum_tgp"]
+                                if abs(diff_tgp) > 0.1:
+                                    cause_str = f" ➔ Cause: Units match, but there's a difference of {round(abs(diff_tgp), 1)} Total Grade Points."
+                                else:
+                                    cause_str = " ➔ Cause: Total Units and Grade Points match. This is likely a rounding discrepancy."
+                            else:
+                                cause_str = " ➔ Cause: Total Units match, but the calculated CGPA differs. Check individual grades."
+                                
+                        anomalies.append({
+                            "matric_number": matric,
+                            "issue": f"Mathematical Discrepancy",
+                            "details": f"System calculated CGPA as {calc_cgpa} (from {calc_cum_tcp} Total Units), but the Official broadsheet states CGPA is {data['official_cgpa']} (from {data['official_cum_tcp']} Total Units).{cause_str}"
+                        })
+            
             return {
                 "format": "wide",
                 "confidence": confidence,
                 "total_row_count": len(long_data),
                 "preview_rows": long_data[:10],
                 "all_rows": long_data,
-                "course_metadata": metadata
+                "course_metadata": metadata,
+                "anomalies": anomalies
             }
         elif fmt == "long":
             header_idx = detect_res.get("header_idx", 0)
@@ -361,8 +426,30 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload confirm failed: {str(e)}")
 
+def clean_all_phantoms():
+    try:
+        res = supabase.table("students").select("id, baseline_units").execute()
+        if not res.data: return
+        phantom_ids = []
+        for s in res.data:
+            if s.get("baseline_units", 0) > 0:
+                r_res = supabase.table("results").select("id").eq("student_id", s["id"]).limit(1).execute()
+                if not r_res.data:
+                    phantom_ids.append(s["id"])
+        
+        batch_size = 50
+        for i in range(0, len(phantom_ids), batch_size):
+            batch = phantom_ids[i:i+batch_size]
+            supabase.table("students").update({
+                "baseline_units": 0,
+                "baseline_gps": 0.0,
+                "outstanding_courses": ""
+            }).in_("id", batch).execute()
+    except Exception as e:
+        print(f"Background phantom cleanup failed: {e}")
+
 @router.delete("/{upload_id}")
-async def delete_upload(upload_id: str):
+async def delete_upload(upload_id: str, background_tasks: BackgroundTasks):
     try:
         # Get all student IDs associated with this upload before deleting
         res_students = supabase.table("results").select("student_id").eq("upload_id", upload_id).execute()
@@ -387,6 +474,9 @@ async def delete_upload(upload_id: str):
                     "baseline_gps": 0.0,
                     "outstanding_courses": ""
                 }).eq("id", sid).execute()
+                
+        # Trigger background sweeping of any straggler phantom students
+        background_tasks.add_task(clean_all_phantoms)
             
         return {
             "success": True,
@@ -431,3 +521,17 @@ async def get_upload_history(adviser_id: str):
         return history
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch upload history: {str(e)}")
+
+@router.get("/{upload_id}/results")
+async def get_upload_results(upload_id: str):
+    res = supabase.table("results").select("*, students(name)").eq("upload_id", upload_id).execute()
+    if not res.data:
+        return []
+    
+    cleaned = []
+    for r in res.data:
+        r["student_name"] = r["students"]["name"] if r.get("students") else None
+        del r["students"]
+        cleaned.append(r)
+        
+    return cleaned

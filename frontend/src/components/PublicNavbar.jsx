@@ -9,32 +9,32 @@ export default function PublicNavbar() {
     e.preventDefault();
     
     if (!session?.user?.id) {
-      window.open('/app/login', '_blank');
+      navigate('/app/login');
       return;
     }
 
     try {
       // Check if adviser
-      const adviserRes = await fetch(`http://127.0.0.1:8000/auth/adviser-profile/${session.user.id}`);
+      const adviserRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`);
       const adviserData = await adviserRes.json();
       if (adviserData.found === true) {
-        window.open('/app/adviser', '_blank');
+        navigate('/app/adviser');
         return;
       }
 
       // Check if student
-      const studentRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+      const studentRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
       const studentData = await studentRes.json();
       if (studentData.found === true) {
-        window.open('/app/student', '_blank');
+        navigate('/app/student');
         return;
       }
 
       // Fallback if neither found
-      window.open('/app/login', '_blank');
+      navigate('/app/login');
     } catch (err) {
       console.error(err);
-      window.open('/app/login', '_blank');
+      navigate('/app/login');
     }
   };
 

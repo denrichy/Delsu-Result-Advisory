@@ -32,7 +32,7 @@ export default function StudentAdvisor() {
     const fetchProfile = async () => {
       try {
         setProfileLoading(true);
-        const profileRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+        const profileRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
         const profileData = await profileRes.json();
         if (profileData.found === true && profileData.matric_number) {
           setMatric(profileData.matric_number);
@@ -65,7 +65,7 @@ export default function StudentAdvisor() {
     const history = messages.map((m) => ({ role: m.role, content: m.content }));
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/agent/chat', {
+      const res = await fetch('${import.meta.env.VITE_API_BASE}/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

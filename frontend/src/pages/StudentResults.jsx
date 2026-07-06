@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
+import { supabase } from '../lib/supabaseClient';
 
 function calculateGPA(coursesArray) {
   let totalGradePoints = 0;
@@ -33,6 +34,7 @@ export default function StudentResults() {
   const [studentData, setStudentData] = useState(null);
   const [matric, setMatric] = useState('');
   const [selectedSession, setSelectedSession] = useState('All');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Redirect if no session
   useEffect(() => {
@@ -46,9 +48,10 @@ export default function StudentResults() {
     
     const fetchResults = async () => {
       try {
-        setLoading(true);
+        // Only show loading skeleton on first load, not on realtime refresh
+        if (refreshTrigger === 0) setLoading(true);
         // 1. Fetch profile to get matric_number
-        const profileRes = await fetch(`http://127.0.0.1:8000/auth/student-profile/${session.user.id}`);
+        const profileRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
         if (!profileRes.ok) throw new Error('Failed to fetch profile');
         
         const profileData = await profileRes.json();
@@ -57,22 +60,23 @@ export default function StudentResults() {
         
         if (!matricNumber) {
           setError('No matriculation number found for this profile.');
-          setLoading(false);
+          if (refreshTrigger === 0) setLoading(false);
           return;
         }
 
         // 2. Fetch Results
-        const gpaRes = await fetch(`http://127.0.0.1:8000/students/${matricNumber}/gpa/cumulative`);
+        const gpaRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matricNumber}/gpa/cumulative`);
         
         if (gpaRes.status === 404) {
           setError('No results found yet. Check back once your adviser publishes your semester results.');
-          setLoading(false);
+          setStudentData(null);
+          if (refreshTrigger === 0) setLoading(false);
           return;
         }
         
         if (!gpaRes.ok) throw new Error('Failed to fetch GPA data');
 
-        const coursesRes = await fetch(`http://127.0.0.1:8000/students/${matricNumber}/courses`);
+        const coursesRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matricNumber}/courses`);
         if (!coursesRes.ok) throw new Error('Failed to fetch courses data');
         
         const gpaData = await gpaRes.json();
@@ -81,17 +85,53 @@ export default function StudentResults() {
         setStudentData({
           gpa: gpaData.gpa,
           courses: coursesData.courses || [],
-          outstanding: coursesData.outstanding || []
+          outstanding: coursesData.outstanding || [],
+          previous_outstanding: coursesData.previous_outstanding || [],
+          current_outstanding: coursesData.current_outstanding || []
         });
+        setError(''); // Clear error if it was previously set
       } catch (err) {
         console.error(err);
         setError('An error occurred while fetching results. Please try again.');
       } finally {
-        setLoading(false);
+        if (refreshTrigger === 0) setLoading(false);
       }
     };
 
     fetchResults();
+  }, [session?.user?.id, refreshTrigger]);
+
+  // Supabase Realtime Subscription
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    
+    let timeoutId;
+    const handleUpdate = (payload) => {
+      console.log('Realtime update detected! Refetching...', payload);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setRefreshTrigger(prev => prev + 1);
+      }, 2000);
+    };
+
+    const channel = supabase
+      .channel('student-results-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'results' },
+        handleUpdate
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'students' },
+        handleUpdate
+      )
+      .subscribe();
+
+    return () => {
+      clearTimeout(timeoutId);
+      supabase.removeChannel(channel);
+    };
   }, [session?.user?.id]);
 
   if (authLoading) return null;
@@ -161,20 +201,38 @@ export default function StudentResults() {
                 </div>
               </div>
 
-              {studentData.outstanding && studentData.outstanding.length > 0 && (
-                <div className="mb-[32px] p-[16px] border border-[#ffd6d6] bg-[#fff0f0] rounded-[8px]">
-                  <h2 className="text-step-xs text-[#c75c5c] uppercase tracking-widest mb-[12px] font-medium">
-                    Outstanding Compulsory Courses
-                  </h2>
-                  <div className="flex flex-wrap gap-[8px]">
-                    {studentData.outstanding.map((o, idx) => (
-                      <span key={idx} className="bg-white text-[#c75c5c] border border-[#ffd6d6] text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
-                        {o.course_code}
-                      </span>
-                    ))}
-                  </div>
+              {(studentData.previous_outstanding && studentData.previous_outstanding.length > 0) || (studentData.current_outstanding && studentData.current_outstanding.length > 0) ? (
+                <div className="mb-[32px] p-[16px] border border-[#ffd6d6] bg-[#fff0f0] rounded-[8px] flex flex-col gap-[16px]">
+                  {studentData.previous_outstanding && studentData.previous_outstanding.length > 0 && (
+                    <div>
+                      <h2 className="text-step-xs text-[#c75c5c] uppercase tracking-widest mb-[12px] font-medium">
+                        Previous Outstanding Courses
+                      </h2>
+                      <div className="flex flex-wrap gap-[8px]">
+                        {studentData.previous_outstanding.map((o, idx) => (
+                          <span key={`prev-${idx}`} className="bg-white text-[#c75c5c] border border-[#ffd6d6] text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
+                            {o.course_code}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {studentData.current_outstanding && studentData.current_outstanding.length > 0 && (
+                    <div>
+                      <h2 className="text-step-xs text-[#c75c5c] uppercase tracking-widest mb-[12px] font-medium">
+                        Current Semester Carryovers
+                      </h2>
+                      <div className="flex flex-wrap gap-[8px]">
+                        {studentData.current_outstanding.map((o, idx) => (
+                          <span key={`curr-${idx}`} className="bg-white text-[#c75c5c] border border-[#ffd6d6] text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
+                            {o.course_code}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ) : null}
 
               {studentData.courses.length > 0 && Array.from(new Set(studentData.courses.map(c => c.session || 'Unknown Session'))).length > 1 && (
                 <div className="mb-[32px] flex items-center justify-end">

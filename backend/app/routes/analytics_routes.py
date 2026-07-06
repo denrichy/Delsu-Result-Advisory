@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, BackgroundTasks
 from app.db import supabase
 from app.analytics import (
     get_class_average,
@@ -8,6 +8,7 @@ from app.analytics import (
     get_pass_fail_rate,
     get_all_carryovers
 )
+from app.utils.email import send_carryover_notifications_async
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -57,3 +58,40 @@ def get_courses(auth_user_id: str = Header(None)):
         
     res = query.execute()
     return [c["course_code"] for c in res.data] if res.data else []
+
+@router.post("/notify-carryovers")
+def notify_carryovers_route(background_tasks: BackgroundTasks, auth_user_id: str = Header(None)):
+    level = get_adviser_level(auth_user_id)
+    carryovers = get_all_carryovers(level=level)
+    
+    if not carryovers:
+        return {"message": "No carryovers found"}
+        
+    # Get unique matrics
+    matrics_with_carryovers = list(set([c["matric_number"] for c in carryovers]))
+    
+    # Fetch students to get their IDs and emails
+    res = supabase.table("students").select("id, matric_number, email").in_("matric_number", matrics_with_carryovers).execute()
+    students_data = res.data if res.data else []
+    
+    db_notifications = []
+    email_list = []
+    
+    for s in students_data:
+        db_notifications.append({
+            "student_id": s["id"],
+            "message": "Reminder: You have outstanding carryover courses. Please check your dashboard and ensure you attend classes for them."
+        })
+        if s.get("email"):
+            email_list.append({
+                "email": s["email"],
+                "matric": s["matric_number"]
+            })
+            
+    if db_notifications:
+        supabase.table("notifications").insert(db_notifications).execute()
+        
+    if email_list:
+        background_tasks.add_task(send_carryover_notifications_async, email_list)
+        
+    return {"message": f"Notified {len(students_data)} students"}
