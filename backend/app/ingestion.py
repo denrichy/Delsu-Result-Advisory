@@ -128,7 +128,7 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
     for row_idx in range(course_row_idx + 3):
         row_vals = df.iloc[row_idx].astype(str).str.strip().tolist()
         for i, val in enumerate(row_vals):
-            v_lower = val.lower()
+            v_lower = re.sub(r'\s+', ' ', val.lower())
             if matric_regex.search(val):
                 matric_idx = i
             elif name_regex.search(val):
@@ -141,7 +141,7 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
             elif "cumulative grade points" in v_lower and "average" not in v_lower:
                 if baseline_gps_idx == -1:
                     baseline_gps_idx = i
-            elif "compulsory courses outstanding" in v_lower:
+            elif "compulsory courses outstanding" in v_lower and "units" not in v_lower:
                 outstanding_idx = i
             
     long_format_data = []

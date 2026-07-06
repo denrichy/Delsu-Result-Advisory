@@ -4,22 +4,19 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
 
 export default function StudentAdvisor() {
-  const { session, loading: authLoading, signOut } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [matric, setMatric] = useState('');
   const [profileLoading, setProfileLoading] = useState(true);
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: "Hi! I'm your academic advisor. Ask me anything about your results, GPA, or courses."
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const hasStartedChat = messages.length > 0;
 
   // Redirect if no session
   useEffect(() => {
@@ -55,8 +52,9 @@ export default function StudentAdvisor() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
-    const trimmed = input.trim();
+  const handleSend = async (overrideText = null) => {
+    const textToSend = typeof overrideText === 'string' ? overrideText : input;
+    const trimmed = textToSend.trim();
     if (!trimmed || sending || !matric) return;
 
     const userMessage = { role: 'user', content: trimmed };
@@ -64,10 +62,7 @@ export default function StudentAdvisor() {
     setInput('');
     setSending(true);
 
-    // Build conversation_history from all previous messages (excluding the hardcoded greeting)
-    const history = messages
-      .slice(1) // skip the initial hardcoded greeting
-      .map((m) => ({ role: m.role, content: m.content }));
+    const history = messages.map((m) => ({ role: m.role, content: m.content }));
 
     try {
       const res = await fetch('http://127.0.0.1:8000/agent/chat', {
@@ -112,93 +107,141 @@ export default function StudentAdvisor() {
   if (!session) return null;
 
   return (
-    <>
+    <div className={`min-h-screen relative flex flex-col transition-colors duration-1000 ${hasStartedChat ? 'bg-pure-canvas' : 'mesh-gradient-bg'}`}>
       <Navbar />
-      <div className="min-h-screen bg-pure-canvas px-[24px] py-[64px]">
-        <div className="max-w-[600px] mx-auto">
+      
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col ${hasStartedChat ? 'max-w-[800px] w-full mx-auto px-[24px] pt-[32px] pb-[140px]' : 'items-center justify-center px-[24px]'}`}>
+        
+        {profileLoading ? (
+           <div className="flex justify-center items-center h-[200px]">
+             <p className="text-step-sm-2 text-graphite">Loading profile...</p>
+           </div>
+        ) : !matric ? (
+           <div className="py-[32px] text-center border border-fog rounded-[16px] max-w-[600px] w-full">
+             <p className="text-step-sm-2 text-ash">
+               Could not load your student profile. Please try again later.
+             </p>
+           </div>
+        ) : (
+          <>
+            {/* HERO STATE */}
+            {!hasStartedChat && (
+              <div className="text-center max-w-[800px] w-full mb-[64px] animate-fade-in">
+                <h1 className="text-step-5xl mesh-gradient-text pb-[16px]">
+                  The AI Advisor you can talk to
+                </h1>
+                <p className="text-step-xl text-graphite mt-[16px] max-w-[600px] mx-auto leading-relaxed">
+                  Real academic records, insights, and guidance to help students and advisors make better academic decisions.
+                </p>
+              </div>
+            )}
 
-          {/* Header */}
-          <div className="mb-[32px]">
-            <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">
-              STUDENT PORTAL
-            </p>
-            <h1 className="text-step-3xl text-midnight-ink">Ask the Advisor</h1>
-          </div>
-
-          {profileLoading ? (
-            <div className="flex justify-center items-center h-[200px]">
-              <p className="text-step-sm-2 text-graphite">Loading...</p>
-            </div>
-          ) : !matric ? (
-            <div className="py-[32px] text-center border border-fog rounded-[16px]">
-              <p className="text-step-sm-2 text-ash">
-                Could not load your student profile. Please try again later.
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Message List */}
-              <div className="border border-fog rounded-[16px] p-[24px] mb-[16px] min-h-[500px] max-h-[600px] overflow-y-auto flex flex-col gap-[16px]">
+            {/* CHAT STATE */}
+            {hasStartedChat && (
+              <div className="flex flex-col gap-[24px] w-full">
                 {messages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {msg.role === 'user' ? (
-                      <div className="bg-mist rounded-[12px] px-[16px] py-[10px] max-w-[80%]">
-                        <p className="text-step-sm-2 text-midnight-ink">{msg.content}</p>
-                      </div>
-                    ) : (
-                      <div className="max-w-[85%]">
-                        <p className="text-step-sm-2 text-graphite whitespace-pre-wrap">{msg.content}</p>
+                  <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className="flex items-center gap-[12px] mb-[8px]">
+                      {msg.role === 'assistant' && (
+                        <div className="w-[24px] h-[24px] rounded-full bg-brand-ink flex items-center justify-center text-pure-canvas text-[10px] font-bold">
+                          AI
+                        </div>
+                      )}
+                    </div>
+                    <div 
+                      className={`px-[20px] py-[14px] rounded-[16px] max-w-[85%] text-step-base ${
+                        msg.role === 'user' 
+                          ? 'bg-midnight-ink text-pure-canvas rounded-tr-[4px]' 
+                          : 'bg-transparent text-midnight-ink border border-fog'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    </div>
+
+                    {/* Explore Next Chips under AI's FIRST response only */}
+                    {msg.role === 'assistant' && idx === 1 && (
+                      <div className="mt-[24px] flex flex-col gap-[12px] w-full pl-[36px]">
+                        <p className="text-step-sm-2 text-midnight-ink font-semibold">Explore next</p>
+                        <div className="flex flex-col gap-[8px] items-start">
+                          <button 
+                            onClick={() => handleSend("What is my current CGPA?")}
+                            className="explore-chip flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas text-step-sm-2 text-left"
+                            disabled={sending}
+                          >
+                            <span className="text-ash">↪</span>
+                            What is my current CGPA?
+                          </button>
+                          <button 
+                            onClick={() => handleSend("Do I have any carryovers?")}
+                            className="explore-chip flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas text-step-sm-2 text-left"
+                            disabled={sending}
+                          >
+                            <span className="text-ash">↪</span>
+                            Do I have any carryovers?
+                          </button>
+                          <button 
+                            onClick={() => handleSend("What happens to my GPA if I get an A in MTH213?")}
+                            className="explore-chip flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas text-step-sm-2 text-left"
+                            disabled={sending}
+                          >
+                            <span className="text-ash">↪</span>
+                            What happens to my GPA if I get an A in MTH213?
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
                 ))}
-
+                
                 {sending && (
-                  <div className="flex justify-start">
-                    <p className="text-step-sm-2 text-ash italic">typing...</p>
+                  <div className="flex items-start flex-col gap-[8px]">
+                    <div className="w-[24px] h-[24px] rounded-full bg-brand-ink flex items-center justify-center text-pure-canvas text-[10px] font-bold">
+                      AI
+                    </div>
+                    <div className="skeleton h-[48px] w-[200px] rounded-[16px] opacity-50"></div>
                   </div>
                 )}
-
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="h-[20px]" />
               </div>
-
-              {/* Input */}
-              <div className="flex gap-[8px]">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={sending}
-                  placeholder="Ask about your GPA, courses, or results..."
-                  className="flex-1 bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={sending || !input.trim()}
-                  className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[10px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-                >
-                  Send
-                </button>
-              </div>
-
-              {/* Back link */}
-              <div className="mt-[32px]">
-                <Link
-                  to="/app/student"
-                  className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
-                >
-                  ← Back to Dashboard
-                </Link>
-              </div>
-            </>
-          )}
-        </div>
+            )}
+          </>
+        )}
       </div>
-    </>
+
+      {/* Floating Input Dock */}
+      {matric && !profileLoading && (
+        <div className={`fixed left-0 right-0 z-10 transition-all duration-700 ease-in-out flex justify-center px-[24px] ${hasStartedChat ? 'bottom-[32px]' : 'bottom-[20vh]'}`}>
+          <div className="advisor-input-dock bg-pure-canvas border border-slate-shadow rounded-[24px] p-[12px] w-full max-w-[800px] flex flex-col gap-[12px]">
+            {!hasStartedChat && (
+              <div className="flex justify-between items-center px-[8px]">
+                <span className="text-step-sm text-midnight-ink font-semibold">
+                  <span className="text-[#ff6b6b]">Meet</span> your academic compass
+                </span>
+              </div>
+            )}
+            <div className="relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={sending}
+                placeholder="Describe a task or ask a question"
+                className="w-full bg-mist rounded-[16px] pl-[20px] pr-[60px] py-[16px] text-step-base text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-1 focus:ring-silver disabled:opacity-50"
+              />
+              <button
+                onClick={() => handleSend()}
+                disabled={sending || !input.trim()}
+                className="absolute right-[8px] top-[8px] bottom-[8px] bg-midnight-ink text-pure-canvas rounded-[12px] w-[40px] flex items-center justify-center hover:bg-opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                ↑
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

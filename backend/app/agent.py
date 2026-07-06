@@ -2,7 +2,7 @@ import os
 import json
 import re
 from pathlib import Path
-from groq import Groq, BadRequestError
+from groq import Groq, BadRequestError, RateLimitError
 from dotenv import load_dotenv
 
 # Load .env from the backend directory (parent of this file's directory)
@@ -11,7 +11,7 @@ load_dotenv(_env_path)
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-from app.performance import get_semester_gpa, get_cumulative_gpa, get_course_breakdown, get_full_academic_record, simulate_gpa, simulate_gpa_uniform
+from app.performance import get_semester_gpa, get_cumulative_gpa, get_course_breakdown, get_full_academic_record, simulate_gpa, simulate_gpa_uniform, check_graduation_prospects
 
 # Maximum retries for Groq tool_use_failed errors
 MAX_RETRIES = 2
@@ -67,6 +67,8 @@ def _execute_tool(function_name, function_args, matric_number):
             matric_number,
             function_args.get("hypothetical_grade_letter")
         )
+    elif function_name == "check_graduation_prospects":
+        return check_graduation_prospects(matric_number)
     else:
         return {"error": f"Unknown function {function_name}"}
 
@@ -87,15 +89,17 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "same thing (e.g. 'how am I doing', 'am I on track', 'what carryovers do I have', 'should I be worried' \n"
         "all relate to their GPA/performance).\n\n"
         "You can have natural conversation — greetings, small talk, follow-up \n"
-        "questions — but you stay in character as their academic advisor. If \n"
-        "the student greets you (hello, hi, good day, good morning, how are you, etc.) \n"
-        "or makes small talk, respond warmly and naturally like a real person would — a \n"
-        "short greeting back, maybe ask how their day/studies are going. Do NOT call \n"
-        "any tool for a plain greeting with no academic question attached. Never return \n"
-        "an empty or overly clipped response to a greeting. If asked something entirely \n"
-        "unrelated to academics (general trivia, other topics), politely redirect: \n"
-        "acknowledge it briefly and warmly steer back to what you can help with, \n"
-        "without being curt or robotic about it.\n\n"
+        "questions — but you stay in character as an academic advisor. If the \n"
+        "student greets you (hello, hi, good day, good morning, how are you, etc.) \n"
+        "or makes small talk or acknowledges your previous answer (e.g. 'okay', \n"
+        "'thanks', 'got it'), respond warmly and naturally — a short greeting \n"
+        "back, maybe ask how their day/studies are going. Do NOT call any tool \n"
+        "for a plain greeting or acknowledgment with no academic question attached. \n"
+        "Never return an empty or overly clipped response. If asked something \n"
+        "entirely unrelated to academics (general trivia, other topics), politely \n"
+        "acknowledge it briefly and warmly redirect back to what you can help \n"
+        "with — don't fully answer unrelated questions at length, and don't be \n"
+        "curt about declining.\n\n"
         "You must NEVER invent, estimate, or fabricate any number, score, or breakdown \n"
         "that wasn't directly returned by a tool call. If a student asks for information \n"
         "your tools cannot provide (e.g. a CA/Exam breakdown, since only a combined \n"
@@ -108,8 +112,9 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "cumulative and semester GPA will be identical — state this clearly if asked, "
         "don't invent a different number for either.\n\n"
         "Never make any claim about degree requirements, graduation eligibility, "
-        "class of degree, or 'being on track' unless a tool result directly supports it. "
-        "No such tool currently exists — so do not make these claims at all right now.\n\n"
+        "class of degree, or 'being on track' unless you have used the check_graduation_prospects tool to verify it. "
+        "When asked if a specific class of degree (e.g., First Class) is possible, always use check_graduation_prospects "
+        "to get the exact mathematical breakdown and present it clearly to the student.\n\n"
         "For hypothetical/what-if GPA questions about a single course, always use the "
         "simulate_gpa tool rather than calculating manually — never do this math yourself.\n"
         "When a student gives a letter grade (e.g. 'get a B') for a hypothetical, pass the LETTER "
@@ -176,6 +181,17 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         {
             "type": "function",
             "function": {
+                "name": "check_graduation_prospects",
+                "description": "Calculate the absolute maximum possible CGPA the student can achieve, and check if specific degree classes (e.g., First Class) are mathematically possible given their current standing.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "simulate_gpa",
                 "description": "Calculate what the student's cumulative GPA would be if they scored a specific hypothetical score in a specific course.",
                 "parameters": {
@@ -223,30 +239,41 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
     except BadRequestError:
         print("[DIAGNOSTIC] Groq API failed after retries on initial call.")
         return "I'm having trouble processing that — could you rephrase your question?"
+    except RateLimitError:
+        print("[DIAGNOSTIC] Groq API RateLimitError.")
+        return "I've reached my daily processing limit. Please try asking again tomorrow or let your administrator know."
 
     response_message = response.choices[0].message
-    tool_calls = response_message.tool_calls
+    
     print(f"\n[DIAGNOSTIC] User message: {repr(user_message)}")
     print(f"[DIAGNOSTIC] Initial model response text: {repr(response_message.content)}")
-    print(f"[DIAGNOSTIC] tool_calls present? {'YES — ' + ', '.join(tc.function.name for tc in tool_calls) if tool_calls else 'NO'}")
     
-    # 2. Safety Net Validation — catch ungrounded text responses
-    if not tool_calls:
+    # 2. Safety Net Validation — catch ungrounded text responses on initial call
+    if not response_message.tool_calls:
         final_text = response_message.content or ""
         if re.search(r'\d+\.\d{1,2}|\d+%|gpa|grade|score', final_text.lower()):
             print(f"[DIAGNOSTIC] Safety net TRIGGERED — response contains suspicious patterns, retrying with tool_choice='auto'")
             try:
                 response = _call_groq(messages, tools, tool_choice="auto", temperature=0)
+                response_message = response.choices[0].message
+                print(f"[DIAGNOSTIC] Safety net retried model response text: {repr(response_message.content)}")
             except BadRequestError:
                 print("[DIAGNOSTIC] Groq API failed after retries on safety-net call.")
                 return "I'm having trouble processing that — could you rephrase your question?"
-            response_message = response.choices[0].message
-            tool_calls = response_message.tool_calls
-            print(f"[DIAGNOSTIC] Safety net retried model response text: {repr(response_message.content)}")
-            print(f"[DIAGNOSTIC] tool_calls present after retry? {'YES — ' + ', '.join(tc.function.name for tc in tool_calls) if tool_calls else 'NO'}")
+            except RateLimitError:
+                print("[DIAGNOSTIC] Groq API RateLimitError.")
+                return "I've reached my daily processing limit. Please try asking again tomorrow or let your administrator know."
 
-    if tool_calls:
-        # Append the assistant's message (which contains the tool calls)
+    # 3. Tool Execution Loop
+    max_iterations = 5
+    iterations = 0
+    last_tool_result = None
+    
+    while response_message.tool_calls and iterations < max_iterations:
+        iterations += 1
+        tool_calls = response_message.tool_calls
+        print(f"[DIAGNOSTIC] Iteration {iterations}: tool_calls present? {'YES — ' + ', '.join(tc.function.name for tc in tool_calls)}")
+        
         messages.append(response_message)
         
         for tool_call in tool_calls:
@@ -254,11 +281,13 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
             function_args = json.loads(tool_call.function.arguments)
             
             result = _execute_tool(function_name, function_args, matric_number)
+            last_tool_result = result
             print(f"[DIAGNOSTIC] Executed tool: {function_name}({function_args}), Returned: {result}")
             
-            # Prevent sending a raw "null" to the LLM, which it often misinterprets as a missing tool call
             if result is None:
                 tool_response_content = json.dumps({"status": "No records found or GPA calculation returned empty."})
+            elif isinstance(result, (int, float, str)):
+                tool_response_content = json.dumps({f"{function_name}_result": result})
             else:
                 tool_response_content = json.dumps(result)
                 
@@ -269,63 +298,49 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
                 "content": tool_response_content
             })
             
-        # 3. Final call to model with tool results
         try:
-            second_response = _call_groq(messages, tools, tool_choice="auto", temperature=0)
+            response = _call_groq(messages, tools, tool_choice="auto", temperature=0)
+            response_message = response.choices[0].message
         except BadRequestError:
-            print("[DIAGNOSTIC] Groq API failed after retries on final call.")
+            print("[DIAGNOSTIC] Groq API failed after retries on subsequent tool call.")
             return "I'm having trouble processing that — could you rephrase your question?"
-        final_text = second_response.choices[0].message.content
-        
-        if not final_text or not final_text.strip():
-            print("[DIAGNOSTIC] Final response is empty. Forcing a retry with explicit instructions.")
-            messages.append({
-                "role": "user",
-                "content": "Summarize the tool result above in a clear, direct sentence for the student. Do not return an empty response."
-            })
-            try:
-                third_response = _call_groq(messages, tools, tool_choice="auto", temperature=0)
-                final_text = third_response.choices[0].message.content
-            except BadRequestError:
-                pass
-                
-            if not final_text or not final_text.strip():
-                print("[DIAGNOSTIC] Fallback to raw Python string because model returned empty twice.")
-                # We use the 'result' from the last executed tool in the loop
-                if result is None:
-                    final_text = "I couldn't find any results for that query."
-                elif isinstance(result, (int, float)):
-                    final_text = f"Your result is {result}."
-                elif isinstance(result, dict) and "hypothetical_gpa" in result:
-                    final_text = f"Your hypothetical GPA would be {result['hypothetical_gpa']}."
-                elif isinstance(result, list):
-                    if len(result) == 0:
-                        final_text = "There are no records to show."
-                    else:
-                        final_text = f"I found {len(result)} records matching your query."
-                else:
-                    final_text = f"Here is the result: {result}"
-                    
-        print(f"[DIAGNOSTIC] Final model response: {repr(final_text)}")
-        return final_text
-        
+        except RateLimitError:
+            print("[DIAGNOSTIC] Groq API RateLimitError.")
+            return "I've reached my daily processing limit. Please try asking again later or let your administrator know."
+
+    # 4. Final Text Extraction & Fallback
     final_text = response_message.content
     
     if not final_text or not final_text.strip():
-        print("[DIAGNOSTIC] Final response is empty for no-tool path. Forcing a retry with explicit instructions.")
+        print("[DIAGNOSTIC] Final response is empty. Forcing a retry with explicit instructions.")
         messages.append({
             "role": "user",
-            "content": "Please respond warmly to the greeting or small talk above. Do not return an empty response."
+            "content": "Summarize the tool result above in a clear, direct sentence for the student. Do not return an empty response." if iterations > 0 else "Please respond warmly to the greeting or small talk above. Do not return an empty response."
         })
         try:
-            retry_response = _call_groq(messages, tools, tool_choice="auto", temperature=0)
+            retry_response = _call_groq(messages, tools, tool_choice="none", temperature=0)
             final_text = retry_response.choices[0].message.content
-        except BadRequestError:
+        except (BadRequestError, RateLimitError):
             pass
             
         if not final_text or not final_text.strip():
-            print("[DIAGNOSTIC] Fallback to hardcoded greeting because model returned empty twice.")
-            final_text = "Hello! I'm here to help with your academic records. How are your studies going?"
-            
+            print("[DIAGNOSTIC] Fallback to raw Python string because model returned empty twice.")
+            if iterations > 0:
+                if last_tool_result is None:
+                    final_text = "I couldn't find any results for that query."
+                elif isinstance(last_tool_result, (int, float)):
+                    final_text = f"Your result is {last_tool_result}."
+                elif isinstance(last_tool_result, dict) and "hypothetical_gpa" in last_tool_result:
+                    final_text = f"Your hypothetical GPA would be {last_tool_result['hypothetical_gpa']}."
+                elif isinstance(last_tool_result, list):
+                    if len(last_tool_result) == 0:
+                        final_text = "There are no records to show."
+                    else:
+                        final_text = f"I found {len(last_tool_result)} records matching your query."
+                else:
+                    final_text = f"Here is the result: {last_tool_result}"
+            else:
+                final_text = "I'm here to help with your academic advising. How can I assist you today?"
+                
     print(f"[DIAGNOSTIC] Final model response: {repr(final_text)}")
     return final_text

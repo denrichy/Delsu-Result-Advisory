@@ -154,3 +154,51 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
+
+/* Refero UI Styling */
+@keyframes breathing-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.mesh-gradient-bg {
+  background: radial-gradient(circle at 50% 50%, rgba(255,107,107,0.1) 0%, rgba(107,142,255,0.05) 40%, rgba(255,255,255,0) 80%),
+              radial-gradient(circle at 80% 20%, rgba(255,200,107,0.08) 0%, rgba(255,255,255,0) 60%),
+              radial-gradient(circle at 20% 80%, rgba(107,255,200,0.05) 0%, rgba(255,255,255,0) 60%);
+  background-size: 200% 200%;
+  animation: breathing-gradient 15s ease infinite;
+}
+
+.mesh-gradient-text {
+  background: linear-gradient(to right, #ff6b6b, #ffc86b, #6b8eff, #6bffc8);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: breathing-gradient 10s ease infinite;
+}
+
+.explore-chip {
+  transition: all 0.2s ease-in-out;
+  border: 1px solid var(--color-slate-shadow);
+  color: var(--color-graphite);
+}
+.explore-chip:hover {
+  border-color: var(--color-ash);
+  color: var(--color-midnight-ink);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.advisor-input-dock {
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.03);
+}
+
+.message-bubble-user {
+  background: var(--color-midnight-ink);
+  color: var(--color-pure-canvas);
+}
+.message-bubble-ai {
+  background: transparent;
+  color: var(--color-midnight-ink);
+}
