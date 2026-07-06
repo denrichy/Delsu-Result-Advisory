@@ -26,7 +26,7 @@ def get_student_results(matric_number: str):
         
     return formatted_results
 
-def calculate_gpa(results_list, baseline_units=0, baseline_gps=0.0):
+def calculate_gpa_details(results_list, baseline_units=0, baseline_gps=0.0):
     total_grade_points = float(baseline_gps)
     total_units = int(baseline_units)
     
@@ -59,11 +59,15 @@ def calculate_gpa(results_list, baseline_units=0, baseline_gps=0.0):
         
     if total_units == 0:
         if len(results_list) > 0 and baseline_units == 0:
-            return 0.0
-        return None
+            return {"gpa": 0.0, "total_quality_points": 0.0, "total_units": 0}
+        return {"gpa": None, "total_quality_points": total_grade_points, "total_units": total_units}
         
     gpa = total_grade_points / total_units
-    return round(gpa, 2)
+    return {"gpa": round(gpa, 2), "total_quality_points": total_grade_points, "total_units": total_units}
+
+def calculate_gpa(results_list, baseline_units=0, baseline_gps=0.0):
+    details = calculate_gpa_details(results_list, baseline_units, baseline_gps)
+    return details["gpa"]
 
 def get_semester_gpa(matric_number: str, semester: str, session: str):
     results = get_student_results(matric_number)
@@ -131,7 +135,10 @@ def get_full_academic_record(matric_number: str):
     
     baseline_units = student.get("baseline_units") or 0
     baseline_gps = student.get("baseline_gps") or 0.0
-    cgpa = calculate_gpa(courses, baseline_units, baseline_gps)
+    gpa_details = calculate_gpa_details(courses, baseline_units, baseline_gps)
+    cgpa = gpa_details["gpa"]
+    total_units = gpa_details["total_units"]
+    total_quality_points = gpa_details["total_quality_points"]
     
     previous_outstanding_str = student.get("outstanding_courses") or ""
     prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', previous_outstanding_str)
@@ -154,6 +161,8 @@ def get_full_academic_record(matric_number: str):
             "matric_number": matric_number,
             "current_level": student.get("current_level"),
             "cgpa": cgpa,
+            "total_units": total_units,
+            "total_quality_points": total_quality_points,
             "baseline_units": baseline_units,
             "baseline_gps": baseline_gps
         },
