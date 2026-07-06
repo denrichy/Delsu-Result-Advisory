@@ -6,3 +6,4 @@ supabase
 openpyxl
 python-multipart
 groq
+resend
