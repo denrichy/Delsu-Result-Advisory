@@ -45,7 +45,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-pure-canvas flex items-center justify-center px-[24px]">
-      <div className="w-full max-w-[400px]">
+      <div className="w-full max-w-full max-w-[400px]">
 
         <div className="mb-[40px]">
           <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">COMPASS</p>

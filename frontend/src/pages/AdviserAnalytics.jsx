@@ -303,7 +303,8 @@ export default function AdviserAnalytics() {
             </button>
           </div>
           <div className="bg-pure-canvas border border-fog rounded-[16px] overflow-hidden">
-            <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-fog bg-fog/20">
                   <th className="p-[16px] text-step-xs text-ash font-normal tracking-widest uppercase">Student</th>
@@ -339,6 +340,7 @@ export default function AdviserAnalytics() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </section>
 
