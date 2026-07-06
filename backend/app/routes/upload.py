@@ -387,7 +387,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                 
         # 5. Dispatch notifications to affected students
         notification_data = []
-        student_emails_for_resend = []
+        student_emails_for_brevo = []
         
         for matric, student_id in student_id_map.items():
             # For DB notifications
@@ -399,7 +399,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
             # For Email notifications
             email = student_email_map.get(matric)
             if email:
-                student_emails_for_resend.append({
+                student_emails_for_brevo.append({
                     "email": email,
                     "matric": matric
                 })
@@ -409,10 +409,10 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
             supabase.table("notifications").insert(notification_data).execute()
             
         # Dispatch emails in background
-        if student_emails_for_resend:
+        if student_emails_for_brevo:
             background_tasks.add_task(
                 send_result_notifications_async,
-                student_emails_for_resend,
+                student_emails_for_brevo,
                 request.semester,
                 request.session
             )

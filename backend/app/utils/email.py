@@ -1,12 +1,15 @@
 import os
-import resend
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # We pull the API key from environment variables.
-# You will need to add RESEND_API_KEY=your_key to your backend/.env
-resend.api_key = os.getenv("RESEND_API_KEY", "")
+# You will need to add BREVO_API_KEY=your_key to your backend/.env
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
+# You MUST verify this sender email in your Brevo dashboard!
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", "denrichy111@gmail.com")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://delsu-result-advisory.vercel.app").rstrip("/")
 
 def render_result_email(matric_number: str, semester: str, session: str) -> str:
     """
@@ -24,7 +27,7 @@ def render_result_email(matric_number: str, semester: str, session: str) -> str:
             <p>New results have been published for the <strong>{semester}</strong> semester of the <strong>{session}</strong> academic session.</p>
             <p>Please log in to your student dashboard to view your updated academic record and CGPA.</p>
             <br/>
-            <a href="http://localhost:5173/app/login" style="display: inline-block; padding: 10px 20px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; border-radius: 5px;">View Dashboard</a>
+            <a href="{FRONTEND_URL}/app/login" style="display: inline-block; padding: 10px 20px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; border-radius: 5px;">View Dashboard</a>
             <br/><br/>
             <p style="font-size: 12px; color: #666;">
                 This is an automated notification from the Delsu Result Advisory System. Please do not reply to this email.
@@ -40,9 +43,16 @@ def send_result_notifications_async(student_emails: list[dict], semester: str, s
     This function should be called via FastAPI BackgroundTasks.
     It takes a list of dicts: [{"email": "student@example.com", "matric": "FOS/22/23/123"}]
     """
-    if not resend.api_key:
-        print("RESEND_API_KEY is not set. Skipping email dispatch.")
+    if not BREVO_API_KEY:
+        print("BREVO_API_KEY is not set. Skipping email dispatch.")
         return
+
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
 
     for student in student_emails:
         email = student.get("email")
@@ -54,16 +64,19 @@ def send_result_notifications_async(student_emails: list[dict], semester: str, s
         try:
             html_content = render_result_email(matric, semester, session)
             
-            # Send via Resend
-            # In production, replace the 'from' email with a verified domain you own on Resend.
-            # E.g. 'onboarding@resend.dev' is strictly for testing and only sends to the email registered on your Resend account.
-            r = resend.Emails.send({
-                "from": "Academics <onboarding@resend.dev>",
-                "to": email,
+            payload = {
+                "sender": {
+                    "name": "Compass Academics",
+                    "email": BREVO_SENDER_EMAIL
+                },
+                "to": [{"email": email}],
                 "subject": f"New Results Published - {semester} {session}",
-                "html": html_content
-            })
-            print(f"Sent email to {email}: {r}")
+                "htmlContent": html_content
+            }
+            
+            response = requests.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            print(f"Sent email to {email}: {response.json()}")
         except Exception as e:
             print(f"Failed to send email to {email}: {e}")
 
@@ -78,7 +91,7 @@ def render_carryover_email(matric_number: str) -> str:
             <p>This is a reminder from your academic adviser. You have outstanding carryover courses that require your attention.</p>
             <p>Please log in to your student portal to review your carryover courses, and ensure you register and attend classes for them.</p>
             <br/>
-            <a href="http://localhost:5173/app/login" style="display: inline-block; padding: 10px 20px; background-color: #c75c5c; color: #ffffff; text-decoration: none; border-radius: 5px;">View Carryovers</a>
+            <a href="{FRONTEND_URL}/app/login" style="display: inline-block; padding: 10px 20px; background-color: #c75c5c; color: #ffffff; text-decoration: none; border-radius: 5px;">View Carryovers</a>
             <br/><br/>
             <p style="font-size: 12px; color: #666;">
                 This is an automated notification from the Delsu Result Advisory System. Please do not reply to this email.
@@ -90,9 +103,16 @@ def render_carryover_email(matric_number: str) -> str:
     return html
 
 def send_carryover_notifications_async(student_emails: list[dict]):
-    if not resend.api_key:
-        print("RESEND_API_KEY is not set. Skipping email dispatch.")
+    if not BREVO_API_KEY:
+        print("BREVO_API_KEY is not set. Skipping email dispatch.")
         return
+
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
 
     for student in student_emails:
         email = student.get("email")
@@ -103,12 +123,19 @@ def send_carryover_notifications_async(student_emails: list[dict]):
             
         try:
             html_content = render_carryover_email(matric)
-            r = resend.Emails.send({
-                "from": "Adviser <onboarding@resend.dev>",
-                "to": email,
-                "subject": f"Action Required: Outstanding Carryover Courses",
-                "html": html_content
-            })
-            print(f"Sent carryover email to {email}: {r}")
+            
+            payload = {
+                "sender": {
+                    "name": "Compass Adviser",
+                    "email": BREVO_SENDER_EMAIL
+                },
+                "to": [{"email": email}],
+                "subject": "Action Required: Outstanding Carryover Courses",
+                "htmlContent": html_content
+            }
+            
+            response = requests.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            print(f"Sent carryover email to {email}: {response.json()}")
         except Exception as e:
             print(f"Failed to send carryover email to {email}: {e}")
