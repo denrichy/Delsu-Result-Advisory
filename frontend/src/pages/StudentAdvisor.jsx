@@ -179,39 +179,6 @@ export default function StudentAdvisor() {
                     >
                       <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     </div>
-
-                    {/* Explore Next Chips under AI's FIRST response only */}
-                    {msg.role === 'assistant' && idx === 1 && (
-                      <div className="mt-[16px] md:mt-[24px] flex flex-col gap-[10px] md:gap-[12px] w-full pl-[0px] md:pl-[36px]">
-                        <p className="text-step-sm-2 text-midnight-ink font-semibold">Explore next</p>
-                        <div className="flex overflow-x-auto gap-[8px] pb-[8px] items-start w-[calc(100vw-60px)] md:w-full scrollbar-hide">
-                          <button 
-                            onClick={() => handleSend("What is my current CGPA?")}
-                            className="explore-chip whitespace-nowrap flex-shrink-0 flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas border border-fog text-step-sm-2 hover:bg-mist transition-colors"
-                            disabled={sending}
-                          >
-                            <span className="text-ash">↪</span>
-                            What is my current CGPA?
-                          </button>
-                          <button 
-                            onClick={() => handleSend("Do I have any carryovers?")}
-                            className="explore-chip whitespace-nowrap flex-shrink-0 flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas border border-fog text-step-sm-2 hover:bg-mist transition-colors"
-                            disabled={sending}
-                          >
-                            <span className="text-ash">↪</span>
-                            Do I have any carryovers?
-                          </button>
-                          <button 
-                            onClick={() => handleSend("What happens to my GPA if I get an A in MTH213?")}
-                            className="explore-chip whitespace-nowrap flex-shrink-0 flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas border border-fog text-step-sm-2 hover:bg-mist transition-colors"
-                            disabled={sending}
-                          >
-                            <span className="text-ash">↪</span>
-                            What happens to my GPA if I get an A in MTH213?
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))}
                 
