@@ -24,12 +24,14 @@ export default function Navbar() {
     }
   };
 
+  const logoDestination = userRole === 'student' ? '/app/student' : userRole === 'adviser' ? '/app/adviser' : '/';
+
   return (
     <nav className="sticky top-0 z-50 bg-pure-canvas border-b border-fog flex flex-col justify-center">
       <div className="h-[60px] px-[24px] flex items-center justify-between">
         {/* Left: Logo/Wordmark */}
         <div className="flex-shrink-0">
-          <Link to="/" className="text-step-base-2 text-midnight-ink">
+          <Link to={logoDestination} className="text-step-base-2 text-midnight-ink">
             Compass
           </Link>
         </div>
@@ -57,17 +59,26 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden flex items-center">
-          <button onClick={() => setMenuOpen(!menuOpen)} className="text-midnight-ink p-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {menuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+        {/* Right: User Avatar & Mobile Menu Toggle */}
+        <div className="flex items-center gap-[16px]">
+          {session && (
+            <div className="hidden md:flex items-center justify-center w-[32px] h-[32px] rounded-full bg-mist text-step-sm-2 text-midnight-ink border border-fog select-none">
+              {session.user?.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
+          )}
+
+          {/* Mobile Menu Toggle */}
+          <div className="md:hidden flex items-center">
+            <button onClick={() => setMenuOpen(!menuOpen)} className="text-midnight-ink p-2">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {menuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -91,6 +102,15 @@ export default function Navbar() {
           >
             For Advisers
           </a>
+
+          {session && (
+            <button 
+              onClick={() => { setMenuOpen(false); handleSignOut(); }}
+              className="text-step-sm text-left text-amber-600 mt-[8px] pt-[16px] border-t border-fog"
+            >
+              Log Out
+            </button>
+          )}
         </div>
       )}
     </nav>

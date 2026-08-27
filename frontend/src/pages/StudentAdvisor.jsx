@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
+import { ThinkingOrb } from 'thinking-orbs';
 
 export default function StudentAdvisor() {
   const { session, loading: authLoading } = useAuth();
@@ -15,6 +16,7 @@ export default function StudentAdvisor() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const hasStartedChat = messages.length > 0;
 
@@ -51,6 +53,25 @@ export default function StudentAdvisor() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Keyboard-aware input dock: detect virtual keyboard height on mobile
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const handleResize = () => {
+      const offset = window.innerHeight - vv.height;
+      setKeyboardOffset(offset > 50 ? offset : 0);
+    };
+
+    vv.addEventListener('resize', handleResize);
+    vv.addEventListener('scroll', handleResize);
+
+    return () => {
+      vv.removeEventListener('resize', handleResize);
+      vv.removeEventListener('scroll', handleResize);
+    };
+  }, []);
 
   const handleSend = async (overrideText = null) => {
     const textToSend = typeof overrideText === 'string' ? overrideText : input;
@@ -111,7 +132,7 @@ export default function StudentAdvisor() {
       <Navbar />
       
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col ${hasStartedChat ? 'max-w-[800px] w-full mx-auto px-[24px] pt-[32px] pb-[140px]' : 'items-center justify-center px-[24px]'}`}>
+      <div className={`flex-1 flex flex-col ${hasStartedChat ? 'max-w-[800px] w-full mx-auto px-[16px] md:px-[24px] pt-[24px] md:pt-[32px] pb-[160px] md:pb-[140px]' : 'items-center justify-center px-[16px] md:px-[24px]'}`}>
         
         {profileLoading ? (
            <div className="flex justify-center items-center h-[200px]">
@@ -127,11 +148,11 @@ export default function StudentAdvisor() {
           <>
             {/* HERO STATE */}
             {!hasStartedChat && (
-              <div className="text-center max-w-[800px] w-full mb-[64px] animate-fade-in">
-                <h1 className="text-step-5xl mesh-gradient-text pb-[16px]">
+              <div className="text-center max-w-[800px] w-full mb-[32px] md:mb-[64px] animate-fade-in px-[8px]">
+                <h1 className="mesh-gradient-text pb-[16px]" style={{fontSize: 'clamp(32px, 8vw, 56px)', fontWeight: 700, lineHeight: 1}}>
                   The AI Advisor you can talk to
                 </h1>
-                <p className="text-step-xl text-graphite mt-[16px] max-w-[600px] mx-auto leading-relaxed">
+                <p className="text-step-base-3 md:text-step-xl text-graphite mt-[12px] md:mt-[16px] max-w-[600px] mx-auto leading-relaxed">
                   Real academic records, insights, and guidance to help students and advisors make better academic decisions.
                 </p>
               </div>
@@ -150,10 +171,10 @@ export default function StudentAdvisor() {
                       )}
                     </div>
                     <div 
-                      className={`px-[20px] py-[14px] rounded-[16px] max-w-[85%] text-step-base ${
+                      className={`px-[16px] md:px-[20px] py-[12px] md:py-[14px] rounded-[16px] max-w-[90%] md:max-w-[85%] text-step-base ${
                         msg.role === 'user' 
                           ? 'bg-midnight-ink text-pure-canvas rounded-tr-[4px]' 
-                          : 'bg-transparent text-midnight-ink border border-fog'
+                          : 'bg-mist/60 text-midnight-ink border border-fog'
                       }`}
                     >
                       <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
@@ -161,12 +182,12 @@ export default function StudentAdvisor() {
 
                     {/* Explore Next Chips under AI's FIRST response only */}
                     {msg.role === 'assistant' && idx === 1 && (
-                      <div className="mt-[24px] flex flex-col gap-[12px] w-full pl-[36px]">
+                      <div className="mt-[16px] md:mt-[24px] flex flex-col gap-[10px] md:gap-[12px] w-full pl-[0px] md:pl-[36px]">
                         <p className="text-step-sm-2 text-midnight-ink font-semibold">Explore next</p>
-                        <div className="flex flex-col gap-[8px] items-start">
+                        <div className="flex overflow-x-auto gap-[8px] pb-[8px] items-start w-[calc(100vw-60px)] md:w-full scrollbar-hide">
                           <button 
                             onClick={() => handleSend("What is my current CGPA?")}
-                            className="explore-chip flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas text-step-sm-2 text-left"
+                            className="explore-chip whitespace-nowrap flex-shrink-0 flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas border border-fog text-step-sm-2 hover:bg-mist transition-colors"
                             disabled={sending}
                           >
                             <span className="text-ash">↪</span>
@@ -174,7 +195,7 @@ export default function StudentAdvisor() {
                           </button>
                           <button 
                             onClick={() => handleSend("Do I have any carryovers?")}
-                            className="explore-chip flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas text-step-sm-2 text-left"
+                            className="explore-chip whitespace-nowrap flex-shrink-0 flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas border border-fog text-step-sm-2 hover:bg-mist transition-colors"
                             disabled={sending}
                           >
                             <span className="text-ash">↪</span>
@@ -182,7 +203,7 @@ export default function StudentAdvisor() {
                           </button>
                           <button 
                             onClick={() => handleSend("What happens to my GPA if I get an A in MTH213?")}
-                            className="explore-chip flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas text-step-sm-2 text-left"
+                            className="explore-chip whitespace-nowrap flex-shrink-0 flex items-center gap-[12px] px-[16px] py-[10px] rounded-[12px] bg-pure-canvas border border-fog text-step-sm-2 hover:bg-mist transition-colors"
                             disabled={sending}
                           >
                             <span className="text-ash">↪</span>
@@ -195,11 +216,13 @@ export default function StudentAdvisor() {
                 ))}
                 
                 {sending && (
-                  <div className="flex items-start flex-col gap-[8px]">
-                    <div className="w-[24px] h-[24px] rounded-full bg-brand-ink flex items-center justify-center text-pure-canvas text-[10px] font-bold">
+                  <div className="flex items-start gap-[12px]">
+                    <div className="w-[24px] h-[24px] rounded-full bg-brand-ink flex items-center justify-center text-pure-canvas text-[10px] font-bold flex-shrink-0 mt-2">
                       AI
                     </div>
-                    <div className="skeleton h-[48px] w-[200px] rounded-[16px] opacity-50"></div>
+                    <div className="pt-[2px]">
+                      <ThinkingOrb state="breathing" size={64} theme="auto" style={{ width: 48, height: 48 }} />
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} className="h-[20px]" />
@@ -211,8 +234,11 @@ export default function StudentAdvisor() {
 
       {/* Floating Input Dock */}
       {matric && !profileLoading && (
-        <div className={`fixed left-0 right-0 z-10 transition-all duration-700 ease-in-out flex justify-center px-[24px] ${hasStartedChat ? 'bottom-[32px]' : 'bottom-[20vh]'}`}>
-          <div className="advisor-input-dock bg-pure-canvas border border-slate-shadow rounded-[24px] p-[12px] w-full max-w-[800px] flex flex-col gap-[12px]">
+        <div 
+          className={`fixed left-0 right-0 z-10 transition-all duration-700 ease-in-out flex justify-center px-[12px] md:px-[24px] pb-safe`}
+          style={{ bottom: keyboardOffset > 0 ? `${keyboardOffset}px` : (hasStartedChat ? '16px' : '12vh') }}
+        >
+          <div className="advisor-input-dock bg-pure-canvas/80 backdrop-blur-md border border-slate-shadow rounded-[24px] p-[12px] w-full max-w-[800px] flex flex-col gap-[12px]">
             {!hasStartedChat && (
               <div className="flex justify-between items-center px-[8px]">
                 <span className="text-step-sm text-midnight-ink font-semibold">

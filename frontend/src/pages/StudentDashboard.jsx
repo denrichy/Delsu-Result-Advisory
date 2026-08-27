@@ -87,12 +87,12 @@ export default function StudentDashboard() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-pure-canvas px-[24px] py-[64px]">
+      <div className="min-h-screen bg-pure-canvas px-[16px] md:px-[24px] py-[48px] md:py-[64px]">
         <div className="max-w-[800px] mx-auto">
 
           {/* Greeting */}
-          <div className="mb-[48px] flex justify-between items-start">
-            <div>
+          <div className="mb-[32px] md:mb-[48px] flex flex-col sm:flex-row sm:justify-between sm:items-start gap-[16px]">
+            <div className="flex-1 min-w-0">
               <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">
                 STUDENT PORTAL
               </p>
@@ -111,7 +111,7 @@ export default function StudentDashboard() {
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-[24px]">
+            <div className="flex items-center gap-[16px] sm:gap-[24px]">
               <Link to="/app/student/notifications" className="relative text-graphite hover:text-midnight-ink transition-colors mt-[8px]">
                 {/* Bell Icon SVG */}
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -141,7 +141,6 @@ export default function StudentDashboard() {
               to="/app/student/results"
               className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
             >
-              <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">01</p>
               <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
                 Academic Record
               </h2>
@@ -155,7 +154,6 @@ export default function StudentDashboard() {
               to="/app/student/advisor"
               className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
             >
-              <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">02</p>
               <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
                 Ask the Advisor
               </h2>
@@ -169,8 +167,7 @@ export default function StudentDashboard() {
               to="/app/student/notifications"
               className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block relative"
             >
-              <div className="flex items-start justify-between mb-[12px]">
-                <p className="text-step-xs text-ash uppercase tracking-widest">03</p>
+              <div className="flex items-start justify-end mb-[12px]">
                 {unreadCount > 0 && (
                   <span className="text-[11px] font-bold bg-red-50 text-red-600 border border-red-200 rounded-full px-[8px] py-[2px]">
                     {unreadCount} New

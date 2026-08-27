@@ -140,7 +140,7 @@ export default function StudentResults() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-pure-canvas px-[24px] py-[64px]">
+      <div className="min-h-screen bg-pure-canvas px-[16px] md:px-[24px] py-[48px] md:py-[64px]">
         <div className="max-w-[600px] mx-auto">
           {loading ? (
             <>
@@ -235,13 +235,13 @@ export default function StudentResults() {
               ) : null}
 
               {studentData.courses.length > 0 && Array.from(new Set(studentData.courses.map(c => c.session || 'Unknown Session'))).length > 1 && (
-                <div className="mb-[32px] flex items-center justify-end">
+                <div className="mb-[24px] md:mb-[32px] flex flex-col sm:flex-row sm:items-center sm:justify-end gap-[8px]">
                   <label htmlFor="sessionFilter" className="text-step-sm-2 text-graphite mr-[12px]">Filter by Session:</label>
                   <select
                     id="sessionFilter"
                     value={selectedSession}
                     onChange={(e) => setSelectedSession(e.target.value)}
-                    className="border border-fog rounded-[8px] px-[16px] py-[8px] text-step-sm text-midnight-ink focus:outline-none focus:border-midnight-ink transition-colors"
+                    className="border border-fog rounded-[8px] px-[16px] py-[8px] text-step-sm text-midnight-ink focus:outline-none focus:border-midnight-ink transition-colors w-full sm:w-auto"
                   >
                     <option value="All">All Sessions</option>
                     {Array.from(new Set(studentData.courses.map(c => c.session || 'Unknown Session')))

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 export default function StudentSignup() {
@@ -69,19 +70,23 @@ export default function StudentSignup() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-pure-canvas">
-        <div className="w-full max-w-[440px] text-center">
-          <h1 className="text-step-3xl text-midnight-ink mb-[8px]">
-            Registration Complete
-          </h1>
-          <p className="text-step-sm-2 text-graphite mb-[32px]">
-            Your account has been successfully created and linked to your matriculation number.
-          </p>
+      <div className="min-h-screen relative bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
+        <div className="absolute top-[24px] left-[24px]">
+          <Link to="/" className="text-step-base-2 text-midnight-ink">Compass</Link>
+        </div>
+        <div className="w-full max-w-[440px]">
+          <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">REGISTRATION COMPLETE</p>
+          <h1 className="text-step-3xl text-midnight-ink mb-[16px]">Account Created</h1>
+          <div className="border border-fog rounded-[16px] p-[24px] mb-[32px]">
+            <p className="text-step-sm-2 text-graphite">
+              Your account has been successfully created and linked to your matriculation number.
+            </p>
+          </div>
           <a
-            href="/student"
-            className="inline-block bg-midnight-ink text-pure-canvas text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity"
+            href="/app/login"
+            className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
           >
-            Continue to Dashboard
+            Continue to Login
           </a>
         </div>
       </div>
@@ -89,23 +94,22 @@ export default function StudentSignup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAF9F6]">
-      <div className="w-full max-w-[440px] bg-white p-12 border border-brand-hairline shadow-sm">
+    <div className="min-h-screen relative bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
+      <div className="absolute top-[24px] left-[24px]">
+        <Link to="/" className="text-step-base-2 text-midnight-ink">Compass</Link>
+      </div>
+      <div className="w-full max-w-[440px]">
         
-        <div className="mb-10">
-          <h1 className="font-serif text-[28px] text-brand-ink mb-4">
-            Student Registration
-          </h1>
-          <div className="h-[2px] w-[40px] bg-brand-accent"></div>
+        <div className="mb-[40px]">
+          <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">STUDENT PORTAL</p>
+          <h1 className="text-step-3xl text-midnight-ink mb-[4px]">Register</h1>
+          <p className="text-step-sm-2 text-graphite">Create your student account.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[20px]">
           
-          <div className="flex flex-col space-y-2">
-            <label 
-              htmlFor="name" 
-              className="text-[11px] font-sans font-medium uppercase tracking-widest text-brand-muted"
-            >
+          <div className="flex flex-col gap-[6px]">
+            <label htmlFor="name" className="text-step-xs text-graphite uppercase tracking-widest">
               FULL NAME
             </label>
             <input
@@ -115,16 +119,13 @@ export default function StudentSignup() {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. John Doe"
               disabled={loading}
-              className="font-sans text-[15px] text-brand-ink bg-transparent border-0 border-b border-brand-hairline py-2 focus:ring-0 focus:outline-none focus:border-brand-accent transition-colors w-full disabled:opacity-50"
+              className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               required
             />
           </div>
 
-          <div className="flex flex-col space-y-2">
-            <label 
-              htmlFor="matric" 
-              className="text-[11px] font-sans font-medium uppercase tracking-widest text-brand-muted"
-            >
+          <div className="flex flex-col gap-[6px]">
+            <label htmlFor="matric" className="text-step-xs text-graphite uppercase tracking-widest">
               MATRICULATION NUMBER
             </label>
             <input
@@ -134,16 +135,13 @@ export default function StudentSignup() {
               onChange={(e) => setMatricNumber(e.target.value.toUpperCase())}
               placeholder="e.g. FOS/22/23/123456"
               disabled={loading}
-              className="font-mono text-[15px] text-brand-ink bg-transparent border-0 border-b border-brand-hairline py-2 focus:ring-0 focus:outline-none focus:border-brand-accent transition-colors w-full disabled:opacity-50"
+              className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               required
             />
           </div>
 
-          <div className="flex flex-col space-y-2">
-            <label 
-              htmlFor="email" 
-              className="text-[11px] font-sans font-medium uppercase tracking-widest text-brand-muted"
-            >
+          <div className="flex flex-col gap-[6px]">
+            <label htmlFor="email" className="text-step-xs text-graphite uppercase tracking-widest">
               EMAIL ADDRESS
             </label>
             <input
@@ -153,16 +151,13 @@ export default function StudentSignup() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="student@delsu.edu.ng"
               disabled={loading}
-              className="font-sans text-[15px] text-brand-ink bg-transparent border-0 border-b border-brand-hairline py-2 focus:ring-0 focus:outline-none focus:border-brand-accent transition-colors w-full disabled:opacity-50"
+              className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               required
             />
           </div>
 
-          <div className="flex flex-col space-y-2">
-            <label 
-              htmlFor="password" 
-              className="text-[11px] font-sans font-medium uppercase tracking-widest text-brand-muted"
-            >
+          <div className="flex flex-col gap-[6px]">
+            <label htmlFor="password" className="text-step-xs text-graphite uppercase tracking-widest">
               PASSWORD
             </label>
             <input
@@ -172,16 +167,13 @@ export default function StudentSignup() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               disabled={loading}
-              className="font-sans text-[15px] text-brand-ink bg-transparent border-0 border-b border-brand-hairline py-2 focus:ring-0 focus:outline-none focus:border-brand-accent transition-colors w-full disabled:opacity-50"
+              className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               required
             />
           </div>
 
-          <div className="flex flex-col space-y-2 relative pb-4">
-            <label 
-              htmlFor="confirmPassword" 
-              className="text-[11px] font-sans font-medium uppercase tracking-widest text-brand-muted"
-            >
+          <div className="flex flex-col gap-[6px]">
+            <label htmlFor="confirmPassword" className="text-step-xs text-graphite uppercase tracking-widest">
               CONFIRM PASSWORD
             </label>
             <input
@@ -191,34 +183,36 @@ export default function StudentSignup() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               disabled={loading}
-              className="font-sans text-[15px] text-brand-ink bg-transparent border-0 border-b border-brand-hairline py-2 focus:ring-0 focus:outline-none focus:border-brand-accent transition-colors w-full disabled:opacity-50"
+              className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               required
             />
-            {error && (
-              <div className="border border-midnight-ink rounded-[8px] px-[16px] py-[10px]">
-                <p className="text-step-sm text-midnight-ink">{error}</p>
-              </div>
-            )}
           </div>
+
+          {error && (
+            <div className="border border-midnight-ink rounded-[8px] px-[16px] py-[10px]">
+              <p className="text-step-sm text-midnight-ink">{error}</p>
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-ink text-white font-sans font-medium py-3 px-4 rounded-[3px] hover:bg-opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+            className="w-full bg-midnight-ink text-pure-canvas text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-[4px]"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? 'Creating Account…' : 'Create Account'}
           </button>
 
-          <div className="text-center mt-6">
-            <a 
-              href="/student-login"
-              className="text-brand-muted hover:text-brand-ink font-sans text-[13px] underline underline-offset-4 transition-colors"
-            >
-              Already have an account? Log in
-            </a>
-          </div>
-
         </form>
+
+        <div className="mt-[24px] text-center">
+          <a
+            href="/app/login"
+            className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
+          >
+            Already have an account? Log in
+          </a>
+        </div>
+
       </div>
     </div>
   );

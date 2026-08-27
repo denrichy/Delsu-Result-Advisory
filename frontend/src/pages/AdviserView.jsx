@@ -140,7 +140,6 @@ export default function AdviserDashboard() {
             to="/app/adviser/upload"
             className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
           >
-            <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">01</p>
             <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
               Upload Results
             </h2>
@@ -154,7 +153,6 @@ export default function AdviserDashboard() {
             to="/app/adviser/analytics"
             className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
           >
-            <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">02</p>
             <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">Analytics</h2>
             <p className="text-step-sm-2 text-graphite">
               View aggregate performance data for your department.
@@ -166,7 +164,6 @@ export default function AdviserDashboard() {
             to="/app/adviser/history"
             className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
           >
-            <p className="text-step-xs text-ash uppercase tracking-widest mb-[12px]">03</p>
             <h2 className="text-step-base-2 text-midnight-ink mb-[8px] group-hover:underline underline-offset-4">
               Upload History
             </h2>

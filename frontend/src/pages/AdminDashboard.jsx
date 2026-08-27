@@ -135,7 +135,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-[720px] mx-auto px-[24px] py-[64px]">
+      <main className="max-w-[720px] mx-auto px-[16px] md:px-[24px] py-[48px] md:py-[64px]">
 
         <div className="mb-[40px]">
           <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADMIN DASHBOARD</p>

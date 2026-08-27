@@ -21,7 +21,7 @@ def _call_groq(messages, tools, tool_choice="auto", temperature=0):
     for attempt in range(MAX_RETRIES):
         try:
             response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=messages,
                 tools=tools,
                 tool_choice=tool_choice,
@@ -153,10 +153,12 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "score had been different.'\n\n"
         "For 'what if I scored X in all my courses' questions, use simulate_gpa_uniform "
         "— never calculate this yourself.\n\n"
-        "You must ONLY call tools from the tools list provided to you. Never invent or "
+        "You must ONLY call tools from the tools list provided to you. Never invent or \n"
         "reference a tool name that isn't in that list.\n\n"
-        "Be concise. Don't over-explain or pad responses with unnecessary \n"
-        "caveats."
+        "FORMATTING AND TONE RULES:\n"
+        "1. Be highly concise. Give the student the exact answer they need without walls of text or over-explaining.\n"
+        "2. Do NOT pad responses with unnecessary caveats or repetitions.\n"
+        "3. PLAIN TEXT ONLY. You must absolutely NEVER use Markdown formatting. Do NOT use asterisks (**) for bolding, do NOT use hashes (#) for headers, do NOT use pipes (|) to create tables, and do NOT use bullet points. Write in completely clean, plain text paragraphs and sentences."
     )
     
     tools = [
@@ -367,5 +369,9 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
             else:
                 final_text = "I'm here to help with your academic advising. How can I assist you today?"
                 
+    # Programmatically strip markdown symbols just in case the model ignores prompt rules
+    if final_text:
+        final_text = final_text.replace('*', '').replace('#', '').replace('|', '').replace('`', '')
+        
     print(f"[DIAGNOSTIC] Final model response: {repr(final_text)}")
     return final_text
