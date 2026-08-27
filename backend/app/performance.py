@@ -155,12 +155,6 @@ def get_full_academic_record(matric_number: str):
                 outstanding.append(dc)
                 current_outstanding.append(dc)
                 
-    at_risk_courses = [
-        c for c in courses 
-        if c.get("score") is not None and type(c.get("score")) in (int, float) 
-        and 45 <= float(c.get("score")) < 50
-    ]
-                
     return {
         "student_info": {
             "name": student.get("name"),
@@ -175,7 +169,6 @@ def get_full_academic_record(matric_number: str):
         "outstanding_courses": outstanding,
         "previous_outstanding": previous_outstanding,
         "current_outstanding": current_outstanding,
-        "at_risk_courses": at_risk_courses,
         "courses": courses
     }
 

@@ -103,8 +103,6 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
         "'previous_outstanding' contains older carryovers from past sessions, while \n"
         "'current_outstanding' contains newly failed courses from the current session. \n"
         "Always give the TOTAL number of carryovers first, and if appropriate, break them down by previous vs current. \n"
-        "Additionally, the 'at_risk_courses' array contains courses where the student barely passed (Grade D, 45-49). \n"
-        "Proactively warn them about these At-Risk courses as they drag down their CGPA, and suggest they focus on improving in similar future subjects.\n"
         "NEVER claim they only have carryovers from the current session if 'previous_outstanding' is populated.\n\n"
         "You can have natural conversation — greetings, small talk, follow-up \n"
         "questions — but you stay in character as an academic advisor. If the \n"
