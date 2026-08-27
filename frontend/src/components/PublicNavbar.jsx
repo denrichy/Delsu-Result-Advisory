@@ -39,7 +39,6 @@ export default function PublicNavbar() {
     }
   };
 
-  // Smooth-scroll to #for-advisers on home page
   const handleForAdvisers = (e) => {
     e.preventDefault();
     const el = document.getElementById('for-advisers');
@@ -47,6 +46,16 @@ export default function PublicNavbar() {
       el.scrollIntoView({ behavior: 'smooth' });
     } else {
       navigate('/#for-advisers');
+    }
+  };
+
+  const handleHowItWorks = (e) => {
+    e.preventDefault();
+    const el = document.getElementById('how-it-works');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/#how-it-works');
     }
   };
 
@@ -67,6 +76,13 @@ export default function PublicNavbar() {
           <Link to="/" className="text-step-sm text-midnight-ink hover:text-graphite transition-colors">
             Home
           </Link>
+          <a
+            href="#how-it-works"
+            onClick={handleHowItWorks}
+            className="text-step-sm text-midnight-ink hover:text-graphite transition-colors cursor-pointer"
+          >
+            How It Works
+          </a>
           <a
             href="#for-advisers"
             onClick={handleForAdvisers}
@@ -106,6 +122,13 @@ export default function PublicNavbar() {
           <Link to="/" onClick={() => setMenuOpen(false)} className="text-step-sm text-midnight-ink">
             Home
           </Link>
+          <a
+            href="#how-it-works"
+            onClick={(e) => { setMenuOpen(false); handleHowItWorks(e); }}
+            className="text-step-sm text-midnight-ink"
+          >
+            How It Works
+          </a>
           <a
             href="#for-advisers"
             onClick={(e) => { setMenuOpen(false); handleForAdvisers(e); }}
