@@ -67,7 +67,7 @@ export default function AdminLogin() {
               placeholder="admin@delsu.edu.ng"
               disabled={loading}
               required
-              className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+              className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
             />
           </div>
 
@@ -83,7 +83,7 @@ export default function AdminLogin() {
               placeholder="••••••••"
               disabled={loading}
               required
-              className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+              className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
             />
           </div>
 

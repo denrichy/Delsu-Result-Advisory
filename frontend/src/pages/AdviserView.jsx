@@ -135,7 +135,7 @@ export default function AdviserDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px]">
 
-          {/* Tile 1: Upload Results — active */}
+          {/* Upload Results */}
           <Link
             to="/app/adviser/upload"
             className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
@@ -148,7 +148,7 @@ export default function AdviserDashboard() {
             </p>
           </Link>
 
-          {/* Tile 2: Analytics — active */}
+          {/* Analytics */}
           <Link
             to="/app/adviser/analytics"
             className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"
@@ -159,7 +159,7 @@ export default function AdviserDashboard() {
             </p>
           </Link>
 
-          {/* Tile 3: Upload History — active */}
+          {/* Upload History */}
           <Link
             to="/app/adviser/history"
             className="bg-pure-canvas border border-fog rounded-[16px] p-[24px] hover:border-midnight-ink transition-colors group block"

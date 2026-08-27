@@ -126,7 +126,7 @@ export default function Login() {
           </div>
 
           {/* Role Toggle */}
-          <div className="flex gap-[8px] mb-[32px] p-[4px] bg-mist rounded-full w-fit">
+          <div className="flex gap-[8px] mb-[32px] p-[4px] bg-mist rounded-[12px] w-fit">
             <button
               type="button"
               onClick={() => { setRole('student'); setError(''); }}
@@ -162,7 +162,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={role === 'adviser' ? 'adviser@delsu.edu.ng' : 'student@delsu.edu.ng'}
                 disabled={loading} required
-                className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               />
             </div>
 
@@ -175,7 +175,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={loading} required
-                className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               />
             </div>
 

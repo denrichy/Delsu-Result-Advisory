@@ -127,7 +127,7 @@ export default function Signup() {
           </div>
 
           {/* Role Toggle */}
-          <div className="flex gap-[8px] mb-[32px] p-[4px] bg-mist rounded-full w-fit">
+          <div className="flex gap-[8px] mb-[32px] p-[4px] bg-mist rounded-[12px] w-fit">
             <button
               type="button"
               onClick={() => switchRole('student')}
@@ -162,7 +162,7 @@ export default function Signup() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder={role === 'adviser' ? "Dr. Jane Smith" : "Jane Doe"}
                 disabled={loading} required
-                className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               />
             </div>
 
@@ -175,7 +175,7 @@ export default function Signup() {
                   onChange={(e) => setMatricNumber(e.target.value.toUpperCase())}
                   placeholder="e.g. FOS/22/23/123456"
                   disabled={loading} required
-                  className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink font-mono placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                  className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink font-mono placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
                 />
               </div>
             )}
@@ -188,7 +188,7 @@ export default function Signup() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={role === 'adviser' ? 'adviser@delsu.edu.ng' : 'student@delsu.edu.ng'}
                 disabled={loading} required
-                className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               />
             </div>
 
@@ -201,7 +201,7 @@ export default function Signup() {
                   onChange={(e) => setDepartment(e.target.value)}
                   placeholder="e.g. Computer Science"
                   disabled={loading} required
-                  className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                  className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
                 />
               </div>
             )}
@@ -214,7 +214,7 @@ export default function Signup() {
                   id="level" value={level}
                   onChange={(e) => setLevel(e.target.value)}
                   disabled={loading} required
-                  className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                  className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
                 >
                   <option value="100">100 Level</option>
                   <option value="200">200 Level</option>
@@ -232,7 +232,7 @@ export default function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={loading} required
-                className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               />
             </div>
 
@@ -244,7 +244,7 @@ export default function Signup() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={loading} required
-                className="bg-mist rounded-full px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
               />
             </div>
 

@@ -202,15 +202,15 @@ export default function StudentResults() {
               </div>
 
               {(studentData.previous_outstanding && studentData.previous_outstanding.length > 0) || (studentData.current_outstanding && studentData.current_outstanding.length > 0) ? (
-                <div className="mb-[32px] p-[16px] border border-[#ffd6d6] bg-[#fff0f0] rounded-[8px] flex flex-col gap-[16px]">
+                <div className="mb-[32px] p-[16px] border border-amber-200 bg-amber-50 rounded-[8px] flex flex-col gap-[16px]">
                   {studentData.previous_outstanding && studentData.previous_outstanding.length > 0 && (
                     <div>
-                      <h2 className="text-step-xs text-[#c75c5c] uppercase tracking-widest mb-[12px] font-medium">
+                      <h2 className="text-step-xs text-amber-900 uppercase tracking-widest mb-[12px] font-medium">
                         Previous Outstanding Courses
                       </h2>
                       <div className="flex flex-wrap gap-[8px]">
                         {studentData.previous_outstanding.map((o, idx) => (
-                          <span key={`prev-${idx}`} className="bg-white text-[#c75c5c] border border-[#ffd6d6] text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
+                          <span key={`prev-${idx}`} className="bg-pure-canvas text-amber-900 border border-amber-200 text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
                             {o.course_code}
                           </span>
                         ))}
@@ -219,12 +219,12 @@ export default function StudentResults() {
                   )}
                   {studentData.current_outstanding && studentData.current_outstanding.length > 0 && (
                     <div>
-                      <h2 className="text-step-xs text-[#c75c5c] uppercase tracking-widest mb-[12px] font-medium">
+                      <h2 className="text-step-xs text-amber-900 uppercase tracking-widest mb-[12px] font-medium">
                         Current Semester Carryovers
                       </h2>
                       <div className="flex flex-wrap gap-[8px]">
                         {studentData.current_outstanding.map((o, idx) => (
-                          <span key={`curr-${idx}`} className="bg-white text-[#c75c5c] border border-[#ffd6d6] text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
+                          <span key={`curr-${idx}`} className="bg-pure-canvas text-amber-900 border border-amber-200 text-step-sm px-[12px] py-[4px] rounded-[4px] font-mono">
                             {o.course_code}
                           </span>
                         ))}
