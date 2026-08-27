@@ -16,7 +16,6 @@ export default function StudentAdvisor() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const hasStartedChat = messages.length > 0;
 
@@ -53,25 +52,6 @@ export default function StudentAdvisor() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Keyboard-aware input dock: detect virtual keyboard height on mobile
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-
-    const handleResize = () => {
-      const offset = window.innerHeight - vv.height;
-      setKeyboardOffset(offset > 50 ? offset : 0);
-    };
-
-    vv.addEventListener('resize', handleResize);
-    vv.addEventListener('scroll', handleResize);
-
-    return () => {
-      vv.removeEventListener('resize', handleResize);
-      vv.removeEventListener('scroll', handleResize);
-    };
-  }, []);
 
   const handleSend = async (overrideText = null) => {
     const textToSend = typeof overrideText === 'string' ? overrideText : input;
@@ -202,8 +182,8 @@ export default function StudentAdvisor() {
       {/* Floating Input Dock */}
       {matric && !profileLoading && (
         <div 
-          className={`fixed left-0 right-0 z-10 transition-all duration-700 ease-in-out flex justify-center px-[12px] md:px-[24px] pb-safe`}
-          style={{ bottom: keyboardOffset > 0 ? `${keyboardOffset}px` : (hasStartedChat ? '16px' : '12vh') }}
+          className="fixed left-0 right-0 z-10 transition-all duration-700 ease-in-out flex justify-center px-[12px] md:px-[24px] pb-safe"
+          style={{ bottom: hasStartedChat ? '16px' : '12vh' }}
         >
           <div className="advisor-input-dock bg-pure-canvas/80 backdrop-blur-md border border-slate-shadow rounded-[24px] p-[12px] w-full max-w-[800px] flex flex-col gap-[12px]">
             {!hasStartedChat && (
