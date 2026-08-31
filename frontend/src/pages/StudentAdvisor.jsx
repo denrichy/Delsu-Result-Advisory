@@ -205,7 +205,7 @@ export default function StudentAdvisor() {
   const fetchSessions = useCallback(async () => {
     if (!matric) return;
     try {
-      const res = await fetch(`${API}/agent/sessions/${matric}`);
+      const res = await fetch(`${API}/agent/sessions/${encodeURIComponent(matric)}`);
       const data = await res.json();
       setSessions(data.sessions || []);
     } catch { /* silent */ }
