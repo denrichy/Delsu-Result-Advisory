@@ -1,8 +1,44 @@
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-export default function ProcessingSheet({ isOpen, status, title, subtitle, successTitle, successSubtitle, onContinue }) {
+export default function ProcessingSheet({ isOpen, status, title, subtitle, successTitle, successSubtitle, errorTitle, errorSubtitle, onContinue, onAutoClose }) {
   const [show, setShow] = useState(false);
   const [render, setRender] = useState(false);
+
+  const playSuccessPing = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.5);
+    } catch (e) { console.error('Audio play failed', e); }
+  };
+
+  const playErrorBuzz = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) { console.error('Audio play failed', e); }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -14,6 +50,18 @@ export default function ProcessingSheet({ isOpen, status, title, subtitle, succe
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && status === 'success') {
+      playSuccessPing();
+    } else if (isOpen && status === 'error') {
+      playErrorBuzz();
+      const timer = setTimeout(() => {
+        if (onAutoClose) onAutoClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, status, onAutoClose]);
 
   if (!render) return null;
 
@@ -84,6 +132,31 @@ export default function ProcessingSheet({ isOpen, status, title, subtitle, succe
             >
               Let's go
             </button>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className="flex flex-col items-center animate-fade-in w-full max-w-[300px] pb-[40px]">
+            {/* Error Icon */}
+            <div className="mb-[24px] animate-vibrate">
+              <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#E03B3B]">
+                <circle cx="12" cy="12" r="10" fill="currentColor" />
+                <path d="M15 9L9 15M9 9L15 15" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            
+            <h2 
+              className="text-[20px] font-bold text-black mb-[8px] tracking-tight text-center" 
+              style={{ fontFamily: "'Peace Sans', 'Nunito', sans-serif" }}
+            >
+              {errorTitle || 'Error'}
+            </h2>
+            <p 
+              className="text-[14px] text-[#767676] text-center" 
+              style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+            >
+              {errorSubtitle || 'Something went wrong.'}
+            </p>
           </div>
         )}
       </div>

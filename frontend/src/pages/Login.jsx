@@ -21,6 +21,7 @@ export default function Login() {
 
   useEffect(() => {
     if (authLoading) return;
+    if (isSubmitting.current) return;
     if (!session?.user?.id) { setCheckingRole(false); return; }
     if (isSubmitting.current) { setCheckingRole(false); return; }
 
@@ -56,7 +57,7 @@ export default function Login() {
       setError(authError.message || 'Invalid email or password.');
       setLoading(false);
       isSubmitting.current = false;
-      setSheetState({ isOpen: false, status: 'processing' });
+      setSheetState({ isOpen: true, status: 'error' });
       return;
     }
 
@@ -69,7 +70,7 @@ export default function Login() {
           setError('No student account found for this email.');
           setLoading(false);
           isSubmitting.current = false;
-          setSheetState({ isOpen: false, status: 'processing' });
+          setSheetState({ isOpen: true, status: 'error' });
           return;
         }
       } else if (role === 'adviser') {
@@ -80,7 +81,7 @@ export default function Login() {
           setError('No adviser account found, or your access has been revoked.');
           setLoading(false);
           isSubmitting.current = false;
-          setSheetState({ isOpen: false, status: 'processing' });
+          setSheetState({ isOpen: true, status: 'error' });
           return;
         }
       }
@@ -272,6 +273,9 @@ export default function Login() {
         subtitle="Verifying your credentials"
         successTitle="Success!"
         successSubtitle="You are now logged in"
+        errorTitle="Login Failed"
+        errorSubtitle={error || 'An error occurred.'}
+        onAutoClose={() => setSheetState(prev => ({ ...prev, isOpen: false }))}
         onContinue={() => navigate(navigateTarget.current)}
       />
     </div>

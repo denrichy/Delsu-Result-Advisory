@@ -57,9 +57,11 @@ export default function Signup() {
   const [checkingRole, setCheckingRole] = useState(true);
   const [sheetState, setSheetState] = useState({ isOpen: false, status: 'processing' });
   const navigateTarget = useRef(null);
+  const isSubmitting = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
+    if (isSubmitting.current) return;
     if (!session?.user?.id) { setCheckingRole(false); return; }
 
     const checkRoleAndRedirect = async () => {
@@ -95,6 +97,7 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+    isSubmitting.current = true;
     setLoading(true);
     setError('');
     setSheetState({ isOpen: true, status: 'processing' });
@@ -133,9 +136,10 @@ export default function Signup() {
     } catch (err) {
       console.error(err);
       setError(err.message || 'An error occurred.');
-      setSheetState({ isOpen: false, status: 'processing' });
+      setSheetState({ isOpen: true, status: 'error' });
     } finally {
       setLoading(false);
+      isSubmitting.current = false;
     }
   };
 
@@ -315,6 +319,9 @@ export default function Signup() {
         subtitle="Setting up your workspace"
         successTitle="Success!"
         successSubtitle="Your account has been created"
+        errorTitle="Account Creation Failed"
+        errorSubtitle={error || 'An error occurred.'}
+        onAutoClose={() => setSheetState(prev => ({ ...prev, isOpen: false }))}
         onContinue={() => navigate(navigateTarget.current)}
       />
     </div>
