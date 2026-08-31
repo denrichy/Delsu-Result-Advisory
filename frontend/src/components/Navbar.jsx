@@ -78,7 +78,7 @@ export default function Navbar() {
     return (
       <>
         {/* ── Top Header Bar (Hidden on Advisor for custom header) ── */}
-        {location.pathname !== '/app/student/advisor' && (
+        {!location.pathname.startsWith('/app/student/advisor') && (
           <header
             className="fixed top-0 left-0 right-0 z-50 pt-safe"
             style={{ background: '#F5F3F3' }}
@@ -138,7 +138,9 @@ export default function Navbar() {
         >
           <div className="flex items-center justify-around h-[60px] px-[8px]">
             {tabs.map((tab) => {
-              const isActive = location.pathname === tab.path;
+              const isActive = tab.path === '/app/student/advisor'
+                ? location.pathname.startsWith(tab.path)
+                : location.pathname === tab.path;
               const Icon = tab.icon;
               return (
                 <Link

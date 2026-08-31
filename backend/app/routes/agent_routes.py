@@ -37,10 +37,6 @@ def chat_with_agent(data: ChatRequest):
 @router.post("/chat/stream")
 def stream_chat_with_agent(data: StreamChatRequest, background_tasks: BackgroundTasks):
     try:
-        # If this is the very first message in a new session, summarize it into a title
-        if data.session_id and len(data.conversation_history) == 0:
-            background_tasks.add_task(generate_title_background, data.session_id, data.message)
-
         generator = run_agent_stream(
             matric_number=data.matric_number,
             user_message=data.message,

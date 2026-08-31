@@ -379,14 +379,15 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
     return final_text
 
 
-def generate_title_background(session_id: str, user_message: str):
-    """Generate a title for the chat session based on the first user message."""
+def generate_title_background_with_context(session_id: str, user_message: str, ai_message: str):
+    """Generate a title for the chat session based on the user message and AI response."""
     try:
         response = client.chat.completions.create(
             model="openai/gpt-oss-120b",
             messages=[
-                {"role": "system", "content": "You are a title generator. Generate a concise, 2-4 word title for this prompt. Do not use quotes or punctuation."},
-                {"role": "user", "content": user_message}
+                {"role": "system", "content": "You are a title generator. Generate a concise, 2-4 word title for this conversation based on the user's prompt and your response. Do not use quotes or punctuation."},
+                {"role": "user", "content": user_message},
+                {"role": "assistant", "content": ai_message}
             ],
             temperature=0.3
         )
@@ -704,6 +705,11 @@ def run_agent_stream(matric_number: str, user_message: str, conversation_history
                 "role": "assistant",
                 "content": full_response,
             }).execute()
+
+            # Trigger background title generation if this is the first turn
+            if len(conversation_history) == 0:
+                import threading
+                threading.Thread(target=generate_title_background_with_context, args=(session_id, user_message, full_response)).start()
         except Exception as e:
             print(f"[DIAGNOSTIC] Failed to save stream message to DB: {e}")
 
