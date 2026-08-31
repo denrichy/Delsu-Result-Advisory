@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
 import { ThinkingOrb } from 'thinking-orbs';
-import { Menu, Plus, X, Trash2, Sparkles, ArrowUp } from 'lucide-react';
+import { Menu, Plus, X, Trash2, Sparkles, ArrowUp, Ghost } from 'lucide-react';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
@@ -161,14 +161,17 @@ export default function StudentAdvisor() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [processingText, setProcessingText] = useState('Thinking...');
 
   // Chat history state
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isTemporary, setIsTemporary] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const skipNextFetch = useRef(false);
 
   const hasStartedChat = messages.length > 0;
 
@@ -210,34 +213,56 @@ export default function StudentAdvisor() {
 
   useEffect(() => { fetchSessions(); }, [fetchSessions]);
 
+  // Processing text interval
+  useEffect(() => {
+    if (!sending) return;
+    const texts = ['Thinking...', 'Analyzing...', 'Finalizing output...'];
+    let i = 0;
+    setProcessingText(texts[0]);
+    const interval = setInterval(() => {
+      i = (i + 1) % texts.length;
+      setProcessingText(texts[i]);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [sending]);
+
   // Load messages for active session
   useEffect(() => {
     if (!activeSessionId) return;
+    if (skipNextFetch.current) {
+      skipNextFetch.current = false;
+      return;
+    }
     const loadMessages = async () => {
       try {
         const res = await fetch(`${API}/agent/sessions/${activeSessionId}/messages`);
         const data = await res.json();
         setMessages((data.messages || []).map(m => ({ role: m.role, content: m.content })));
+        setIsTemporary(false); // If we load a session, it's not temporary
       } catch { setMessages([]); }
     };
     loadMessages();
   }, [activeSessionId]);
 
-  // Auto-scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   // ─── Actions ───
 
   const handleNewChat = () => {
     setActiveSessionId(null);
+    setIsTemporary(false);
+    setMessages([]);
+    setInput('');
+  };
+
+  const handleTemporaryChat = () => {
+    setActiveSessionId(null);
+    setIsTemporary(true);
     setMessages([]);
     setInput('');
   };
 
   const handleSelectSession = (sessionId) => {
     setActiveSessionId(sessionId);
+    setIsTemporary(false);
   };
 
   const handleDeleteSession = async (sessionId) => {
@@ -263,25 +288,28 @@ export default function StudentAdvisor() {
     let currentSessionId = activeSessionId;
 
     try {
-      // Create session if this is the first message
-      if (!currentSessionId) {
-        const title = trimmed.length > 40 ? trimmed.substring(0, 40) + '…' : trimmed;
-        const createRes = await fetch(`${API}/agent/sessions`, {
+      if (!isTemporary) {
+        // Create session if this is the first message
+        if (!currentSessionId) {
+          const title = trimmed.length > 40 ? trimmed.substring(0, 40) + '…' : trimmed;
+          const createRes = await fetch(`${API}/agent/sessions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matric_number: matric, title }),
+          });
+          const createData = await createRes.json();
+          currentSessionId = createData.session.id;
+          skipNextFetch.current = true;
+          setActiveSessionId(currentSessionId);
+        }
+
+        // Save user message
+        await fetch(`${API}/agent/sessions/${currentSessionId}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ matric_number: matric, title }),
+          body: JSON.stringify({ role: 'user', content: trimmed }),
         });
-        const createData = await createRes.json();
-        currentSessionId = createData.session.id;
-        setActiveSessionId(currentSessionId);
       }
-
-      // Save user message
-      await fetch(`${API}/agent/sessions/${currentSessionId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'user', content: trimmed }),
-      });
 
       // Send to AI
       const history = messages.map(m => ({ role: m.role, content: m.content }));
@@ -298,15 +326,17 @@ export default function StudentAdvisor() {
 
       setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
 
-      // Save AI response
-      await fetch(`${API}/agent/sessions/${currentSessionId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'assistant', content: aiContent }),
-      });
+      if (!isTemporary && currentSessionId) {
+        // Save AI response
+        await fetch(`${API}/agent/sessions/${currentSessionId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'assistant', content: aiContent }),
+        });
 
-      // Refresh session list
-      fetchSessions();
+        // Refresh session list
+        fetchSessions();
+      }
 
     } catch (err) {
       console.error(err);
@@ -357,15 +387,32 @@ export default function StudentAdvisor() {
             <Menu size={20} style={{ color: '#0D1B3D' }} />
           </button>
 
-          {hasStartedChat && (
+          <div className="flex items-center gap-[8px]">
+            {isTemporary && (
+              <span style={{ fontFamily: fontBody, fontSize: '11px', fontWeight: 700, color: '#6B7280', paddingRight: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Incognito
+              </span>
+            )}
             <button
-              onClick={handleNewChat}
+              onClick={handleTemporaryChat}
+              title="Temporary Chat"
               className="flex items-center justify-center w-[40px] h-[40px] rounded-full transition-all active:scale-95"
-              style={{ background: 'rgba(25,68,241,0.08)' }}
+              style={{ background: isTemporary ? 'rgba(25,68,241,0.1)' : 'rgba(13,27,61,0.06)' }}
             >
-              <Plus size={20} style={{ color: '#1944F1' }} />
+              <Ghost size={20} style={{ color: isTemporary ? '#1944F1' : '#0D1B3D' }} />
             </button>
-          )}
+            
+            {hasStartedChat && (
+              <button
+                onClick={handleNewChat}
+                title="New Chat"
+                className="flex items-center justify-center w-[40px] h-[40px] rounded-full transition-all active:scale-95"
+                style={{ background: 'rgba(25,68,241,0.08)' }}
+              >
+                <Plus size={20} style={{ color: '#1944F1' }} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -465,7 +512,12 @@ export default function StudentAdvisor() {
                       >
                         <Sparkles size={12} style={{ color: '#FFFFFF' }} />
                       </div>
-                      <ThinkingOrb state="breathing" size={64} theme="auto" style={{ width: 48, height: 48 }} />
+                      <div className="flex items-center gap-[12px]">
+                        <ThinkingOrb state="breathing" size={64} theme="auto" style={{ width: 48, height: 48 }} />
+                        <span style={{ fontFamily: fontBody, fontSize: '14px', color: '#6B7280', fontStyle: 'italic' }}>
+                          {processingText}
+                        </span>
+                      </div>
                     </div>
                   )}
 
