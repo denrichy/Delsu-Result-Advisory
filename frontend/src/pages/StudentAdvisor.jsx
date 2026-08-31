@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
-import { Menu, Plus, X, Trash2, Sparkles, Ghost, ArrowUp } from 'lucide-react';
+import { Menu, Plus, X, Trash2, Sparkles, Ghost, ArrowUp, Mic, MicOff } from 'lucide-react';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
@@ -159,6 +159,55 @@ export default function StudentAdvisor() {
   const skipNextFetch = useRef(false);
 
   const hasStartedChat = messages.length > 0;
+
+  // Speech Recognition state
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      
+      recognitionRef.current.onresult = (event) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        if (finalTranscript) {
+          setInput(prev => prev + (prev ? ' ' : '') + finalTranscript.trim());
+        }
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const toggleListen = () => {
+    if (!recognitionRef.current) return;
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error("Failed to start speech recognition", e);
+      }
+    }
+  };
 
   // Redirect if no session
   useEffect(() => {
@@ -565,6 +614,21 @@ export default function StudentAdvisor() {
                 minHeight: '40px',
               }}
             />
+            <button
+              onClick={toggleListen}
+              disabled={sending}
+              className="flex items-center justify-center shrink-0 rounded-[14px] w-[40px] h-[40px] transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                background: isListening ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
+              }}
+              title={isListening ? "Stop listening" : "Start dictation"}
+            >
+              {isListening ? (
+                <MicOff size={20} style={{ color: '#EF4444' }} />
+              ) : (
+                <Mic size={20} style={{ color: '#6B7280' }} />
+              )}
+            </button>
             <button
               onClick={() => handleSend()}
               disabled={sending || !input.trim()}
