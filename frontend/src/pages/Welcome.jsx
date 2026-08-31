@@ -13,11 +13,22 @@ export default function Welcome() {
 
   return (
     <div 
-      className="relative h-[100dvh] w-full flex flex-col justify-end px-[24px] pb-safe bg-cover bg-center overflow-hidden"
-      style={{ backgroundImage: 'url(/bg.jpg)', backgroundColor: '#000000' }}
+      className="relative h-[100dvh] w-full flex flex-col justify-end px-[24px] pb-safe overflow-hidden"
+      style={{ backgroundColor: '#000000' }}
     >
+      {/* Background Video */}
+      <video 
+        autoPlay 
+        loop 
+        muted 
+        playsInline 
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="/bg-loop.mp4" type="video/mp4" />
+      </video>
+
       {/* Dark gradient overlay at the bottom to ensure text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-0" />
 
       {/* Content Container (z-10 so it's above the gradient) */}
       <div className="relative z-10 flex flex-col items-start w-full max-w-[400px] mx-auto mb-[48px] md:mb-[64px]">
