@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 export default function Welcome() {
   return (
     <div 
-      className="relative min-h-screen flex flex-col justify-end px-[24px] pb-[80px] pb-safe bg-cover bg-center overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-end px-[24px] pb-safe bg-cover bg-center overflow-hidden"
       style={{ backgroundImage: 'url(/bg.jpg)', backgroundColor: '#000000' }}
     >
       {/* Dark gradient overlay at the bottom to ensure text readability */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 
       {/* Content Container (z-10 so it's above the gradient) */}
-      <div className="relative z-10 flex flex-col items-start w-full max-w-[400px] mx-auto">
+      <div className="relative z-10 flex flex-col items-start w-full max-w-[400px] mx-auto mb-[48px] md:mb-[64px]">
         
         {/* Logo */}
         <div className="flex items-center gap-[8px] mb-[24px]">
