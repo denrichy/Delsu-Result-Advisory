@@ -96,27 +96,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F3F3' }}>
 
-      {/* Header */}
-      <div className="pt-safe flex items-center justify-between px-[24px] h-[60px]">
-        <Link
-          to="/"
-          style={{
-            fontFamily: "'Peace Sans', 'Nunito', sans-serif",
-            fontSize: '22px',
-            fontWeight: 900,
-            color: '#1944F1',
-            letterSpacing: '-0.5px',
-          }}
-        >
-          Compass
-        </Link>
-        <Link
-          to="/app/signup"
-          style={{ fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#1944F1' }}
-        >
-          Sign up
-        </Link>
-      </div>
+
 
       {/* Form */}
       <div className="flex-1 flex flex-col justify-center px-[24px] pb-[40px] pb-safe">

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 export default function Welcome() {
   return (
     <div 
-      className="relative min-h-screen flex flex-col justify-end px-[24px] pb-[40px] pb-safe bg-cover bg-center overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-end px-[24px] pb-[80px] pb-safe bg-cover bg-center overflow-hidden"
       style={{ backgroundImage: 'url(/bg.jpg)', backgroundColor: '#000000' }}
     >
       {/* Dark gradient overlay at the bottom to ensure text readability */}
@@ -13,7 +13,7 @@ export default function Welcome() {
       <div className="relative z-10 flex flex-col items-start w-full max-w-[400px] mx-auto">
         
         {/* Logo */}
-        <div className="flex items-center gap-[8px] mb-[20px]">
+        <div className="flex items-center gap-[8px] mb-[24px]">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
              <path d="M12 2L2 7l10 5 10-5-10-5z" />
              <path d="M2 17l10 5 10-5" />
@@ -27,48 +27,50 @@ export default function Welcome() {
         {/* Headline */}
         <h1 
           className="text-[36px] font-bold text-white leading-[1.1] mb-[16px] tracking-tight"
-          style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+          style={{ fontFamily: "'Peace Sans', 'Nunito', sans-serif" }}
         >
-          Own Your Grades,<br/>
-          Shape <span style={{ color: '#1944F1' }}>Your Future.</span>
+          Your Results,<br/>
+          Finally <span style={{ color: '#1944F1' }}>Make Sense.</span>
         </h1>
 
         {/* Subtext */}
         <p 
-          className="text-[15px] text-white/80 leading-[1.5] mb-[28px] max-w-[280px]"
+          className="text-[15px] text-white/80 leading-[1.5] mb-[40px] max-w-[300px]"
           style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
         >
-          From tracking courses to predicting CGPA, your academic goals begin to rise.
+          Track your CGPA, manage carryovers, and get personalized guidance from an AI advisor that knows your academic history.
         </p>
 
-        {/* Progress indicator (simulated) */}
-        <div className="flex items-center gap-[8px] mb-[40px]">
-          <div className="w-[32px] h-[4px] rounded-full" style={{ background: '#1944F1' }} />
-          <div className="w-[4px] h-[4px] rounded-full bg-white/30" />
-          <div className="w-[4px] h-[4px] rounded-full bg-white/30" />
-        </div>
-
-        {/* Buttons */}
-        <div className="w-full flex flex-col items-center gap-[20px]">
+        {/* Buttons (Restored to the original ones) */}
+        <div className="w-full flex flex-col items-center gap-[12px]">
           <Link
             to="/app/signup"
-            className="w-full py-[16px] rounded-[16px] text-center font-bold text-[16px] text-white transition-opacity active:opacity-80"
+            className="w-full rounded-[14px] py-[16px] text-center font-semibold text-[16px] transition-opacity active:opacity-80"
             style={{ 
-              background: '#1944F1',
+              background: '#ffffff',
+              color: '#1944F1',
               fontFamily: "'Open Sauce One', 'Open Sans', sans-serif",
+              fontWeight: 700,
             }}
           >
-            Next
+            Get Started
           </Link>
           
           <Link
             to="/app/login"
-            className="text-[15px] text-white/80 font-medium transition-opacity active:opacity-80 pb-[8px]"
-            style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+            className="w-full rounded-[14px] py-[16px] text-center font-semibold text-[16px] transition-opacity active:opacity-80"
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              color: '#ffffff',
+              fontFamily: "'Open Sauce One', 'Open Sans', sans-serif",
+              fontWeight: 600,
+              border: '1px solid rgba(255,255,255,0.25)',
+            }}
           >
-            Skip
+            I already have an account
           </Link>
         </div>
+
       </div>
     </div>
   );

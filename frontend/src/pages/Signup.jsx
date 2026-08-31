@@ -147,15 +147,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F3F3' }}>
 
-      {/* Header */}
-      <div className="pt-safe flex items-center justify-between px-[24px] h-[60px] flex-shrink-0">
-        <Link to="/" style={{ fontFamily: fontDisplay, fontSize: '22px', fontWeight: 900, color: '#1944F1', letterSpacing: '-0.5px' }}>
-          Compass
-        </Link>
-        <Link to="/app/login" style={{ fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#1944F1' }}>
-          Sign in
-        </Link>
-      </div>
+
 
       {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-[24px] pb-[40px] pb-safe">
