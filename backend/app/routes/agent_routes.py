@@ -57,6 +57,7 @@ class CreateSessionRequest(BaseModel):
 
 class UpdateSessionRequest(BaseModel):
     title: Optional[str] = None
+    is_pinned: Optional[bool] = None
 
 class SaveMessageRequest(BaseModel):
     role: str
@@ -131,6 +132,8 @@ def update_session(session_id: str, data: UpdateSessionRequest):
         update_data = {}
         if data.title is not None:
             update_data["title"] = data.title
+        if data.is_pinned is not None:
+            update_data["is_pinned"] = data.is_pinned
 
         if not update_data:
             raise HTTPException(status_code=400, detail="Nothing to update")
@@ -178,8 +181,9 @@ def list_sessions(matric_number: str):
         clean_matric = urllib.parse.unquote(matric_number)
         
         res = supabase.table("chat_sessions") \
-            .select("id, title, created_at, updated_at") \
+            .select("id, title, is_pinned, created_at, updated_at") \
             .eq("matric_number", clean_matric) \
+            .order("is_pinned", desc=True) \
             .order("updated_at", desc=True) \
             .execute()
         return {"sessions": res.data or []}

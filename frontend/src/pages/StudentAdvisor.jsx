@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
-import { Menu, Plus, X, Trash2, Sparkles, Ghost, ArrowUp, Mic, MicOff } from 'lucide-react';
+import { Menu, Plus, X, Trash2, Sparkles, Ghost, ArrowUp, Mic, MicOff, Pin, Edit2 } from 'lucide-react';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
@@ -25,8 +25,82 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
+
+/* ─── Custom Long Press Hook ─── */
+const useLongPress = (callback = () => {}, ms = 500) => {
+  const timerRef = useRef(false);
+
+  const start = useCallback((e) => {
+    e.persist();
+    timerRef.current = setTimeout(() => {
+      callback(e);
+    }, ms);
+  }, [callback, ms]);
+
+  const stop = useCallback((e) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = false;
+    }
+  }, []);
+
+  return {
+    onMouseDown: start,
+    onMouseUp: stop,
+    onMouseLeave: stop,
+    onTouchStart: start,
+    onTouchEnd: stop,
+  };
+};
+
 /* ─── Sidebar Component ─── */
-function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession, profileInitial }) {
+function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession, onRenameSession, onTogglePin, profileInitial }) {
+  const [contextMenuSession, setContextMenuSession] = useState(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+
+  const handleLongPress = useCallback((sessionObj) => {
+    setContextMenuSession(sessionObj);
+  }, []);
+
+  const SessionItem = ({ s }) => {
+    const longPressProps = useLongPress(() => handleLongPress(s), 600);
+    return (
+      <div
+        {...longPressProps}
+        className="group flex items-center gap-[8px] rounded-[12px] px-[12px] py-[14px] cursor-pointer transition-colors"
+        style={{
+          background: s.id === activeSessionId ? '#E5E7EB' : 'transparent',
+          WebkitTouchCallout: 'none',
+          userSelect: 'none',
+        }}
+        onClick={() => { onSelectSession(s.id); onClose(); }}
+      >
+        <div className="flex-1 min-w-0 flex items-center gap-[8px]">
+          {s.is_pinned && <Pin size={14} style={{ color: '#1944F1', flexShrink: 0 }} />}
+          <p style={{
+            fontFamily: fontBody, fontSize: '15px', fontWeight: 500,
+            color: '#1F2937',
+            margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {s.title}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const handleRenameSave = () => {
+    if (renameValue.trim() && contextMenuSession) {
+      onRenameSession(contextMenuSession.id, renameValue.trim());
+    }
+    setIsRenaming(false);
+    setContextMenuSession(null);
+  };
+
+  const pinned = sessions.filter(s => s.is_pinned);
+  const unpinned = sessions.filter(s => !s.is_pinned);
+
   return (
     <>
       {/* Backdrop */}
@@ -42,12 +116,10 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
         onClick={onClose}
       />
 
-      {/* Sidebar Panel */}
+      {/* Sidebar Panel - Full Width on Mobile */}
       <div
-        className="fixed top-0 left-0 bottom-0 z-[70] flex flex-col pt-safe"
+        className="fixed top-0 left-0 bottom-0 z-[70] flex flex-col pt-safe w-full md:w-[350px] md:max-w-[400px]"
         style={{
-          width: '300px',
-          maxWidth: '82vw',
           background: '#F5F5F5',
           boxShadow: '4px 0 24px rgba(0,0,0,0.1)',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -77,34 +149,25 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-[4px]">
-              {sessions.map((s) => (
-                <div
-                  key={s.id}
-                  className="group flex items-center gap-[8px] rounded-[12px] px-[12px] py-[14px] cursor-pointer transition-colors"
-                  style={{
-                    background: s.id === activeSessionId ? '#E5E7EB' : 'transparent',
-                  }}
-                  onClick={() => { onSelectSession(s.id); onClose(); }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p style={{
-                      fontFamily: fontBody, fontSize: '15px', fontWeight: 500,
-                      color: '#1F2937',
-                      margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {s.title}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onDeleteSession(s.id); }}
-                    className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-[28px] h-[28px] rounded-full transition-all shrink-0"
-                    style={{ background: 'rgba(255,122,102,0.1)' }}
-                  >
-                    <Trash2 size={16} style={{ color: '#FF7A66' }} />
-                  </button>
+            <div className="flex flex-col gap-[16px]">
+              {pinned.length > 0 && (
+                <div className="flex flex-col gap-[4px]">
+                  <p style={{ padding: '0 12px', margin: '4px 0', fontFamily: fontBody, fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>
+                    Pinned
+                  </p>
+                  {pinned.map((s) => <SessionItem key={s.id} s={s} />)}
                 </div>
-              ))}
+              )}
+              {unpinned.length > 0 && (
+                <div className="flex flex-col gap-[4px]">
+                  {pinned.length > 0 && (
+                    <p style={{ padding: '0 12px', margin: '4px 0', fontFamily: fontBody, fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>
+                      Recent
+                    </p>
+                  )}
+                  {unpinned.map((s) => <SessionItem key={s.id} s={s} />)}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -130,6 +193,125 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
           </button>
         </div>
       </div>
+
+      {/* Context Menu Overlay */}
+      {contextMenuSession && !isRenaming && (
+        <div 
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-[20px]"
+          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          onClick={() => setContextMenuSession(null)}
+        >
+          <div className="w-full max-w-[320px] flex flex-col gap-[16px]" onClick={e => e.stopPropagation()}>
+            {/* Preview Card */}
+            <div className="bg-white rounded-[24px] p-[20px] shadow-2xl" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+              <p style={{ fontFamily: fontBody, fontSize: '16px', fontWeight: 700, color: '#1F2937', margin: '0 0 8px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {contextMenuSession.title}
+              </p>
+              <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#6B7280', margin: 0 }}>
+                {timeAgo(contextMenuSession.updated_at)}
+              </p>
+            </div>
+            
+            {/* Menu Options */}
+            <div className="bg-white/90 backdrop-blur-xl rounded-[20px] overflow-hidden flex flex-col shadow-2xl">
+              <button
+                className="flex items-center gap-[12px] px-[20px] py-[16px] text-left active:bg-gray-100 transition-colors"
+                style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+                onClick={() => {
+                  onTogglePin(contextMenuSession.id, !contextMenuSession.is_pinned);
+                  setContextMenuSession(null);
+                }}
+              >
+                <Pin size={20} style={{ color: '#1F2937' }} />
+                <span style={{ fontFamily: fontBody, fontSize: '16px', fontWeight: 500, color: '#1F2937' }}>
+                  {contextMenuSession.is_pinned ? 'Unpin' : 'Pin'}
+                </span>
+              </button>
+              
+              <button
+                className="flex items-center gap-[12px] px-[20px] py-[16px] text-left active:bg-gray-100 transition-colors"
+                style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+                onClick={() => {
+                  setRenameValue(contextMenuSession.title);
+                  setIsRenaming(true);
+                }}
+              >
+                <Edit2 size={20} style={{ color: '#1F2937' }} />
+                <span style={{ fontFamily: fontBody, fontSize: '16px', fontWeight: 500, color: '#1F2937' }}>
+                  Rename
+                </span>
+              </button>
+              
+              <button
+                className="flex items-center gap-[12px] px-[20px] py-[16px] text-left active:bg-red-50 transition-colors"
+                onClick={() => {
+                  onDeleteSession(contextMenuSession.id);
+                  setContextMenuSession(null);
+                }}
+              >
+                <Trash2 size={20} style={{ color: '#FF3B30' }} />
+                <span style={{ fontFamily: fontBody, fontSize: '16px', fontWeight: 500, color: '#FF3B30' }}>
+                  Delete
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Modal (iOS Style) */}
+      {isRenaming && (
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-[20px]"
+          style={{ background: 'rgba(0,0,0,0.4)' }}
+          onClick={() => { setIsRenaming(false); setContextMenuSession(null); }}
+        >
+          <div 
+            className="bg-[#F5F5F5] rounded-[20px] w-full max-w-[300px] flex flex-col items-center pt-[20px] overflow-hidden shadow-2xl" 
+            onClick={e => e.stopPropagation()}
+            style={{ transform: 'translateY(-20px)' }}
+          >
+            <h3 style={{ fontFamily: fontBody, fontSize: '17px', fontWeight: 600, color: '#000', margin: '0 0 16px 0' }}>
+              Rename chat
+            </h3>
+            
+            <div className="w-full px-[16px] pb-[20px]">
+              <input
+                type="text"
+                autoFocus
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className="w-full bg-[#E5E5EA] rounded-[10px] px-[12px] py-[8px]"
+                style={{ 
+                  fontFamily: fontBody, fontSize: '16px', color: '#000', 
+                  border: 'none', outline: 'none'
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleRenameSave();
+                  if (e.key === 'Escape') { setIsRenaming(false); setContextMenuSession(null); }
+                }}
+              />
+            </div>
+            
+            <div className="flex w-full" style={{ borderTop: '1px solid #D1D1D6' }}>
+              <button
+                className="flex-1 py-[14px] active:bg-[#E5E5EA] transition-colors"
+                style={{ fontFamily: fontBody, fontSize: '17px', fontWeight: 400, color: '#007AFF', borderRight: '1px solid #D1D1D6' }}
+                onClick={() => { setIsRenaming(false); setContextMenuSession(null); }}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 py-[14px] active:bg-[#E5E5EA] transition-colors"
+                style={{ fontFamily: fontBody, fontSize: '17px', fontWeight: 600, color: '#007AFF' }}
+                onClick={handleRenameSave}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -309,6 +491,37 @@ export default function StudentAdvisor() {
     } catch { /* silent */ }
   };
 
+  const handleRenameSession = async (sessionId, newTitle) => {
+    try {
+      await fetch(`${API}/agent/sessions/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle }),
+      });
+      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, title: newTitle } : s));
+    } catch { /* silent */ }
+  };
+
+  const handleTogglePin = async (sessionId, isPinned) => {
+    try {
+      await fetch(`${API}/agent/sessions/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_pinned: isPinned }),
+      });
+      // Re-sort locally or just refetch
+      setSessions(prev => {
+        const updated = prev.map(s => s.id === sessionId ? { ...s, is_pinned: isPinned } : s);
+        // Sort: pinned first, then by updated_at desc
+        return updated.sort((a, b) => {
+          if (a.is_pinned && !b.is_pinned) return -1;
+          if (!a.is_pinned && b.is_pinned) return 1;
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        });
+      });
+    } catch { /* silent */ }
+  };
+
   const handleSend = async (overrideText = null) => {
     const textToSend = typeof overrideText === 'string' ? overrideText : input;
     const trimmed = textToSend.trim();
@@ -431,6 +644,8 @@ export default function StudentAdvisor() {
         onSelectSession={handleSelectSession}
         onNewChat={handleNewChat}
         onDeleteSession={handleDeleteSession}
+        onRenameSession={handleRenameSession}
+        onTogglePin={handleTogglePin}
         profileInitial={profileInitial}
       />
 
