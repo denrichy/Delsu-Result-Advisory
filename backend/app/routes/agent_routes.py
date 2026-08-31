@@ -41,13 +41,17 @@ class SaveMessageRequest(BaseModel):
     content: str
 
 
-@router.get("/sessions/{matric_number}")
+@router.get("/sessions/{matric_number:path}")
 def list_sessions(matric_number: str):
     """List all chat sessions for a student, newest first."""
     try:
+        # Also ensure we handle URL encoded slashes correctly if Starlette didn't fully decode
+        import urllib.parse
+        clean_matric = urllib.parse.unquote(matric_number)
+        
         res = supabase.table("chat_sessions") \
             .select("id, title, created_at, updated_at") \
-            .eq("matric_number", matric_number) \
+            .eq("matric_number", clean_matric) \
             .order("updated_at", desc=True) \
             .execute()
         return {"sessions": res.data or []}
