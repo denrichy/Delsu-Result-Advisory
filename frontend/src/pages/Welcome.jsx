@@ -17,15 +17,14 @@ export default function Welcome() {
       style={{ backgroundColor: '#000000' }}
     >
       {/* Background Video */}
-      <video 
-        autoPlay 
-        loop 
-        muted 
-        playsInline 
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      >
-        <source src="/bg-loop.mp4" type="video/mp4" />
-      </video>
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        src="/bg.mp4"
+      />
 
       {/* Dark gradient overlay at the bottom to ensure text readability */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-0" />
