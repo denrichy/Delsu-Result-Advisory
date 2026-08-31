@@ -1,9 +1,19 @@
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function Welcome() {
+  // Fix Safari top/bottom white bars by setting body bg to black for this page only
+  useEffect(() => {
+    const originalBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = '#000000';
+    return () => {
+      document.body.style.backgroundColor = originalBg;
+    };
+  }, []);
+
   return (
     <div 
-      className="relative min-h-screen flex flex-col justify-end px-[24px] pb-safe bg-cover bg-center overflow-hidden"
+      className="relative h-[100dvh] w-full flex flex-col justify-end px-[24px] pb-safe bg-cover bg-center overflow-hidden"
       style={{ backgroundImage: 'url(/bg.jpg)', backgroundColor: '#000000' }}
     >
       {/* Dark gradient overlay at the bottom to ensure text readability */}
