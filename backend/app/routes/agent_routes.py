@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
-from app.agent import run_agent
+from app.agent import run_agent, run_agent_stream, generate_title_background
 from app.db import supabase
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -10,6 +11,12 @@ class ChatRequest(BaseModel):
     matric_number: str
     message: str
     conversation_history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
+
+class StreamChatRequest(BaseModel):
+    matric_number: str
+    message: str
+    conversation_history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
+    session_id: Optional[str] = None
 
 import traceback
 
@@ -22,6 +29,25 @@ def chat_with_agent(data: ChatRequest):
             conversation_history=data.conversation_history
         )
         return {"response": response}
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/chat/stream")
+def stream_chat_with_agent(data: StreamChatRequest, background_tasks: BackgroundTasks):
+    try:
+        # If this is the very first message in a new session, summarize it into a title
+        if data.session_id and len(data.conversation_history) == 0:
+            background_tasks.add_task(generate_title_background, data.session_id, data.message)
+
+        generator = run_agent_stream(
+            matric_number=data.matric_number,
+            user_message=data.message,
+            conversation_history=data.conversation_history,
+            session_id=data.session_id
+        )
+        return StreamingResponse(generator, media_type="text/event-stream")
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

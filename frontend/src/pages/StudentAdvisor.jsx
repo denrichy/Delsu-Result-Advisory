@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
-import { ThinkingOrb } from 'thinking-orbs';
-import { Menu, Plus, X, Trash2, Sparkles, ArrowUp, Ghost } from 'lucide-react';
+import { Menu, Plus, X, Trash2, Sparkles, Ghost, ArrowUp } from 'lucide-react';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
@@ -67,21 +66,6 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
           >
             <X size={18} style={{ color: '#1F2937' }} />
           </button>
-        </div>
-
-        {/* Chats Tab */}
-        <div className="px-[12px] mb-[12px]">
-          <div className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[12px]" style={{ background: 'transparent' }}>
-            <Menu size={18} style={{ color: '#1F2937' }} />
-            <span style={{ fontFamily: fontBody, fontSize: '15px', fontWeight: 600, color: '#1F2937' }}>Chats</span>
-          </div>
-        </div>
-
-        {/* Recents Label */}
-        <div className="px-[24px] pt-[8px] pb-[8px]">
-          <span style={{ fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#9CA3AF' }}>
-            Recents
-          </span>
         </div>
 
         {/* Session List */}
@@ -154,6 +138,7 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
 export default function StudentAdvisor() {
   const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { sessionId } = useParams();
 
   const [matric, setMatric] = useState('');
   const [profileInitial, setProfileInitial] = useState('');
@@ -165,7 +150,7 @@ export default function StudentAdvisor() {
 
   // Chat history state
   const [sessions, setSessions] = useState([]);
-  const [activeSessionId, setActiveSessionId] = useState(null);
+  const activeSessionId = sessionId || null;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTemporary, setIsTemporary] = useState(false);
 
@@ -247,21 +232,21 @@ export default function StudentAdvisor() {
   // ─── Actions ───
 
   const handleNewChat = () => {
-    setActiveSessionId(null);
+    navigate('/app/student/advisor');
     setIsTemporary(false);
     setMessages([]);
     setInput('');
   };
 
   const handleTemporaryChat = () => {
-    setActiveSessionId(null);
+    navigate('/app/student/advisor');
     setIsTemporary(true);
     setMessages([]);
     setInput('');
   };
 
-  const handleSelectSession = (sessionId) => {
-    setActiveSessionId(sessionId);
+  const handleSelectSession = (id) => {
+    navigate(`/app/student/advisor/${id}`);
     setIsTemporary(false);
   };
 
@@ -291,16 +276,15 @@ export default function StudentAdvisor() {
       if (!isTemporary) {
         // Create session if this is the first message
         if (!currentSessionId) {
-          const title = trimmed.length > 40 ? trimmed.substring(0, 40) + '…' : trimmed;
           const createRes = await fetch(`${API}/agent/sessions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matric_number: matric, title }),
+            body: JSON.stringify({ matric_number: matric, title: 'New Chat' }),
           });
           const createData = await createRes.json();
           currentSessionId = createData.session.id;
           skipNextFetch.current = true;
-          setActiveSessionId(currentSessionId);
+          navigate(`/app/student/advisor/${currentSessionId}`, { replace: true });
         }
 
         // Save user message
@@ -311,30 +295,56 @@ export default function StudentAdvisor() {
         });
       }
 
-      // Send to AI
+      // Send to AI (Streaming)
       const history = messages.map(m => ({ role: m.role, content: m.content }));
-      const res = await fetch(`${API}/agent/chat`, {
+      const res = await fetch(`${API}/agent/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matric_number: matric, message: trimmed, conversation_history: history }),
+        body: JSON.stringify({ 
+          matric_number: matric, 
+          message: trimmed, 
+          conversation_history: history,
+          session_id: isTemporary ? null : currentSessionId
+        }),
       });
 
-      const data = await res.json();
-      const aiContent = res.ok && data.response
-        ? data.response
-        : 'Sorry, something went wrong. Please try again.';
+      if (!res.ok) throw new Error('Failed to fetch stream');
 
-      setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
+      // Append empty assistant message for streaming
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let aiContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6);
+            if (dataStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.content) {
+                aiContent += parsed.content;
+                setMessages(prev => {
+                  const newMsgs = [...prev];
+                  newMsgs[newMsgs.length - 1].content = aiContent;
+                  return newMsgs;
+                });
+              }
+            } catch(e) { /* ignore partial json */ }
+          }
+        }
+      }
 
       if (!isTemporary && currentSessionId) {
-        // Save AI response
-        await fetch(`${API}/agent/sessions/${currentSessionId}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role: 'assistant', content: aiContent }),
-        });
-
-        // Refresh session list
+        // Refresh session list (which updates the title if it was generated)
         fetchSessions();
       }
 
@@ -358,7 +368,7 @@ export default function StudentAdvisor() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F5F3F3' }}>
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden" style={{ background: '#F5F3F3' }}>
       <Navbar />
 
       {/* Sidebar */}
@@ -504,20 +514,12 @@ export default function StudentAdvisor() {
                   ))}
 
                   {/* Thinking indicator */}
-                  {sending && (
-                    <div className="flex items-start gap-[8px]">
-                      <div
-                        className="flex items-center justify-center w-[22px] h-[22px] rounded-full shrink-0 mt-[2px]"
-                        style={{ background: '#1944F1' }}
-                      >
-                        <Sparkles size={12} style={{ color: '#FFFFFF' }} />
-                      </div>
-                      <div className="flex items-center gap-[12px]">
-                        <ThinkingOrb state="breathing" size={64} theme="auto" style={{ width: 48, height: 48 }} />
-                        <span style={{ fontFamily: fontBody, fontSize: '14px', color: '#6B7280', fontStyle: 'italic' }}>
-                          {processingText}
-                        </span>
-                      </div>
+                  {sending && messages[messages.length - 1]?.role !== 'assistant' && (
+                    <div className="flex items-center gap-[12px] py-[8px]">
+                      <div className="pulse-dot"></div>
+                      <span style={{ fontFamily: fontBody, fontSize: '14px', color: '#6B7280', fontStyle: 'italic' }}>
+                        {processingText}
+                      </span>
                     </div>
                   )}
 
