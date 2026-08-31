@@ -90,6 +90,8 @@ function FeatureCard({ card, isExpanded, onToggle, navigate, unreadCount, index 
           width: '140px', height: '140px',
           top: '-40px', right: '-30px',
           background: card.darkText ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
+          transform: isExpanded ? 'translate(-20px, 40px) scale(1.5)' : 'translate(0px, 0px) scale(1)',
+          transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       />
       <div
@@ -98,6 +100,8 @@ function FeatureCard({ card, isExpanded, onToggle, navigate, unreadCount, index 
           width: '80px', height: '80px',
           bottom: '-20px', left: '-10px',
           background: card.darkText ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.05)',
+          transform: isExpanded ? 'translate(40px, -20px) scale(1.3)' : 'translate(0px, 0px) scale(1)',
+          transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s',
         }}
       />
 
