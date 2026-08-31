@@ -27,7 +27,7 @@ function timeAgo(dateStr) {
 }
 
 /* ─── Sidebar Component ─── */
-function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession }) {
+function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession, profileInitial }) {
   return (
     <>
       {/* Backdrop */}
@@ -48,91 +48,102 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
         className="fixed top-0 left-0 bottom-0 z-[70] flex flex-col pt-safe"
         style={{
           width: '300px',
-          maxWidth: '80vw',
-          background: '#FFFFFF',
+          maxWidth: '82vw',
+          background: '#F5F5F5',
           boxShadow: '4px 0 24px rgba(0,0,0,0.1)',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between px-[20px] py-[18px]" style={{ borderBottom: '1px solid #E5E7EB' }}>
-          <span style={{ fontFamily: fontDisplay, fontSize: '22px', fontWeight: 900, color: '#1944F1' }}>
+        <div className="flex items-center justify-between px-[20px] pt-[20px] pb-[16px]">
+          <span style={{ fontFamily: fontDisplay, fontSize: '24px', fontWeight: 900, color: '#1F2937' }}>
             Compass
           </span>
           <button
             onClick={onClose}
             className="flex items-center justify-center w-[36px] h-[36px] rounded-full transition-colors active:scale-95"
-            style={{ background: '#F5F3F3' }}
+            style={{ background: '#E5E7EB' }}
           >
             <X size={18} style={{ color: '#1F2937' }} />
           </button>
         </div>
 
-        {/* New Chat Button */}
-        <div className="px-[16px] py-[14px]">
-          <button
-            onClick={() => { onNewChat(); onClose(); }}
-            className="w-full flex items-center gap-[10px] px-[16px] py-[12px] rounded-[14px] transition-all active:scale-[0.97]"
-            style={{
-              background: '#1944F1',
-              fontFamily: fontBody, fontSize: '14px', fontWeight: 600, color: '#FFFFFF',
-            }}
-          >
-            <Plus size={18} />
-            New Chat
-          </button>
+        {/* Chats Tab */}
+        <div className="px-[12px] mb-[12px]">
+          <div className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[12px]" style={{ background: 'transparent' }}>
+            <Menu size={18} style={{ color: '#1F2937' }} />
+            <span style={{ fontFamily: fontBody, fontSize: '15px', fontWeight: 600, color: '#1F2937' }}>Chats</span>
+          </div>
         </div>
 
         {/* Recents Label */}
-        <div className="px-[20px] pt-[4px] pb-[8px]">
-          <span style={{ fontFamily: fontBody, fontSize: '11px', fontWeight: 700, color: '#6B7280', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+        <div className="px-[24px] pt-[8px] pb-[8px]">
+          <span style={{ fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#9CA3AF' }}>
             Recents
           </span>
         </div>
 
         {/* Session List */}
-        <div className="flex-1 overflow-y-auto px-[8px] pb-[20px]">
+        <div className="flex-1 overflow-y-auto px-[12px] pb-[20px]">
           {sessions.length === 0 ? (
-            <div className="px-[12px] py-[24px] text-center">
-              <p style={{ fontFamily: fontBody, fontSize: '13px', color: '#6B7280' }}>
+            <div className="px-[12px] py-[24px]">
+              <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#6B7280' }}>
                 No conversations yet
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-[2px]">
+            <div className="flex flex-col gap-[4px]">
               {sessions.map((s) => (
                 <div
                   key={s.id}
-                  className="group flex items-center gap-[8px] rounded-[12px] px-[12px] py-[12px] cursor-pointer transition-colors"
+                  className="group flex items-center gap-[8px] rounded-[12px] px-[12px] py-[14px] cursor-pointer transition-colors"
                   style={{
-                    background: s.id === activeSessionId ? 'rgba(25,68,241,0.06)' : 'transparent',
+                    background: s.id === activeSessionId ? '#E5E7EB' : 'transparent',
                   }}
                   onClick={() => { onSelectSession(s.id); onClose(); }}
                 >
                   <div className="flex-1 min-w-0">
                     <p style={{
-                      fontFamily: fontBody, fontSize: '14px', fontWeight: 600,
-                      color: s.id === activeSessionId ? '#1944F1' : '#1F2937',
+                      fontFamily: fontBody, fontSize: '15px', fontWeight: 500,
+                      color: '#1F2937',
                       margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {s.title}
-                    </p>
-                    <p style={{ fontFamily: fontBody, fontSize: '11px', color: '#6B7280', margin: 0, marginTop: '2px' }}>
-                      {timeAgo(s.updated_at || s.created_at)}
                     </p>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteSession(s.id); }}
                     className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-[28px] h-[28px] rounded-full transition-all shrink-0"
-                    style={{ background: 'rgba(255,122,102,0.08)' }}
+                    style={{ background: 'rgba(255,122,102,0.1)' }}
                   >
-                    <Trash2 size={14} style={{ color: '#FF7A66' }} />
+                    <Trash2 size={16} style={{ color: '#FF7A66' }} />
                   </button>
                 </div>
               ))}
             </div>
           )}
+        </div>
+
+        {/* Bottom Actions (New Chat & Profile) */}
+        <div className="px-[20px] py-[20px] flex items-center justify-between" style={{ borderTop: '1px solid #E5E7EB' }}>
+          <div 
+            className="flex items-center justify-center w-[40px] h-[40px] rounded-full"
+            style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#1F2937', fontFamily: fontBody, fontWeight: 700, fontSize: '14px' }}
+          >
+            {profileInitial || 'U'}
+          </div>
+          <button
+            onClick={() => { onNewChat(); onClose(); }}
+            className="flex items-center gap-[8px] px-[20px] py-[12px] rounded-full transition-all active:scale-[0.97]"
+            style={{
+              background: '#1F2937',
+              fontFamily: fontBody, fontSize: '15px', fontWeight: 600, color: '#FFFFFF',
+            }}
+          >
+            <Plus size={18} />
+            New chat
+          </button>
         </div>
       </div>
     </>
@@ -145,6 +156,7 @@ export default function StudentAdvisor() {
   const navigate = useNavigate();
 
   const [matric, setMatric] = useState('');
+  const [profileInitial, setProfileInitial] = useState('');
   const [profileLoading, setProfileLoading] = useState(true);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -173,8 +185,9 @@ export default function StudentAdvisor() {
         setProfileLoading(true);
         const res = await fetch(`${API}/auth/student-profile/${session.user.id}`);
         const data = await res.json();
-        if (data.found === true && data.matric_number) {
-          setMatric(data.matric_number);
+        if (data.found === true) {
+          if (data.matric_number) setMatric(data.matric_number);
+          if (data.name) setProfileInitial(data.name.charAt(0).toUpperCase());
         }
       } catch (err) {
         console.error('Failed to fetch student profile:', err);
@@ -327,6 +340,7 @@ export default function StudentAdvisor() {
         onSelectSession={handleSelectSession}
         onNewChat={handleNewChat}
         onDeleteSession={handleDeleteSession}
+        profileInitial={profileInitial}
       />
 
       {/* ── Top Action Bar ── */}

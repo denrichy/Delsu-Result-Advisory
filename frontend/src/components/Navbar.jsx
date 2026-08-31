@@ -77,12 +77,13 @@ export default function Navbar() {
 
     return (
       <>
-        {/* ── Top Header Bar ── */}
-        <header
-          className="fixed top-0 left-0 right-0 z-50 pt-safe"
-          style={{ background: '#F5F3F3' }}
-        >
-          <div className="flex items-center justify-between h-[56px] px-[20px]">
+        {/* ── Top Header Bar (Hidden on Advisor for custom header) ── */}
+        {location.pathname !== '/app/student/advisor' && (
+          <header
+            className="fixed top-0 left-0 right-0 z-50 pt-safe"
+            style={{ background: '#F5F3F3' }}
+          >
+            <div className="flex items-center justify-between h-[56px] px-[20px]">
             {/* Profile Avatar */}
             <Link
               to="/app/student/settings"
@@ -128,6 +129,7 @@ export default function Navbar() {
             </Link>
           </div>
         </header>
+        )}
 
         {/* ── Bottom Tab Bar ── */}
         <nav
