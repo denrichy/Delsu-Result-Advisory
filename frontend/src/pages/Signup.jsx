@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/useAuth';
+import ProcessingSheet from '../components/ProcessingSheet';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
@@ -54,6 +55,8 @@ export default function Signup() {
   const [error, setError] = useState('');
   const { session, loading: authLoading } = useAuth();
   const [checkingRole, setCheckingRole] = useState(true);
+  const [sheetState, setSheetState] = useState({ isOpen: false, status: 'processing' });
+  const navigateTarget = useRef(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -94,6 +97,7 @@ export default function Signup() {
     if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
     setLoading(true);
     setError('');
+    setSheetState({ isOpen: true, status: 'processing' });
 
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
@@ -124,10 +128,12 @@ export default function Signup() {
         }
       }
 
-      navigate(role === 'adviser' ? '/app/adviser' : '/app/student');
+      navigateTarget.current = role === 'adviser' ? '/app/adviser' : '/app/student';
+      setSheetState({ isOpen: true, status: 'success' });
     } catch (err) {
       console.error(err);
       setError(err.message || 'An error occurred.');
+      setSheetState({ isOpen: false, status: 'processing' });
     } finally {
       setLoading(false);
     }
@@ -301,6 +307,16 @@ export default function Signup() {
         </div>
 
       </div>
+
+      <ProcessingSheet
+        isOpen={sheetState.isOpen}
+        status={sheetState.status}
+        title="Creating account..."
+        subtitle="Setting up your workspace"
+        successTitle="Success!"
+        successSubtitle="Your account has been created"
+        onContinue={() => navigate(navigateTarget.current)}
+      />
     </div>
   );
 }

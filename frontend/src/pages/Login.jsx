@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/useAuth';
+import ProcessingSheet from '../components/ProcessingSheet';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 
@@ -15,6 +16,8 @@ export default function Login() {
   const { session, loading: authLoading } = useAuth();
   const [checkingRole, setCheckingRole] = useState(true);
   const isSubmitting = useRef(false);
+  const navigateTarget = useRef(null);
+  const [sheetState, setSheetState] = useState({ isOpen: false, status: 'processing' });
 
   useEffect(() => {
     if (authLoading) return;
@@ -45,6 +48,7 @@ export default function Login() {
     isSubmitting.current = true;
     setLoading(true);
     setError('');
+    setSheetState({ isOpen: true, status: 'processing' });
 
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -52,6 +56,7 @@ export default function Login() {
       setError(authError.message || 'Invalid email or password.');
       setLoading(false);
       isSubmitting.current = false;
+      setSheetState({ isOpen: false, status: 'processing' });
       return;
     }
 
@@ -64,6 +69,7 @@ export default function Login() {
           setError('No student account found for this email.');
           setLoading(false);
           isSubmitting.current = false;
+          setSheetState({ isOpen: false, status: 'processing' });
           return;
         }
       } else if (role === 'adviser') {
@@ -74,12 +80,14 @@ export default function Login() {
           setError('No adviser account found, or your access has been revoked.');
           setLoading(false);
           isSubmitting.current = false;
+          setSheetState({ isOpen: false, status: 'processing' });
           return;
         }
       }
     }
 
-    navigate(role === 'adviser' ? '/app/adviser' : '/app/student');
+    navigateTarget.current = role === 'adviser' ? '/app/adviser' : '/app/student';
+    setSheetState({ isOpen: true, status: 'success' });
   };
 
   if (authLoading || checkingRole) {
@@ -256,6 +264,16 @@ export default function Login() {
         </div>
 
       </div>
+
+      <ProcessingSheet
+        isOpen={sheetState.isOpen}
+        status={sheetState.status}
+        title="Logging in..."
+        subtitle="Verifying your credentials"
+        successTitle="Success!"
+        successSubtitle="You are now logged in"
+        onContinue={() => navigate(navigateTarget.current)}
+      />
     </div>
   );
 }
