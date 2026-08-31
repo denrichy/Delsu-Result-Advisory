@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/useAuth';
 
+const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
+
 export default function Login() {
   const [role, setRole] = useState('student'); // 'student' | 'adviser'
   const [email, setEmail] = useState('');
@@ -16,37 +18,21 @@ export default function Login() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!session?.user?.id) {
-      setCheckingRole(false);
-      return;
-    }
-    
-    // If the user is actively submitting the form, let handleSubmit take over the validation & routing
-    if (isSubmitting.current) {
-      setCheckingRole(false);
-      return;
-    }
+    if (!session?.user?.id) { setCheckingRole(false); return; }
+    if (isSubmitting.current) { setCheckingRole(false); return; }
 
     const checkRoleAndRedirect = async () => {
       try {
         const adviserRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`);
         const adviserData = await adviserRes.json();
-        if (adviserData.found === true) {
-          navigate('/app/adviser');
-          return;
-        }
+        if (adviserData.found === true) { navigate('/app/adviser'); return; }
 
         const studentRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
         const studentData = await studentRes.json();
-        if (studentData.found === true) {
-          navigate('/app/student');
-          return;
-        }
-        
+        if (studentData.found === true) { navigate('/app/student'); return; }
+
         setCheckingRole(false);
-      } catch (err) {
-        setCheckingRole(false);
-      }
+      } catch { setCheckingRole(false); }
     };
 
     checkRoleAndRedirect();
@@ -55,7 +41,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password) return;
-    
+
     isSubmitting.current = true;
     setLoading(true);
     setError('');
@@ -72,28 +58,20 @@ export default function Login() {
     if (data?.user?.id) {
       if (role === 'student') {
         const { data: studentData, error: studentError } = await supabase
-          .from('students')
-          .select('id')
-          .eq('auth_user_id', data.user.id)
-          .single();
-
+          .from('students').select('id').eq('auth_user_id', data.user.id).single();
         if (studentError || !studentData) {
           await supabase.auth.signOut();
-          setError('Unauthorized: Student account required.');
+          setError('No student account found for this email.');
           setLoading(false);
           isSubmitting.current = false;
           return;
         }
       } else if (role === 'adviser') {
         const { data: adviserData, error: adviserError } = await supabase
-          .from('advisers')
-          .select('id, revoked')
-          .eq('auth_user_id', data.user.id)
-          .single();
-
+          .from('advisers').select('id, revoked').eq('auth_user_id', data.user.id).single();
         if (adviserError || !adviserData || adviserData.revoked) {
           await supabase.auth.signOut();
-          setError('Unauthorized: Adviser account required or access revoked.');
+          setError('No adviser account found, or your access has been revoked.');
           setLoading(false);
           isSubmitting.current = false;
           return;
@@ -101,109 +79,203 @@ export default function Login() {
       }
     }
 
-    // Redirect based on chosen role
     navigate(role === 'adviser' ? '/app/adviser' : '/app/student');
   };
 
   if (authLoading || checkingRole) {
     return (
-      <div className="min-h-screen bg-pure-canvas flex items-center justify-center">
-        <p className="text-step-sm-2 text-graphite">Loading…</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F3F3' }}>
+        <div className="flex flex-col items-center gap-[12px]">
+          <div className="w-[32px] h-[32px] rounded-full border-[3px] border-[#1944F1] border-t-transparent animate-spin" />
+          <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#767676' }}>Loading…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative bg-pure-canvas flex items-center justify-center px-[24px] py-[64px]">
-      <div className="absolute top-[24px] left-[24px]">
-        <Link to="/" className="text-step-base-2 text-midnight-ink">Compass</Link>
+    <div className="min-h-screen flex flex-col" style={{ background: '#F5F3F3' }}>
+
+      {/* Header */}
+      <div className="pt-safe flex items-center justify-between px-[24px] h-[60px]">
+        <Link
+          to="/"
+          style={{
+            fontFamily: "'Peace Sans', 'Nunito', sans-serif",
+            fontSize: '22px',
+            fontWeight: 900,
+            color: '#1944F1',
+            letterSpacing: '-0.5px',
+          }}
+        >
+          Compass
+        </Link>
+        <Link
+          to="/app/signup"
+          style={{ fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#1944F1' }}
+        >
+          Sign up
+        </Link>
       </div>
-      <div className="w-full max-w-[440px]">
 
-          <div className="mb-[32px]">
-            <h1 className="text-step-3xl text-midnight-ink mb-[4px]">Sign In</h1>
-            <p className="text-step-sm-2 text-graphite">Access your Compass account.</p>
-          </div>
+      {/* Form */}
+      <div className="flex-1 flex flex-col justify-center px-[24px] pb-[40px] pb-safe">
 
-          {/* Role Toggle */}
-          <div className="flex gap-[8px] mb-[32px] p-[4px] bg-mist rounded-[12px] w-fit">
-            <button
-              type="button"
-              onClick={() => { setRole('student'); setError(''); }}
-              className={`text-step-sm rounded-full px-[16px] py-[6px] transition-colors ${
-                role === 'student'
-                  ? 'bg-midnight-ink text-pure-canvas'
-                  : 'text-graphite hover:text-midnight-ink'
-              }`}
-            >
-              Student
-            </button>
-            <button
-              type="button"
-              onClick={() => { setRole('adviser'); setError(''); }}
-              className={`text-step-sm rounded-full px-[16px] py-[6px] transition-colors ${
-                role === 'adviser'
-                  ? 'bg-midnight-ink text-pure-canvas'
-                  : 'text-graphite hover:text-midnight-ink'
-              }`}
-            >
-              Adviser
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-[20px]">
-
-            <div className="flex flex-col gap-[6px]">
-              <label htmlFor="email" className="text-step-xs text-graphite uppercase tracking-widest">
-                EMAIL ADDRESS
-              </label>
-              <input
-                id="email" type="email" value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={role === 'adviser' ? 'adviser@delsu.edu.ng' : 'student@delsu.edu.ng'}
-                disabled={loading} required
-                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
-              />
-            </div>
-
-            <div className="flex flex-col gap-[6px]">
-              <label htmlFor="password" className="text-step-xs text-graphite uppercase tracking-widest">
-                PASSWORD
-              </label>
-              <input
-                id="password" type="password" value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading} required
-                className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink placeholder:text-ash border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
-              />
-            </div>
-
-            {error && (
-              <div className="border border-midnight-ink rounded-[8px] px-[16px] py-[10px]">
-                <p className="text-step-sm text-midnight-ink">{error}</p>
-              </div>
-            )}
-
-            <button
-              type="submit" disabled={loading}
-              className="w-full bg-midnight-ink text-pure-canvas text-step-base-2 rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-[4px]"
-            >
-              {loading ? 'Signing in…' : `Sign In as ${role === 'adviser' ? 'Adviser' : 'Student'}`}
-            </button>
-
-          </form>
-
-          <div className="mt-[24px] text-center">
-            <a
-              href="/app/signup"
-              className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
-            >
-              New here? Create an account
-            </a>
-          </div>
-
+        <div className="mb-[32px]">
+          <h1
+            style={{
+              fontFamily: "'Peace Sans', 'Nunito', sans-serif",
+              fontSize: '32px',
+              fontWeight: 900,
+              color: '#111111',
+              lineHeight: 1.1,
+              marginBottom: '8px',
+            }}
+          >
+            Welcome back.
+          </h1>
+          <p style={{ fontFamily: fontBody, fontSize: '15px', color: '#767676' }}>
+            Sign in to your Compass account.
+          </p>
         </div>
+
+        {/* Role Toggle */}
+        <div
+          className="flex mb-[28px] p-[4px] rounded-[12px]"
+          style={{ background: '#E8E6E6', width: 'fit-content' }}
+        >
+          {['student', 'adviser'].map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => { setRole(r); setError(''); }}
+              className="transition-all"
+              style={{
+                fontFamily: fontBody,
+                fontSize: '14px',
+                fontWeight: 600,
+                padding: '7px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                background: role === r ? '#1944F1' : 'transparent',
+                color: role === r ? '#ffffff' : '#767676',
+              }}
+            >
+              {r.charAt(0).toUpperCase() + r.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[16px]">
+
+          <div className="flex flex-col gap-[6px]">
+            <label
+              htmlFor="email"
+              style={{ fontFamily: fontBody, fontSize: '11px', fontWeight: 700, color: '#3A3A3A', letterSpacing: '0.8px', textTransform: 'uppercase' }}
+            >
+              Email Address
+            </label>
+            <input
+              id="email" type="email" value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={role === 'adviser' ? 'adviser@delsu.edu.ng' : 'student@delsu.edu.ng'}
+              disabled={loading} required
+              style={{
+                fontFamily: fontBody,
+                fontSize: '15px',
+                color: '#111111',
+                background: '#FFFFFF',
+                border: '1.5px solid #DDDCDC',
+                borderRadius: '12px',
+                padding: '13px 16px',
+                outline: 'none',
+                width: '100%',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s ease',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#1944F1'}
+              onBlur={(e) => e.target.style.borderColor = '#DDDCDC'}
+            />
+          </div>
+
+          <div className="flex flex-col gap-[6px]">
+            <label
+              htmlFor="password"
+              style={{ fontFamily: fontBody, fontSize: '11px', fontWeight: 700, color: '#3A3A3A', letterSpacing: '0.8px', textTransform: 'uppercase' }}
+            >
+              Password
+            </label>
+            <input
+              id="password" type="password" value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              disabled={loading} required
+              style={{
+                fontFamily: fontBody,
+                fontSize: '15px',
+                color: '#111111',
+                background: '#FFFFFF',
+                border: '1.5px solid #DDDCDC',
+                borderRadius: '12px',
+                padding: '13px 16px',
+                outline: 'none',
+                width: '100%',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s ease',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#1944F1'}
+              onBlur={(e) => e.target.style.borderColor = '#DDDCDC'}
+            />
+          </div>
+
+          {error && (
+            <div
+              style={{
+                background: 'rgba(224,59,59,0.08)',
+                border: '1px solid rgba(224,59,59,0.25)',
+                borderRadius: '10px',
+                padding: '12px 16px',
+              }}
+            >
+              <p style={{ fontFamily: fontBody, fontSize: '13px', color: '#E03B3B', margin: 0 }}>{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="transition-opacity active:opacity-80"
+            style={{
+              fontFamily: fontBody,
+              fontSize: '16px',
+              fontWeight: 700,
+              background: '#1944F1',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '14px',
+              padding: '15px 24px',
+              width: '100%',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              marginTop: '8px',
+            }}
+          >
+            {loading ? 'Signing in…' : `Sign In${role === 'adviser' ? ' as Adviser' : ''}`}
+          </button>
+
+        </form>
+
+        <div className="mt-[28px] text-center">
+          <p style={{ fontFamily: fontBody, fontSize: '13px', color: '#767676' }}>
+            Don't have an account?{' '}
+            <Link to="/app/signup" style={{ color: '#1944F1', fontWeight: 600 }}>
+              Sign up
+            </Link>
+          </p>
+        </div>
+
       </div>
+    </div>
   );
 }

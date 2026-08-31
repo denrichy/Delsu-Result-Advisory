@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Welcome from './pages/Welcome';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -19,7 +20,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* Mobile Welcome Screen — app entry point */}
+        <Route path="/" element={<Welcome />} />
+
+        {/* Web marketing page (keep accessible at /web) */}
+        <Route path="/web" element={<Home />} />
         
         {/* App Shell */}
         <Route path="/app/login" element={<Login />} />

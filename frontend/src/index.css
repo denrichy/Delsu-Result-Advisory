@@ -1,224 +1,311 @@
+/* ============================================================
+   Google Fonts — Open Sauce One (body) + Nunito (display)
+   Peace Sans substitute: Nunito 900 — swap font-family in
+   --font-display once you have the Peace Sans .ttf/woff2 file.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
 
-@theme {
-  /* Existing DELSU Brand colors */
-  --color-brand-bg: #FAF9F6;
-  --color-brand-ink: #1B2A4A;
-  --color-brand-accent: #B08D57;
-  --color-brand-muted: #5B6478;
-  --color-brand-hairline: #DDD9CF;
-  
-  --font-serif: "Source Serif 4", serif;
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
-
-  /* Mobbin Achromatic System Colors */
-  --color-midnight-ink: #141414;
-  --color-pure-canvas: #ffffff;
-  --color-graphite: #707070;
-  --color-ash: #adadad;
-  --color-fog: #ededed;
-  --color-mist: #f2f2f2;
-  --color-silver: #c2c2c2;
-  --color-slate-shadow: #e0e0e0;
-
-  /* Mobbin Spacing Scale */
-  --spacing-8: 8px;
-  --spacing-16: 16px;
-  --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
-  --spacing-64: 64px;
-  --spacing-80: 80px;
-  --spacing-104: 104px;
-  --spacing-120: 120px;
-  --spacing-unit: 8px;
-
-  /* Mobbin Radius */
-  --radius-lg: 8px;
-  --radius-2xl: 16px;
-  --radius-2xl-2: 20px;
-  --radius-3xl: 24px;
-  --radius-full: 9999px;
-
-  /* Mobbin Shadows */
-  --shadow-subtle: rgba(64, 64, 64, 0.16) 0px 0px 0px 1px inset;
-  --shadow-xl: rgba(0, 0, 0, 0.04) 0px 8px 40px 0px;
+/* Open Sauce One — self-hostable open-source font */
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
 }
 
-/* 
-  Typography Utilities 
-  Substitutions for Saans -> Inter Variable standard mappings:
-  - 440 -> 500 (Medium)
-  - 456 -> 500 (Medium)
-  - 600 -> 600 (SemiBold)
-  - 652 -> 700 (Bold)
-*/
+@theme {
+  /* ── Core Palette ─────────────────────────────────────────── */
+  --color-brand:        #1944F1;   /* Palatinate Blue — primary */
+  --color-brand-deep:   #0F30CC;   /* Darker blue for pressed states */
+  --color-brand-light:  #4D6FF5;   /* Lighter blue for tints */
+  --color-brand-ghost:  rgba(25, 68, 241, 0.08); /* Subtle blue tint */
+
+  --color-canvas:       #F5F3F3;   /* White Smoke — app background */
+  --color-surface:      #FFFFFF;   /* Pure white — cards/sheets */
+  --color-surface-2:    #EBE9E9;   /* Slightly deeper surface */
+
+  --color-ink:          #111111;   /* Near-black body text */
+  --color-ink-2:        #3A3A3A;   /* Secondary text */
+  --color-muted:        #767676;   /* Muted/caption text */
+  --color-placeholder:  #ABABAB;   /* Input placeholders */
+  --color-border:       #DDDCDC;   /* Hairline borders */
+  --color-border-focus: #1944F1;   /* Focused input border */
+
+  --color-success:      #12A86C;   /* Green — pass/good GPA */
+  --color-warning:      #E8920A;   /* Amber — at-risk courses */
+  --color-danger:       #E03B3B;   /* Red — carryovers/failures */
+  --color-danger-ghost: rgba(224, 59, 59, 0.08);
+
+  /* Legacy achromatic tokens — kept so old pages don't break */
+  --color-midnight-ink:  #141414;
+  --color-pure-canvas:   #ffffff;
+  --color-graphite:      #707070;
+  --color-ash:           #adadad;
+  --color-fog:           #ededed;
+  --color-mist:          #f2f2f2;
+  --color-silver:        #c2c2c2;
+  --color-slate-shadow:  #e0e0e0;
+  --color-brand-ink:     #1944F1;
+
+  /* ── Typography ───────────────────────────────────────────── */
+  /* Display: Peace Sans (swap to font file when available)
+     Fallback chain: Nunito 900 → Fredoka → sans-serif         */
+  --font-display: 'Peace Sans', 'Nunito', 'Fredoka', sans-serif;
+  --font-sans:    'Open Sauce One', 'Open Sans', sans-serif;
+  --font-mono:    'IBM Plex Mono', monospace;
+  --font-serif:   'Georgia', serif;
+
+  /* ── Spacing ──────────────────────────────────────────────── */
+  --spacing-unit: 4px;
+
+  /* ── Radius ───────────────────────────────────────────────── */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ──────────────────────────────────────────────── */
+  --shadow-card: 0px 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg:   0px 8px 32px rgba(0, 0, 0, 0.10);
+}
+
+/* ============================================================
+   Typography Utilities
+   ============================================================ */
+
+/* Display — Peace Sans / Nunito */
+@utility text-display-xl {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+}
+@utility text-display-lg {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+}
+@utility text-display-md {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+/* Body — Open Sauce One */
 @utility text-step-xs {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1.33;
-  letter-spacing: 0.20px;
+  line-height: 1.36;
+  letter-spacing: 0.3px;
 }
 @utility text-step-sm {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.43;
+  line-height: 1.46;
 }
 @utility text-step-sm-2 {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.43;
+  line-height: 1.46;
 }
 @utility text-step-base {
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0.21px;
+  line-height: 1.6;
 }
 @utility text-step-base-2 {
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  line-height: 1.38;
+  line-height: 1.4;
 }
 @utility text-step-base-3 {
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
-  line-height: 1.38;
+  line-height: 1.4;
 }
 @utility text-step-base-4 {
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 @utility text-step-xl {
   font-family: var(--font-sans);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0.28px;
+  line-height: 1.4;
 }
 @utility text-step-xl-2 {
   font-family: var(--font-sans);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
+  line-height: 1.3;
+}
+@utility text-step-lg {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 700;
   line-height: 1.3;
 }
 @utility text-step-3xl {
   font-family: var(--font-sans);
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1.13;
+  line-height: 1.15;
 }
 @utility text-step-5xl {
   font-family: var(--font-sans);
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.39px;
+  letter-spacing: -0.5px;
 }
-@utility text-step-5xl-2 {
-  font-family: var(--font-sans);
-  font-size: 80px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.88px;
+
+/* ============================================================
+   Base Styles
+   ============================================================ */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow-x: hidden;
 }
 
 body {
-  background-color: var(--color-pure-canvas);
-  color: var(--color-midnight-ink);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-  margin: 0;
-  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.skeleton {
-  background: linear-gradient(90deg, var(--color-fog) 25%, var(--color-mist) 50%, var(--color-fog) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
-}
-
-/* Refero UI Styling */
-@keyframes breathing-gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.mesh-gradient-bg {
-  background: radial-gradient(circle at 50% 50%, rgba(255,107,107,0.1) 0%, rgba(107,142,255,0.05) 40%, rgba(255,255,255,0) 80%),
-              radial-gradient(circle at 80% 20%, rgba(255,200,107,0.08) 0%, rgba(255,255,255,0) 60%),
-              radial-gradient(circle at 20% 80%, rgba(107,255,200,0.05) 0%, rgba(255,255,255,0) 60%);
-  background-size: 200% 200%;
-  animation: breathing-gradient 15s ease infinite;
-}
-
-.mesh-gradient-text {
-  background: linear-gradient(to right, #ff6b6b, #ffc86b, #6b8eff, #6bffc8);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: breathing-gradient 10s ease infinite;
-}
-
-.explore-chip {
-  transition: all 0.2s ease-in-out;
-  border: 1px solid var(--color-slate-shadow);
-  color: var(--color-graphite);
-}
-.explore-chip:hover {
-  border-color: var(--color-ash);
-  color: var(--color-midnight-ink);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.advisor-input-dock {
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.03);
-}
-
-.message-bubble-user {
-  background: var(--color-midnight-ink);
-  color: var(--color-pure-canvas);
-}
-.message-bubble-ai {
-  background: transparent;
-  color: var(--color-midnight-ink);
-}
-
-/* Mobile-first global utilities */
+/* Mobile tap highlight removal */
 button, a, [role="button"] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-/* Safe area insets for notched devices */
+/* ============================================================
+   Safe Area Utilities (Capacitor / notched devices)
+   ============================================================ */
 @utility pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 @utility pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
 }
-
-/* Prevent horizontal overflow on mobile */
-html, body {
-  overflow-x: hidden;
+@utility px-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
+/* ============================================================
+   Skeleton Shimmer
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-border) 25%, var(--color-surface-2) 50%, var(--color-border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================
+   AI Advisor Chat
+   ============================================================ */
+@keyframes breathing-gradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.mesh-gradient-bg {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(25,68,241,0.07) 0%, transparent 70%),
+    radial-gradient(circle at 80% 20%, rgba(25,68,241,0.04) 0%, transparent 60%),
+    var(--color-canvas);
+  background-size: 200% 200%;
+  animation: breathing-gradient 15s ease infinite;
+}
+
+.mesh-gradient-text {
+  background: linear-gradient(to right, #1944F1, #4D6FF5, #1944F1);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: breathing-gradient 6s ease infinite;
+}
+
+.advisor-input-dock {
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.message-bubble-user {
+  background: var(--color-brand);
+  color: #ffffff;
+}
+.message-bubble-ai {
+  background: var(--color-surface-2);
+  color: var(--color-ink);
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@utility animate-fade-in {
+  animation: fade-in 0.5s ease forwards;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@utility animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@utility animate-scale-in {
+  animation: scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
