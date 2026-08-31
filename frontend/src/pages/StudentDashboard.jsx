@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabaseClient';
 import { BarChart3, Sparkles, Bell, ChevronRight } from 'lucide-react';
+import ConfirmSheet from '../components/ConfirmSheet';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
@@ -15,6 +16,7 @@ export default function StudentDashboard() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) navigate('/app/login');
@@ -178,7 +180,7 @@ export default function StudentDashboard() {
 
         {/* Log out */}
         <button
-          onClick={async () => { await signOut(); navigate('/'); }}
+          onClick={() => setShowLogoutConfirm(true)}
           className="w-full mt-[32px] py-[14px] rounded-[14px] transition-opacity active:opacity-70"
           style={{
             fontFamily: fontBody, fontSize: '14px', fontWeight: 600,
@@ -190,6 +192,21 @@ export default function StudentDashboard() {
         </button>
 
       </div>
+
+      <ConfirmSheet
+        isOpen={showLogoutConfirm}
+        title="Log Out"
+        subtitle="Are you sure you want to log out?"
+        confirmText="Log Out"
+        cancelText="Cancel"
+        destructive={true}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={async () => {
+          setShowLogoutConfirm(false);
+          await signOut();
+          navigate('/');
+        }}
+      />
     </div>
   );
 }

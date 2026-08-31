@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import ConfirmSheet from '../components/ConfirmSheet';
 
 export default function AdviserUpload() {
   const { session, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Form State
   const [semester, setSemester] = useState('');
@@ -135,7 +137,7 @@ export default function AdviserUpload() {
         <span className="text-step-xs text-ash border border-fog rounded-full px-[8px] py-[2px]">Adviser</span>
       </div>
       <button
-        onClick={handleSignOut}
+        onClick={() => setShowLogoutConfirm(true)}
         className="text-step-sm-2 text-graphite hover:text-midnight-ink underline underline-offset-4 transition-colors"
       >
         Sign out
@@ -339,6 +341,21 @@ export default function AdviserUpload() {
           </div>
         )}
       </main>
+
+      <ConfirmSheet
+        isOpen={showLogoutConfirm}
+        title="Log Out"
+        subtitle="Are you sure you want to log out?"
+        confirmText="Log Out"
+        cancelText="Cancel"
+        destructive={true}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={async () => {
+          setShowLogoutConfirm(false);
+          await signOut();
+          navigate('/');
+        }}
+      />
     </div>
   );
 }

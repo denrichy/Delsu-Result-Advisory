@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabaseClient';
 import { Home, BarChart3, Sparkles, Bell, LogOut } from 'lucide-react';
+import ConfirmSheet from './ConfirmSheet';
 
 const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
@@ -13,7 +14,14 @@ export default function Navbar() {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleSignOut = async () => {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleSignOutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmSignOut = async () => {
+    setShowLogoutConfirm(false);
     await signOut();
     navigate('/');
   };
@@ -149,7 +157,7 @@ export default function Navbar() {
                 {session.user?.email?.charAt(0).toUpperCase() || 'U'}
               </div>
               <button
-                onClick={handleSignOut}
+                onClick={handleSignOutClick}
                 className="flex items-center gap-[6px] transition-opacity active:opacity-60"
                 style={{
                   fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#E03B3B',
@@ -163,6 +171,17 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      <ConfirmSheet
+        isOpen={showLogoutConfirm}
+        title="Log Out"
+        subtitle="Are you sure you want to log out?"
+        confirmText="Log Out"
+        cancelText="Cancel"
+        destructive={true}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirmSignOut}
+      />
     </nav>
   );
 }
