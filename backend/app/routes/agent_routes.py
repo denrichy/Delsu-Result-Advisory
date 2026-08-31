@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
-from app.agent import run_agent, run_agent_stream, generate_title_background
+from app.agent import run_agent, run_agent_stream
 from app.db import supabase
 
 router = APIRouter(prefix="/agent", tags=["agent"])
