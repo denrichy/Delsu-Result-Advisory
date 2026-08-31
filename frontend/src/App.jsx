@@ -7,6 +7,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import StudentResults from './pages/StudentResults';
 import StudentAdvisor from './pages/StudentAdvisor';
 import StudentNotifications from './pages/StudentNotifications';
+import StudentSettings from './pages/StudentSettings';
 import AdviserView from './pages/AdviserView';
 import AdviserUpload from './pages/AdviserUpload';
 import AdminLogin from './pages/AdminLogin';
@@ -35,6 +36,7 @@ function App() {
         <Route path="/app/student/results" element={<StudentResults />} />
         <Route path="/app/student/advisor" element={<StudentAdvisor />} />
         <Route path="/app/student/notifications" element={<StudentNotifications />} />
+        <Route path="/app/student/settings" element={<StudentSettings />} />
 
         {/* Legacy login/signup redirects kept as aliases */}
         <Route path="/app/student-login" element={<Login />} />
