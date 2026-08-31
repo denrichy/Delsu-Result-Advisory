@@ -41,25 +41,6 @@ class SaveMessageRequest(BaseModel):
     content: str
 
 
-@router.get("/sessions/{matric_number:path}")
-def list_sessions(matric_number: str):
-    """List all chat sessions for a student, newest first."""
-    try:
-        # Also ensure we handle URL encoded slashes correctly if Starlette didn't fully decode
-        import urllib.parse
-        clean_matric = urllib.parse.unquote(matric_number)
-        
-        res = supabase.table("chat_sessions") \
-            .select("id, title, created_at, updated_at") \
-            .eq("matric_number", clean_matric) \
-            .order("updated_at", desc=True) \
-            .execute()
-        return {"sessions": res.data or []}
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @router.post("/sessions")
 def create_session(data: CreateSessionRequest):
     """Create a new chat session."""
@@ -161,6 +142,25 @@ def delete_session(session_id: str):
             .execute()
 
         return {"ok": True}
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/sessions/{matric_number:path}")
+def list_sessions(matric_number: str):
+    """List all chat sessions for a student, newest first."""
+    try:
+        # Also ensure we handle URL encoded slashes correctly if Starlette didn't fully decode
+        import urllib.parse
+        clean_matric = urllib.parse.unquote(matric_number)
+        
+        res = supabase.table("chat_sessions") \
+            .select("id, title, created_at, updated_at") \
+            .eq("matric_number", clean_matric) \
+            .order("updated_at", desc=True) \
+            .execute()
+        return {"sessions": res.data or []}
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

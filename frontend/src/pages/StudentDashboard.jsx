@@ -214,7 +214,7 @@ export default function StudentDashboard() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [expandedCard, setExpandedCard] = useState(null);
+  const [expandedCard, setExpandedCard] = useState('results');
 
   useEffect(() => {
     if (!loading && !session) navigate('/app/login');
