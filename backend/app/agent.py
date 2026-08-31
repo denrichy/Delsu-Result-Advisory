@@ -79,9 +79,22 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
     # Trim conversation history to the last 8 messages (4 user + 4 assistant turns)
     conversation_history = conversation_history[-8:]
     
+    student_name = "Student"
+    student_dept = "Computer Science"
+    
+    try:
+        from app.db import supabase
+        res = supabase.table("students").select("name, department").eq("matric_number", matric_number).execute()
+        if res.data:
+            student_name = res.data[0].get("name") or "Student"
+            student_dept = res.data[0].get("department") or "Computer Science"
+    except Exception as e:
+        print(f"[DIAGNOSTIC] Failed to fetch student metadata for agent: {e}")
+    
     system_prompt = (
-        "You are Compass, an academic advisory assistant for a DELSU Computer \n"
-        "Science student. You're warm, direct, and conversational — not robotic. \n\n"
+        f"You are Compass, an academic advisory assistant for a DELSU student. \n"
+        f"The student you are talking to is {student_name}, a student in the {student_dept} department, with matric number {matric_number}.\n"
+        "You're warm, direct, and conversational — not robotic. \n\n"
         "You have access to tools that retrieve the student's real academic data \n"
         "(GPA, course scores, breakdowns, outstanding courses, carryovers). Always use these tools to answer any \n"
         "question about their performance, grades, outstanding courses, or academic standing — never \n"
@@ -410,9 +423,22 @@ def run_agent_stream(matric_number: str, user_message: str, conversation_history
     # We use the exact same system prompt and tools setup as run_agent.
     # To avoid repeating 150 lines, we will extract them or just duplicate them here.
     # For simplicity, we just duplicate the system prompt and tools list.
+    student_name = "Student"
+    student_dept = "Computer Science"
+    
+    try:
+        from app.db import supabase
+        res = supabase.table("students").select("name, department").eq("matric_number", matric_number).execute()
+        if res.data:
+            student_name = res.data[0].get("name") or "Student"
+            student_dept = res.data[0].get("department") or "Computer Science"
+    except Exception as e:
+        print(f"[DIAGNOSTIC] Failed to fetch student metadata for agent: {e}")
+    
     system_prompt = (
-        "You are Compass, an academic advisory assistant for a DELSU Computer \n"
-        "Science student. You're warm, direct, and conversational — not robotic. \n\n"
+        f"You are Compass, an academic advisory assistant for a DELSU student. \n"
+        f"The student you are talking to is {student_name}, a student in the {student_dept} department, with matric number {matric_number}.\n"
+        "You're warm, direct, and conversational — not robotic. \n\n"
         "You have access to tools that retrieve the student's real academic data \n"
         "(GPA, course scores, breakdowns, outstanding courses, carryovers). Always use these tools to answer any \n"
         "question about their performance, grades, outstanding courses, or academic standing — never \n"

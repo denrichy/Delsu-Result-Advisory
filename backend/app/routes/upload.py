@@ -217,8 +217,9 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
         students_created = 0
         results_inserted = 0
         
-        adviser_res = supabase.table("advisers").select("level").eq("id", request.adviser_id).execute()
+        adviser_res = supabase.table("advisers").select("level, department").eq("id", request.adviser_id).execute()
         adviser_level = adviser_res.data[0].get("level") if adviser_res.data else None
+        adviser_department = adviser_res.data[0].get("department") if adviser_res.data else None
         
         # 1. Process Courses
         course_id_map = {}
@@ -312,6 +313,8 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                     update_data = {}
                     if adviser_level is not None and existing.get("current_level") != adviser_level:
                         update_data["current_level"] = adviser_level
+                    if adviser_department is not None and existing.get("department") != adviser_department:
+                        update_data["department"] = adviser_department
                         
                     new_name = student_baselines[matric].get("name")
                     if new_name and existing.get("name") != new_name:
@@ -336,6 +339,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                         "name": student_baselines[matric].get("name"),
                         "password_hash": get_password_hash("password123"), # default password
                         "current_level": adviser_level if adviser_level else 100,
+                        "department": adviser_department,
                         "baseline_units": student_baselines[matric].get("baseline_units"),
                         "baseline_gps": student_baselines[matric].get("baseline_gps"),
                         "outstanding_courses": student_baselines[matric].get("outstanding_courses")
