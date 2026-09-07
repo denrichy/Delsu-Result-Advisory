@@ -96,10 +96,10 @@ export default function AdviserDashboard() {
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  // Dashboard data
   const [dashData, setDashData] = useState(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [notifying, setNotifying] = useState(false);
 
   // Course stats
   const [courses, setCourses] = useState([]);
@@ -184,6 +184,28 @@ export default function AdviserDashboard() {
     fetchDashboard();
   };
 
+  const handleBulkNotify = async () => {
+    if (!window.confirm("This will send an in-app notification and email to ALL students with carryovers. Continue?")) return;
+    
+    setNotifying(true);
+    try {
+      const headers = { 'auth-user-id': session.user.id };
+      const res = await fetch(`${API}/analytics/notify-carryovers`, {
+        method: 'POST',
+        headers
+      });
+      if (res.ok) {
+        alert("Notifications successfully sent to all students with carryovers!");
+      } else {
+        alert("Failed to send notifications.");
+      }
+    } catch (e) {
+      alert("Error sending notifications.");
+    } finally {
+      setNotifying(false);
+    }
+  };
+
   if (authLoading) return null;
   if (!session) return null;
 
@@ -231,6 +253,16 @@ export default function AdviserDashboard() {
   const donutColors = ['#1944F1', '#3B82F6', '#60A5FA', '#F59E0B', '#9CA3AF', '#EF4444'];
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const carryoversByStudent = {};
+  if (dashData?.carryovers) {
+    dashData.carryovers.forEach(c => {
+      if (!carryoversByStudent[c.matric_number]) {
+        carryoversByStudent[c.matric_number] = [];
+      }
+      carryoversByStudent[c.matric_number].push(c);
+    });
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAFA' }}>
@@ -505,6 +537,70 @@ export default function AdviserDashboard() {
               <p style={{ fontSize: '14px', color: '#D1D5DB', textAlign: 'center', padding: '24px 0' }}>No uploads yet</p>
             )}
           </DashCard>
+
+          {/* ── Carryovers Table ── */}
+          <DashCard 
+            title="Outstanding Carryovers" 
+            className="mt-[28px]"
+            actions={
+              <button 
+                onClick={handleBulkNotify}
+                disabled={notifying || Object.keys(carryoversByStudent).length === 0}
+                className="flex items-center gap-[4px] transition-colors disabled:opacity-50"
+                style={{ 
+                  fontSize: '13px', fontWeight: 500, color: '#FFFFFF', 
+                  background: '#1F2937', border: 'none', cursor: 'pointer',
+                  padding: '8px 16px', borderRadius: '8px'
+                }}
+              >
+                {notifying ? "Sending..." : "Notify All Students"}
+              </button>
+            }
+          >
+            {dataLoading ? (
+               <div className="animate-pulse flex flex-col gap-[12px]">
+                 {[1,2,3].map(i => <div key={i} style={{ height: '40px', background: '#F3F4F6', borderRadius: '8px' }} />)}
+               </div>
+            ) : Object.keys(carryoversByStudent).length > 0 ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: fontBody }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Student</th>
+                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Courses</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(carryoversByStudent).map((matric, i) => {
+                      const studentCarryovers = carryoversByStudent[matric];
+                      return (
+                        <tr key={i} style={{ borderBottom: '1px solid #F9FAFB' }}>
+                          <td style={{ padding: '14px 0', fontSize: '14px', fontWeight: 500, color: '#1F2937' }}>{matric}</td>
+                          <td style={{ padding: '14px 0' }}>
+                            <div className="flex flex-wrap gap-[8px]">
+                              {studentCarryovers.map((c, idx) => (
+                                <span 
+                                  key={idx} 
+                                  className="border border-[#FCA5A5] text-[#EF4444] bg-[#FEF2F2]"
+                                  style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px', fontWeight: 600, whiteSpace: 'nowrap' }}
+                                  title={`${c.session} (${c.semester})`}
+                                >
+                                  {c.course_code}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p style={{ fontSize: '14px', color: '#10B981', textAlign: 'center', padding: '24px 0' }}>No outstanding carryovers!</p>
+            )}
+          </DashCard>
+
         </div>
       </div>
     </div>

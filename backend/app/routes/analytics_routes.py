@@ -191,5 +191,6 @@ def get_dashboard_summary(auth_user_id: str = Header(None)):
         "cgpa_distribution": cgpa_distribution,
         "top_students": top_students,
         "at_risk_students": at_risk_students,
-        "recent_uploads": recent_uploads
+        "recent_uploads": recent_uploads,
+        "carryovers": carryovers
     }
