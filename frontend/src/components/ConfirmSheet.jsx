@@ -27,7 +27,7 @@ export default function ConfirmSheet({
   if (!render) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end md:justify-center md:items-center md:p-[24px]">
       {/* Backdrop */}
       <div 
         className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`} 
@@ -36,10 +36,10 @@ export default function ConfirmSheet({
       
       {/* Sheet */}
       <div 
-        className={`relative bg-white w-full rounded-t-[32px] px-[24px] pt-[16px] pb-safe flex flex-col items-center transition-transform duration-300 ease-out shadow-[0_-4px_24px_rgba(0,0,0,0.08)] ${show ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`relative bg-white w-full md:max-w-[400px] rounded-t-[32px] md:rounded-[32px] px-[24px] pt-[16px] md:pt-[32px] pb-safe md:pb-[32px] flex flex-col items-center transition-all duration-300 ease-out shadow-[0_-4px_24px_rgba(0,0,0,0.08)] md:shadow-xl ${show ? 'translate-y-0 opacity-100' : 'translate-y-full md:translate-y-[20px] opacity-100 md:opacity-0'}`}
       >
         {/* Drag handle */}
-        <div className="w-[40px] h-[4px] rounded-full bg-[#EBE9E9] mb-[32px]" />
+        <div className="w-[40px] h-[4px] rounded-full bg-[#EBE9E9] mb-[32px] md:hidden" />
 
         <div className="flex flex-col items-center w-full max-w-[300px] pb-[40px]">
           

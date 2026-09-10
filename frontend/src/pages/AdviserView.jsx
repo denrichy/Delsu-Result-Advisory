@@ -2,9 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
+import ConfirmSheet from '../components/ConfirmSheet';
+import ProcessingSheet from '../components/ProcessingSheet';
 import MonoBar from '../components/charts/MonoBar';
 import MonoDonut from '../components/charts/MonoDonut';
 import MonoHorizontalBar from '../components/charts/MonoHorizontalBar';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { motion } from 'motion/react';
 import {
   Users, TrendingUp, AlertTriangle, BookX,
@@ -100,6 +103,10 @@ export default function AdviserDashboard() {
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [notifying, setNotifying] = useState(false);
+  
+  // Modal states
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [processState, setProcessState] = useState({ isOpen: false, status: 'processing', errorTitle: '', errorSubtitle: '' });
 
   // Course stats
   const [courses, setCourses] = useState([]);
@@ -184,10 +191,15 @@ export default function AdviserDashboard() {
     fetchDashboard();
   };
 
-  const handleBulkNotify = async () => {
-    if (!window.confirm("This will send an in-app notification and email to ALL students with carryovers. Continue?")) return;
-    
+  const handleBulkNotify = () => {
+    setIsConfirming(true);
+  };
+
+  const executeBulkNotify = async () => {
+    setIsConfirming(false);
     setNotifying(true);
+    setProcessState({ isOpen: true, status: 'processing', errorTitle: '', errorSubtitle: '' });
+    
     try {
       const headers = { 'auth-user-id': session.user.id };
       const res = await fetch(`${API}/analytics/notify-carryovers`, {
@@ -195,12 +207,22 @@ export default function AdviserDashboard() {
         headers
       });
       if (res.ok) {
-        alert("Notifications successfully sent to all students with carryovers!");
+        setProcessState({ isOpen: true, status: 'success', errorTitle: '', errorSubtitle: '' });
       } else {
-        alert("Failed to send notifications.");
+        setProcessState({ 
+          isOpen: true, 
+          status: 'error', 
+          errorTitle: 'Notification Failed', 
+          errorSubtitle: 'Server returned an error. Please try again.' 
+        });
       }
     } catch (e) {
-      alert("Error sending notifications.");
+      setProcessState({ 
+        isOpen: true, 
+        status: 'error', 
+        errorTitle: 'Network Error', 
+        errorSubtitle: 'Could not reach the server. Check your connection.' 
+      });
     } finally {
       setNotifying(false);
     }
@@ -567,6 +589,29 @@ export default function AdviserDashboard() {
 
         </div>
       </div>
+
+      <ConfirmSheet
+        isOpen={isConfirming}
+        title="Notify Students?"
+        subtitle="This will send an automated email and an in-app reminder to ALL students who have outstanding carryover courses. This action cannot be undone."
+        confirmText="Send Notifications"
+        cancelText="Cancel"
+        onConfirm={executeBulkNotify}
+        onCancel={() => setIsConfirming(false)}
+      />
+
+      <ProcessingSheet
+        isOpen={processState.isOpen}
+        status={processState.status}
+        title="Sending Notifications"
+        subtitle="Please wait while we dispatch the emails..."
+        successTitle="Notifications Sent!"
+        successSubtitle="All students with carryovers have been successfully notified."
+        errorTitle={processState.errorTitle}
+        errorSubtitle={processState.errorSubtitle}
+        onAutoClose={() => setProcessState(prev => ({ ...prev, isOpen: false }))}
+        onContinue={() => setProcessState(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }
