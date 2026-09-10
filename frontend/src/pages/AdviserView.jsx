@@ -4,94 +4,41 @@ import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
 import ConfirmSheet from '../components/ConfirmSheet';
 import ProcessingSheet from '../components/ProcessingSheet';
-import MonoBar from '../components/charts/MonoBar';
-import MonoDonut from '../components/charts/MonoDonut';
-import MonoHorizontalBar from '../components/charts/MonoHorizontalBar';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import MonoPillPillars from '../components/charts/MonoPillPillars';
+import MonoDonutRing from '../components/charts/MonoDonutRing';
+import MonoArcMeter from '../components/charts/MonoArcMeter';
 import { motion } from 'motion/react';
 import {
   Users, TrendingUp, AlertTriangle, BookX,
-  ChevronDown, RefreshCw, Award, ArrowUpRight,
+  ChevronDown, RefreshCw, Award, ArrowUpRight, Bell,
 } from 'lucide-react';
+import { cn } from '../lib/cn';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
 const API = import.meta.env.VITE_API_BASE;
 
-/* ── KPI Card ── */
-function StatCard({ icon: Icon, label, value, subtitle, color = '#1944F1', delay = 0 }) {
+/* ───────────────────────────────────────────── */
+/*  Bento Card — unified wrapper                 */
+/* ───────────────────────────────────────────── */
+function BentoCard({ children, className = '', delay = 0, noPad = false }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-      style={{
-        background: '#FFFFFF',
-        border: '1px solid #F3F4F6',
-        borderRadius: '16px',
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        fontFamily: fontBody,
-      }}
-    >
-      <div className="flex items-center justify-between">
-        <div
-          className="flex items-center justify-center"
-          style={{
-            width: '40px', height: '40px', borderRadius: '10px',
-            background: `${color}10`,
-          }}
-        >
-          <Icon size={20} style={{ color }} />
-        </div>
-      </div>
-      <div>
-        <p style={{ fontSize: '28px', fontWeight: 700, color: '#1F2937', margin: 0, lineHeight: 1.1 }}>
-          {value === null || value === undefined ? '—' : value}
-        </p>
-        <p style={{ fontSize: '13px', fontWeight: 500, color: '#9CA3AF', margin: '4px 0 0' }}>{label}</p>
-      </div>
-      {subtitle && (
-        <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>{subtitle}</p>
+      transition={{ duration: 0.45, delay, ease: 'easeOut' }}
+      className={cn(
+        'bg-white border border-neutral-200 rounded-2xl overflow-hidden',
+        !noPad && 'p-5',
+        className
       )}
+    >
+      {children}
     </motion.div>
   );
 }
 
-/* ── Card Wrapper ── */
-function DashCard({ title, subtitle, children, actions, delay = 0, className = '' }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-      className={className}
-      style={{
-        background: '#FFFFFF',
-        border: '1px solid #F3F4F6',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        fontFamily: fontBody,
-      }}
-    >
-      {(title || actions) && (
-        <div style={{ padding: '20px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            {title && <p style={{ fontSize: '15px', fontWeight: 600, color: '#1F2937', margin: 0 }}>{title}</p>}
-            {subtitle && <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '2px 0 0' }}>{subtitle}</p>}
-          </div>
-          {actions}
-        </div>
-      )}
-      <div style={{ padding: '20px 24px 24px' }}>
-        {children}
-      </div>
-    </motion.div>
-  );
-}
-
-/* ── Main Dashboard ── */
+/* ───────────────────────────────────────────── */
+/*  Main Dashboard                               */
+/* ───────────────────────────────────────────── */
 export default function AdviserDashboard() {
   const { session, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -103,7 +50,7 @@ export default function AdviserDashboard() {
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [notifying, setNotifying] = useState(false);
-  
+
   // Modal states
   const [isConfirming, setIsConfirming] = useState(false);
   const [processState, setProcessState] = useState({ isOpen: false, status: 'processing', errorTitle: '', errorSubtitle: '' });
@@ -199,30 +146,16 @@ export default function AdviserDashboard() {
     setIsConfirming(false);
     setNotifying(true);
     setProcessState({ isOpen: true, status: 'processing', errorTitle: '', errorSubtitle: '' });
-    
     try {
       const headers = { 'auth-user-id': session.user.id };
-      const res = await fetch(`${API}/analytics/notify-carryovers`, {
-        method: 'POST',
-        headers
-      });
+      const res = await fetch(`${API}/analytics/notify-carryovers`, { method: 'POST', headers });
       if (res.ok) {
         setProcessState({ isOpen: true, status: 'success', errorTitle: '', errorSubtitle: '' });
       } else {
-        setProcessState({ 
-          isOpen: true, 
-          status: 'error', 
-          errorTitle: 'Notification Failed', 
-          errorSubtitle: 'Server returned an error. Please try again.' 
-        });
+        setProcessState({ isOpen: true, status: 'error', errorTitle: 'Notification Failed', errorSubtitle: 'Server returned an error. Please try again.' });
       }
     } catch (e) {
-      setProcessState({ 
-        isOpen: true, 
-        status: 'error', 
-        errorTitle: 'Network Error', 
-        errorSubtitle: 'Could not reach the server. Check your connection.' 
-      });
+      setProcessState({ isOpen: true, status: 'error', errorTitle: 'Network Error', errorSubtitle: 'Could not reach the server. Check your connection.' });
     } finally {
       setNotifying(false);
     }
@@ -234,10 +167,10 @@ export default function AdviserDashboard() {
   // Pending / Not found states
   if (!profileLoading && (!profile || profile.found === false)) {
     return (
-      <div style={{ minHeight: '100vh', background: '#FAFAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: fontBody }}>
-        <div style={{ maxWidth: '440px', textAlign: 'center', padding: '40px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1F2937', marginBottom: '12px' }}>Profile Not Found</h1>
-          <p style={{ fontSize: '14px', color: '#6B7280' }}>No adviser profile found for this account. Please contact support or sign up again.</p>
+      <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+        <div className="max-w-[440px] text-center p-10">
+          <h1 className="text-2xl font-bold text-neutral-900 mb-3">Profile Not Found</h1>
+          <p className="text-sm text-neutral-500">No adviser profile found for this account. Please contact support or sign up again.</p>
         </div>
       </div>
     );
@@ -245,16 +178,16 @@ export default function AdviserDashboard() {
 
   if (!profileLoading && profile?.verified === false) {
     return (
-      <div style={{ minHeight: '100vh', background: '#FAFAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: fontBody }}>
-        <div style={{ maxWidth: '440px', textAlign: 'center', padding: '40px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1F2937', marginBottom: '12px' }}>Pending Verification</h1>
-          <p style={{ fontSize: '14px', color: '#6B7280' }}>Your adviser account is awaiting admin approval. You'll be able to access the dashboard once verified.</p>
+      <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+        <div className="max-w-[440px] text-center p-10">
+          <h1 className="text-2xl font-bold text-neutral-900 mb-3">Pending Verification</h1>
+          <p className="text-sm text-neutral-500">Your adviser account is awaiting admin approval. You'll be able to access the dashboard once verified.</p>
         </div>
       </div>
     );
   }
 
-  // Prepare chart data
+  /* ── Prepare chart data ── */
   const cgpaDistData = dashData?.cgpa_distribution ? [
     { label: '1st Class', value: dashData.cgpa_distribution.first_class || 0 },
     { label: '2nd Upper', value: dashData.cgpa_distribution.second_upper || 0 },
@@ -269,327 +202,447 @@ export default function AdviserDashboard() {
     { label: 'B', value: courseStats.dist.B },
     { label: 'C', value: courseStats.dist.C },
     { label: 'D', value: courseStats.dist.D },
-    { label: 'F', value: courseStats.dist.F },
+    { label: 'F', value: courseStats.dist.F, color: '#EF4444' },
   ] : [];
 
-  const donutColors = ['#1944F1', '#3B82F6', '#60A5FA', '#F59E0B', '#9CA3AF', '#EF4444'];
+  const donutColors = ['#18181B', '#3F3F46', '#71717A', '#A1A1AA', '#D4D4D8', '#E4E4E7'];
+
+  // Pass rate for arc gauge
+  const totalStudents = dashData?.total_students || 0;
+  const atRiskCount = dashData?.at_risk_count || 0;
+  const passRate = totalStudents > 0 ? Math.round(((totalStudents - atRiskCount) / totalStudents) * 100) : 0;
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+  /* ── Loading skeleton ── */
+  const Skeleton = ({ h = 'h-6', w = 'w-24' }) => (
+    <div className={cn('animate-pulse rounded-lg bg-neutral-100', h, w)} />
+  );
+
   return (
-    <div style={{ minHeight: '100vh', background: '#FAFAFA' }}>
+    <div className="min-h-screen bg-[#F7F7F8]">
       <AdviserSidebar profile={profile} />
 
-      {/* Main content area */}
-      <div className="lg:ml-[260px]" style={{ minHeight: '100vh' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '80px 24px 48px' }}
-             className="lg:!pt-[40px]"
-        >
-          {/* ── Header ── */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-[12px]" style={{ marginBottom: '32px' }}>
-            <div>
-              <motion.h1
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                style={{ fontSize: '26px', fontWeight: 700, color: '#1F2937', margin: 0, fontFamily: fontBody }}
-              >
-                {profileLoading ? 'Loading...' : `Welcome back, ${profile?.name?.split(' ')[0]}.`}
-              </motion.h1>
-              <p style={{ fontSize: '13px', color: '#9CA3AF', margin: '4px 0 0' }}>{today}</p>
-            </div>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-[8px] self-start transition-all"
-              style={{
-                padding: '8px 16px',
-                borderRadius: '10px',
-                border: '1px solid #E5E7EB',
-                background: '#FFFFFF',
-                fontSize: '13px',
-                fontWeight: 500,
-                color: '#4B5563',
-                cursor: 'pointer',
-                opacity: refreshing ? 0.5 : 1,
-              }}
-            >
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-              Refresh
-            </button>
+      {/* Main content */}
+      <div className="lg:ml-[260px] min-h-screen">
+        <div className="max-w-[1200px] mx-auto px-5 pb-12 pt-20 lg:!pt-10">
+
+          {/* ═══════════════════════ ROW 1: Hero + KPI Cards ═══════════════════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+
+            {/* ── Hero Panel (spans 5 cols, 2 rows) ── */}
+            <BentoCard className="lg:col-span-5 lg:row-span-2" delay={0.05}>
+              <div className="flex flex-col h-full justify-between">
+                {/* Title area */}
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h1 className="text-xl font-bold text-neutral-900 leading-tight">
+                        Academic{' '}
+                        <span className="font-light text-neutral-400">Overview</span>
+                      </h1>
+                      <p className="text-xs text-neutral-400 mt-1">{today}</p>
+                    </div>
+                    <button
+                      onClick={handleRefresh}
+                      disabled={refreshing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-medium text-neutral-500 hover:bg-neutral-50 transition-colors disabled:opacity-40"
+                    >
+                      <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+                      Refresh
+                    </button>
+                  </div>
+
+                  {/* Adviser info */}
+                  {profile && (
+                    <div className="mb-6">
+                      <p className="text-sm font-semibold text-neutral-800">{profile.name}</p>
+                      <p className="text-xs text-neutral-400">{profile.department} · Level {dashData?.adviser?.level || '—'}</p>
+                    </div>
+                  )}
+
+                  {/* Student breakdown dots */}
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-neutral-900" />
+                      <div>
+                        <p className="text-xs text-neutral-400">Passing</p>
+                        <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
+                          {dataLoading ? '—' : totalStudents - atRiskCount}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-400" />
+                      <div>
+                        <p className="text-xs text-neutral-400">At-Risk</p>
+                        <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
+                          {dataLoading ? '—' : atRiskCount}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-400" />
+                      <div>
+                        <p className="text-xs text-neutral-400">Carryovers</p>
+                        <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
+                          {dataLoading ? '—' : dashData?.carryover_count || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Arc Gauge */}
+                <div className="mt-6">
+                  {dataLoading ? (
+                    <div className="flex justify-center py-8"><Skeleton h="h-24" w="w-48" /></div>
+                  ) : (
+                    <MonoArcMeter
+                      value={passRate}
+                      max={100}
+                      size={220}
+                      strokeWidth={22}
+                      label="Pass Rate"
+                      accentColor="#1944F1"
+                    />
+                  )}
+                </div>
+              </div>
+            </BentoCard>
+
+            {/* ── KPI Cards (top-right, 3 across) ── */}
+            <BentoCard className="lg:col-span-7" delay={0.1}>
+              <div className="grid grid-cols-3 divide-x divide-neutral-100">
+                {/* Total Students */}
+                <div className="px-4 first:pl-0 last:pr-0">
+                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Total Students</p>
+                  <p className="text-3xl font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (totalStudents > 999 ? `${(totalStudents / 1000).toFixed(1)}k` : totalStudents)}
+                  </p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <Users size={12} className="text-neutral-400" />
+                    <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || '—'}</span>
+                  </div>
+                </div>
+
+                {/* Avg CGPA */}
+                <div className="px-4 first:pl-0 last:pr-0">
+                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg. CGPA</p>
+                  <p className="text-3xl font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '—')}
+                  </p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <TrendingUp size={12} className="text-emerald-500" />
+                    <span className="text-[11px] text-emerald-600 font-medium">of 5.0</span>
+                  </div>
+                </div>
+
+                {/* Carryover Count */}
+                <div className="px-4 first:pl-0 last:pr-0">
+                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Carryovers</p>
+                  <p className="text-3xl font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.carryover_count ?? 0)}
+                  </p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <BookX size={12} className="text-red-400" />
+                    <span className="text-[11px] text-neutral-400">students</span>
+                  </div>
+                </div>
+              </div>
+            </BentoCard>
+
+            {/* ── CGPA Distribution Bar (below KPIs, right side) ── */}
+            <BentoCard className="lg:col-span-7" delay={0.15}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900">CGPA Distribution</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">Class of degree breakdown</p>
+                </div>
+                <span className="text-xs font-mono text-neutral-400 bg-neutral-50 px-2 py-1 rounded-md">
+                  {dataLoading ? '...' : `${totalStudents} total`}
+                </span>
+              </div>
+              {dataLoading ? (
+                <div className="flex items-end gap-2 h-[180px]">
+                  {[1,2,3,4,5,6].map(i => <div key={i} className="flex-1 bg-neutral-100 animate-pulse rounded-full" style={{ height: `${30 + i * 15}%` }} />)}
+                </div>
+              ) : cgpaDistData.length > 0 && cgpaDistData.some(d => d.value > 0) ? (
+                <MonoPillPillars
+                  data={cgpaDistData}
+                  height={200}
+                  accentColor="#18181B"
+                  hoverColor="#1944F1"
+                />
+              ) : (
+                <div className="h-[180px] flex items-center justify-center">
+                  <p className="text-sm text-neutral-300">No distribution data</p>
+                </div>
+              )}
+            </BentoCard>
           </div>
 
-          {/* ── KPI Cards ── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[16px]" style={{ marginBottom: '28px' }}>
-            <StatCard icon={Users} label="Total Students" value={dataLoading ? '...' : dashData?.total_students ?? 0} delay={0.05} color="#1944F1" />
-            <StatCard icon={TrendingUp} label="Average CGPA" value={dataLoading ? '...' : dashData?.average_cgpa ?? '—'} delay={0.1} color="#10B981" />
-            <StatCard icon={AlertTriangle} label="At-Risk Students" value={dataLoading ? '...' : dashData?.at_risk_count ?? 0} subtitle="CGPA below 2.0" delay={0.15} color="#F59E0B" />
-            <StatCard icon={BookX} label="Carryover Students" value={dataLoading ? '...' : dashData?.carryover_count ?? 0} delay={0.2} color="#EF4444" />
-          </div>
+          {/* ═══════════════════════ ROW 2: Charts + Lists ═══════════════════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
 
-          {/* ── Charts Row ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-[16px]" style={{ marginBottom: '28px' }}>
-            {/* Course Performance - Takes 3 cols */}
-            <DashCard
-              title="Course Performance"
-              subtitle="Select a course to view grade breakdown"
-              delay={0.25}
-              className="lg:col-span-3"
-              actions={
-                <div style={{ position: 'relative' }}>
+            {/* ── Course Performance (7 cols) ── */}
+            <BentoCard className="lg:col-span-7" delay={0.2}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900">Course Performance</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">Select a course to view grade breakdown</p>
+                </div>
+                <div className="relative">
                   <select
                     value={selectedCourse}
                     onChange={(e) => setSelectedCourse(e.target.value)}
-                    style={{
-                      appearance: 'none',
-                      padding: '6px 28px 6px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #E5E7EB',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      color: '#1F2937',
-                      background: '#FAFAFA',
-                      cursor: 'pointer',
-                      fontFamily: fontBody,
-                    }}
+                    className="appearance-none pl-3 pr-7 py-1.5 rounded-lg border border-neutral-200 text-xs font-medium text-neutral-700 bg-neutral-50 cursor-pointer focus:outline-none focus:ring-1 focus:ring-neutral-300"
                   >
                     <option value="">Choose course</option>
                     {courses.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  <ChevronDown size={14} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+                  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
                 </div>
-              }
-            >
+              </div>
+
               {!selectedCourse ? (
-                <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <p style={{ fontSize: '14px', color: '#D1D5DB' }}>Select a course above to see analytics</p>
+                <div className="h-[220px] flex items-center justify-center">
+                  <p className="text-sm text-neutral-300">Select a course above</p>
                 </div>
               ) : courseStatsLoading ? (
-                <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <p style={{ fontSize: '14px', color: '#9CA3AF' }} className="animate-pulse">Loading stats...</p>
+                <div className="h-[220px] flex items-center justify-center">
+                  <p className="text-sm text-neutral-400 animate-pulse">Loading stats...</p>
                 </div>
               ) : courseStats ? (
-                <div className="flex flex-col gap-[24px]">
-                  {/* Stats row */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-[16px]">
+                <div>
+                  {/* Inline stats */}
+                  <div className="grid grid-cols-3 gap-4 mb-5">
                     <div>
-                      <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 4px' }}>Class Average</p>
-                      <p style={{ fontSize: '24px', fontWeight: 700, color: '#1F2937', margin: 0 }}>{courseStats.avg}%</p>
+                      <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Class Avg</p>
+                      <p className="text-2xl font-bold text-neutral-900 mt-1 tabular-nums">{courseStats.avg}%</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 4px' }}>Total Students</p>
-                      <p style={{ fontSize: '24px', fontWeight: 700, color: '#1F2937', margin: 0 }}>{courseStats.total}</p>
+                      <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Pass Rate</p>
+                      <p className="text-2xl font-bold text-emerald-600 mt-1 tabular-nums">{courseStats.passRate}%</p>
                     </div>
-                    <div className="col-span-2 md:col-span-1">
-                      <MonoHorizontalBar label="Pass Rate" value={courseStats.passRate} max={100} color="#10B981" height={8} />
-                      <div style={{ marginTop: '8px' }} />
-                      <MonoHorizontalBar label="Fail Rate" value={courseStats.failRate} max={100} color="#EF4444" height={8} />
+                    <div>
+                      <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Students</p>
+                      <p className="text-2xl font-bold text-neutral-900 mt-1 tabular-nums">{courseStats.total}</p>
                     </div>
                   </div>
-                  {/* Bar chart */}
-                  <MonoBar data={gradeBarData} height={180} barColor="#E5E7EB" activeColor="#1944F1" />
+                  <MonoPillPillars
+                    data={gradeBarData}
+                    height={160}
+                    accentColor="#18181B"
+                    hoverColor="#1944F1"
+                    showGrid={false}
+                  />
                 </div>
               ) : null}
-            </DashCard>
+            </BentoCard>
 
-            {/* CGPA Distribution Donut - Takes 2 cols */}
-            <DashCard title="Class of Degree" subtitle="CGPA distribution breakdown" delay={0.3} className="lg:col-span-2">
+            {/* ── Class of Degree Donut (5 cols) ── */}
+            <BentoCard className="lg:col-span-5" delay={0.25}>
+              <div className="mb-4">
+                <p className="text-sm font-semibold text-neutral-900">Class of Degree</p>
+                <p className="text-xs text-neutral-400 mt-0.5">CGPA classification split</p>
+              </div>
               {dataLoading ? (
-                <div style={{ height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <p style={{ fontSize: '14px', color: '#9CA3AF' }} className="animate-pulse">Loading...</p>
+                <div className="h-[260px] flex items-center justify-center">
+                  <Skeleton h="h-40" w="w-40" />
                 </div>
               ) : cgpaDistData.length > 0 && cgpaDistData.some(d => d.value > 0) ? (
-                <MonoDonut
+                <MonoDonutRing
                   segments={cgpaDistData}
-                  size={170}
-                  strokeWidth={22}
-                  centerValue={dashData?.total_students?.toString() || '0'}
+                  size={190}
+                  strokeWidth={24}
+                  centerValue={totalStudents.toString()}
                   centerLabel="Students"
                   colors={donutColors}
                 />
               ) : (
-                <div style={{ height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <p style={{ fontSize: '14px', color: '#D1D5DB' }}>No CGPA data available</p>
+                <div className="h-[260px] flex items-center justify-center">
+                  <p className="text-sm text-neutral-300">No data available</p>
                 </div>
               )}
-            </DashCard>
+            </BentoCard>
           </div>
 
-          {/* ── Tables Row ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-[16px]" style={{ marginBottom: '28px' }}>
-            {/* Top Performers */}
-            <DashCard title="Top Performers" subtitle="Highest CGPA in your level" delay={0.35}>
+          {/* ═══════════════════════ ROW 3: Leaderboards ═══════════════════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+
+            {/* ── Top Performers ── */}
+            <BentoCard delay={0.3}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900">Top Performers</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">Highest CGPA in your level</p>
+                </div>
+                <Award size={16} className="text-amber-400" />
+              </div>
               {dataLoading ? (
-                <div className="animate-pulse flex flex-col gap-[12px]">
-                  {[1,2,3].map(i => <div key={i} style={{ height: '48px', background: '#F3F4F6', borderRadius: '10px' }} />)}
+                <div className="flex flex-col gap-2.5">
+                  {[1,2,3].map(i => <Skeleton key={i} h="h-12" w="w-full" />)}
                 </div>
               ) : dashData?.top_students?.length > 0 ? (
-                <div className="flex flex-col gap-[6px]">
+                <div className="flex flex-col gap-1.5">
                   {dashData.top_students.map((s, i) => (
                     <div
                       key={s.matric_number}
-                      className="flex items-center justify-between"
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: '10px',
-                        background: i === 0 ? '#FFFBEB' : '#FAFAFA',
-                        border: i === 0 ? '1px solid #FDE68A' : '1px solid transparent',
-                      }}
+                      className={cn(
+                        'flex items-center justify-between px-3.5 py-3 rounded-xl transition-colors',
+                        i === 0 ? 'bg-amber-50 border border-amber-100' : 'bg-neutral-50'
+                      )}
                     >
-                      <div className="flex items-center gap-[12px]">
-                        <div
-                          className="flex items-center justify-center"
-                          style={{
-                            width: '28px', height: '28px', borderRadius: '8px',
-                            background: i === 0 ? '#F59E0B' : '#E5E7EB',
-                            fontSize: '12px', fontWeight: 700,
-                            color: i === 0 ? '#FFFFFF' : '#6B7280',
-                          }}
-                        >
-                          {i === 0 ? <Award size={14} /> : `#${i + 1}`}
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold',
+                          i === 0 ? 'bg-amber-400 text-white' : 'bg-neutral-200 text-neutral-500'
+                        )}>
+                          {i === 0 ? <Award size={13} /> : `#${i + 1}`}
                         </div>
-                        <span style={{ fontSize: '14px', fontWeight: 500, color: '#1F2937' }}>
-                          {s.matric_number}
-                        </span>
+                        <span className="text-sm font-medium text-neutral-800">{s.matric_number}</span>
                       </div>
-                      <span style={{ fontSize: '16px', fontWeight: 700, color: '#1F2937' }}>
-                        {s.gpa}
-                      </span>
+                      <span className="text-base font-bold text-neutral-900 tabular-nums">{s.gpa}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: '14px', color: '#D1D5DB', textAlign: 'center', padding: '24px 0' }}>No student data</p>
+                <p className="text-sm text-neutral-300 text-center py-6">No student data</p>
               )}
-            </DashCard>
+            </BentoCard>
 
-            {/* At-Risk Students */}
-            <DashCard title="At-Risk Students" subtitle="CGPA below 2.0" delay={0.4}>
+            {/* ── At-Risk Students ── */}
+            <BentoCard delay={0.35}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900">At-Risk Students</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">CGPA below 2.0</p>
+                </div>
+                <AlertTriangle size={16} className="text-red-400" />
+              </div>
               {dataLoading ? (
-                <div className="animate-pulse flex flex-col gap-[12px]">
-                  {[1,2,3].map(i => <div key={i} style={{ height: '48px', background: '#F3F4F6', borderRadius: '10px' }} />)}
+                <div className="flex flex-col gap-2.5">
+                  {[1,2,3].map(i => <Skeleton key={i} h="h-12" w="w-full" />)}
                 </div>
               ) : dashData?.at_risk_students?.length > 0 ? (
-                <div className="flex flex-col gap-[6px]">
+                <div className="flex flex-col gap-1.5">
                   {dashData.at_risk_students.slice(0, 8).map((s) => (
                     <div
                       key={s.matric_number}
-                      className="flex items-center justify-between"
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: '10px',
-                        background: '#FEF2F2',
-                        border: '1px solid #FEE2E2',
-                      }}
+                      className="flex items-center justify-between px-3.5 py-3 rounded-xl bg-red-50 border border-red-100"
                     >
-                      <div className="flex items-center gap-[10px]">
-                        <AlertTriangle size={14} style={{ color: '#EF4444' }} />
-                        <span style={{ fontSize: '14px', fontWeight: 500, color: '#1F2937' }}>
-                          {s.matric_number}
-                        </span>
+                      <div className="flex items-center gap-2.5">
+                        <AlertTriangle size={13} className="text-red-400 shrink-0" />
+                        <span className="text-sm font-medium text-neutral-800">{s.matric_number}</span>
                       </div>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#EF4444' }}>
-                        {s.gpa}
-                      </span>
+                      <span className="text-base font-bold text-red-500 tabular-nums">{s.gpa}</span>
                     </div>
                   ))}
                   {dashData.at_risk_students.length > 8 && (
-                    <p style={{ fontSize: '12px', color: '#9CA3AF', textAlign: 'center', marginTop: '4px' }}>
-                      + {dashData.at_risk_students.length - 8} more students
+                    <p className="text-xs text-neutral-400 text-center mt-1">
+                      + {dashData.at_risk_students.length - 8} more
                     </p>
                   )}
                 </div>
               ) : (
-                <p style={{ fontSize: '14px', color: '#10B981', textAlign: 'center', padding: '24px 0' }}>
-                  No at-risk students 🎉
-                </p>
+                <p className="text-sm text-emerald-500 text-center py-6">No at-risk students</p>
               )}
-            </DashCard>
+            </BentoCard>
           </div>
 
-          {/* ── Recent Uploads ── */}
-          <DashCard title="Recent Uploads" delay={0.45} actions={
-            <button
-              onClick={() => navigate('/app/adviser/history')}
-              className="flex items-center gap-[4px] transition-colors"
-              style={{ fontSize: '13px', fontWeight: 500, color: '#1944F1', background: 'none', border: 'none', cursor: 'pointer' }}
-            >
-              View all <ArrowUpRight size={14} />
-            </button>
-          }>
-            {dataLoading ? (
-              <div className="animate-pulse flex flex-col gap-[12px]">
-                {[1,2,3].map(i => <div key={i} style={{ height: '40px', background: '#F3F4F6', borderRadius: '8px' }} />)}
-              </div>
-            ) : dashData?.recent_uploads?.length > 0 ? (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: fontBody }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filename</th>
-                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Semester</th>
-                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rows</th>
-                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashData.recent_uploads.map(u => (
-                      <tr key={u.id} style={{ borderBottom: '1px solid #F9FAFB', cursor: 'pointer' }} onClick={() => navigate(`/app/adviser/upload/${u.id}`)}>
-                        <td style={{ padding: '14px 0', fontSize: '14px', fontWeight: 500, color: '#1F2937' }}>{u.filename || 'Unknown'}</td>
-                        <td style={{ padding: '14px 0', fontSize: '13px', color: '#6B7280' }}>{u.semester && u.session ? `${u.semester} – ${u.session}` : '—'}</td>
-                        <td style={{ padding: '14px 0', fontSize: '13px', color: '#6B7280', textAlign: 'right' }}>{u.raw_row_count || 0}</td>
-                        <td style={{ padding: '14px 0', fontSize: '13px', color: '#9CA3AF', textAlign: 'right' }}>
-                          {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p style={{ fontSize: '14px', color: '#D1D5DB', textAlign: 'center', padding: '24px 0' }}>No uploads yet</p>
-            )}
-          </DashCard>
+          {/* ═══════════════════════ ROW 4: Uploads + Carryovers ═══════════════════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-          {/* ── Carryovers Table ── */}
-          <DashCard 
-            title="Outstanding Carryovers" 
-            className="mt-[28px]"
-            actions={
-              <button 
-                onClick={handleBulkNotify}
-                disabled={notifying || dashData?.carryovers?.length === 0}
-                className="flex items-center gap-[4px] transition-colors disabled:opacity-50"
-                style={{ 
-                  fontSize: '13px', fontWeight: 500, color: '#FFFFFF', 
-                  background: '#1F2937', border: 'none', cursor: 'pointer',
-                  padding: '8px 16px', borderRadius: '8px'
-                }}
-              >
-                {notifying ? "Sending..." : "Notify All Students"}
-              </button>
-            }
-          >
-            {dataLoading ? (
-               <div className="animate-pulse flex flex-col gap-[12px]">
-                 <div style={{ height: '40px', background: '#F3F4F6', borderRadius: '8px' }} />
-               </div>
-            ) : dashData?.carryover_count > 0 ? (
-              <div style={{ padding: '24px 0', textAlign: 'center' }}>
-                <p style={{ fontSize: '15px', color: '#4B5563', marginBottom: '8px' }}>
-                  There are <strong>{dashData.carryover_count}</strong> students with outstanding carryovers.
-                </p>
-                <p style={{ fontSize: '13px', color: '#9CA3AF' }}>
-                  Click the button above to send them an automated email and in-app reminder to register for their carryover courses.
-                </p>
+            {/* ── Recent Uploads ── */}
+            <BentoCard className="lg:col-span-8" delay={0.4}>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-semibold text-neutral-900">Recent Uploads</p>
+                <button
+                  onClick={() => navigate('/app/adviser/history')}
+                  className="flex items-center gap-1 text-xs font-medium text-[#1944F1] hover:underline"
+                >
+                  View all <ArrowUpRight size={12} />
+                </button>
               </div>
-            ) : (
-              <p style={{ fontSize: '14px', color: '#10B981', textAlign: 'center', padding: '24px 0' }}>No outstanding carryovers!</p>
-            )}
-          </DashCard>
+              {dataLoading ? (
+                <div className="flex flex-col gap-3">
+                  {[1,2,3].map(i => <Skeleton key={i} h="h-10" w="w-full" />)}
+                </div>
+              ) : dashData?.recent_uploads?.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-neutral-100">
+                        <th className="text-left text-[10px] font-semibold text-neutral-400 uppercase tracking-wider py-2.5">Filename</th>
+                        <th className="text-left text-[10px] font-semibold text-neutral-400 uppercase tracking-wider py-2.5">Semester</th>
+                        <th className="text-right text-[10px] font-semibold text-neutral-400 uppercase tracking-wider py-2.5">Rows</th>
+                        <th className="text-right text-[10px] font-semibold text-neutral-400 uppercase tracking-wider py-2.5">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashData.recent_uploads.map(u => (
+                        <tr
+                          key={u.id}
+                          className="border-b border-neutral-50 hover:bg-neutral-50 cursor-pointer transition-colors"
+                          onClick={() => navigate(`/app/adviser/upload/${u.id}`)}
+                        >
+                          <td className="py-3 text-sm font-medium text-neutral-800">{u.filename || 'Unknown'}</td>
+                          <td className="py-3 text-xs text-neutral-500">{u.semester && u.session ? `${u.semester} – ${u.session}` : '—'}</td>
+                          <td className="py-3 text-xs text-neutral-500 text-right tabular-nums">{u.raw_row_count || 0}</td>
+                          <td className="py-3 text-xs text-neutral-400 text-right">
+                            {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-neutral-300 text-center py-6">No uploads yet</p>
+              )}
+            </BentoCard>
+
+            {/* ── Carryover Notify ── */}
+            <BentoCard className="lg:col-span-4" delay={0.45}>
+              <div className="flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-semibold text-neutral-900">Carryovers</p>
+                    <Bell size={16} className="text-neutral-300" />
+                  </div>
+
+                  {dataLoading ? (
+                    <Skeleton h="h-16" w="w-full" />
+                  ) : dashData?.carryover_count > 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-4xl font-bold text-neutral-900 tabular-nums">{dashData.carryover_count}</p>
+                      <p className="text-xs text-neutral-400 mt-1">students with outstanding courses</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-4xl font-bold text-emerald-500">0</p>
+                      <p className="text-xs text-neutral-400 mt-1">No outstanding carryovers</p>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleBulkNotify}
+                  disabled={notifying || !dashData?.carryover_count}
+                  className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Bell size={14} />
+                  {notifying ? 'Sending...' : 'Notify All Students'}
+                </button>
+              </div>
+            </BentoCard>
+          </div>
 
         </div>
       </div>
 
+      {/* ── Modals ── */}
       <ConfirmSheet
         isOpen={isConfirming}
         title="Notify Students?"
