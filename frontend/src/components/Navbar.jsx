@@ -5,8 +5,8 @@ import { supabase } from '../lib/supabaseClient';
 import { Home, BarChart3, Sparkles, Bell, LogOut, Settings } from 'lucide-react';
 import ConfirmSheet from './ConfirmSheet';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
-const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
+const fontBody = "'Public Sans', sans-serif";
+const fontDisplay = "'Satoshi', sans-serif";
 
 export default function Navbar() {
   const { session, userRole, signOut } = useAuth();
@@ -66,7 +66,7 @@ export default function Navbar() {
   const isStudent = userRole === 'student';
   const isAdviser = userRole === 'adviser';
 
-  // For student pages — top header + bottom tab bar
+  // For student pages â€” top header + bottom tab bar
   if (isStudent) {
     const tabs = [
       { path: '/app/student', icon: Home, label: 'Home' },
@@ -77,7 +77,7 @@ export default function Navbar() {
 
     return (
       <>
-        {/* ── Top Header Bar (Hidden on Advisor for custom header) ── */}
+        {/* â”€â”€ Top Header Bar (Hidden on Advisor for custom header) â”€â”€ */}
         {!location.pathname.startsWith('/app/student/advisor') && (
           <header
             className="fixed top-0 left-0 right-0 z-50 pt-safe"
@@ -131,7 +131,7 @@ export default function Navbar() {
         </header>
         )}
 
-        {/* ── Bottom Tab Bar ── */}
+        {/* â”€â”€ Bottom Tab Bar â”€â”€ */}
         <nav
           className="fixed bottom-0 left-0 right-0 z-50 pb-safe"
           style={{ background: '#FFFFFF', borderTop: '1px solid #E5E7EB' }}
@@ -180,7 +180,7 @@ export default function Navbar() {
     );
   }
 
-  // For adviser/admin pages — top header bar
+  // For adviser/admin pages â€” top header bar
   return (
     <nav className="sticky top-0 z-50 flex flex-col justify-center" style={{ background: '#FFFFFF', borderBottom: '1px solid #DDDCDC' }}>
       <div className="h-[60px] px-[24px] flex items-center justify-between">

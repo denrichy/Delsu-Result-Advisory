@@ -45,13 +45,13 @@ export default function ConfirmSheet({
           
           <h2 
             className="text-[20px] font-bold text-black mb-[8px] tracking-tight text-center" 
-            style={{ fontFamily: "'Peace Sans', 'Nunito', sans-serif" }}
+            style={{ fontFamily: "'Satoshi', sans-serif" }}
           >
             {title}
           </h2>
           <p 
             className="text-[14px] text-[#767676] text-center mb-[32px]" 
-            style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+            style={{ fontFamily: "'Public Sans', sans-serif" }}
           >
             {subtitle}
           </p>
@@ -62,7 +62,7 @@ export default function ConfirmSheet({
               className={`w-full rounded-full py-[14px] font-bold text-[15px] transition-opacity active:opacity-80 text-white`}
               style={{ 
                 background: destructive ? '#E03B3B' : '#1944F1',
-                fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" 
+                fontFamily: "'Public Sans', sans-serif" 
               }}
             >
               {confirmText}
@@ -73,7 +73,7 @@ export default function ConfirmSheet({
               style={{ 
                 background: '#F5F3F3',
                 color: '#111111',
-                fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" 
+                fontFamily: "'Public Sans', sans-serif" 
               }}
             >
               {cancelText}

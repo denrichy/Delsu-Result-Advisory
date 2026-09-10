@@ -5,8 +5,8 @@ import { useAuth } from '../context/useAuth';
 import ConfirmSheet from '../components/ConfirmSheet';
 import { User, Mail, Hash, Building2, LogOut, ChevronRight } from 'lucide-react';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
-const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
+const fontBody = "'Public Sans', sans-serif";
+const fontDisplay = "'Satoshi', sans-serif";
 
 export default function StudentSettings() {
   const { user, loading, session, signOut } = useAuth();
@@ -92,7 +92,7 @@ export default function StudentSettings() {
                         {row.label}
                       </p>
                       <p style={{ fontFamily: fontBody, fontSize: '15px', fontWeight: 600, color: '#0D1B3D', margin: 0, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {row.value || '—'}
+                        {row.value || 'â€”'}
                       </p>
                     </div>
                   </div>

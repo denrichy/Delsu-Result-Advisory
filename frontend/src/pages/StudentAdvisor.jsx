@@ -4,12 +4,12 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/useAuth';
 import { Menu, Plus, X, Trash2, Sparkles, Ghost, ArrowUp, Mic, MicOff, Pin, Edit2 } from 'lucide-react';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
-const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
+const fontBody = "'Public Sans', sans-serif";
+const fontDisplay = "'Satoshi', sans-serif";
 
 const API = import.meta.env.VITE_API_BASE;
 
-/* ─── Relative Time Helper ─── */
+/* â”€â”€â”€ Relative Time Helper â”€â”€â”€ */
 function timeAgo(dateStr) {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -26,7 +26,7 @@ function timeAgo(dateStr) {
 }
 
 
-/* ─── Custom Long Press Hook ─── */
+/* â”€â”€â”€ Custom Long Press Hook â”€â”€â”€ */
 const useLongPress = (callback = () => {}, ms = 500) => {
   const timerRef = useRef(false);
 
@@ -53,7 +53,7 @@ const useLongPress = (callback = () => {}, ms = 500) => {
   };
 };
 
-/* ─── Sidebar Component ─── */
+/* â”€â”€â”€ Sidebar Component â”€â”€â”€ */
 function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession, onRenameSession, onTogglePin, profileInitial }) {
   const [contextMenuSession, setContextMenuSession] = useState(null);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -316,7 +316,7 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
   );
 }
 
-/* ─── Main Advisor Component ─── */
+/* â”€â”€â”€ Main Advisor Component â”€â”€â”€ */
 export default function StudentAdvisor() {
   const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -460,7 +460,7 @@ export default function StudentAdvisor() {
     loadMessages();
   }, [activeSessionId]);
 
-  // ─── Actions ───
+  // â”€â”€â”€ Actions â”€â”€â”€
 
   const handleNewChat = () => {
     navigate('/app/student/advisor');
@@ -614,7 +614,7 @@ export default function StudentAdvisor() {
 
     } catch (err) {
       console.error(err);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Network error — please check your connection and try again.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Network error â€” please check your connection and try again.' }]);
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -649,7 +649,7 @@ export default function StudentAdvisor() {
         profileInitial={profileInitial}
       />
 
-      {/* ── Top Action Bar ── */}
+      {/* â”€â”€ Top Action Bar â”€â”€ */}
       <div
         className="fixed left-0 right-0 z-40 pt-safe"
         style={{ top: 0 }}
@@ -692,7 +692,7 @@ export default function StudentAdvisor() {
         </div>
       </div>
 
-      {/* ── Main Content ── */}
+      {/* â”€â”€ Main Content â”€â”€ */}
       <div className="flex-1 flex flex-col pt-safe" style={{ paddingTop: '56px' }}>
 
         {profileLoading ? (
@@ -709,7 +709,7 @@ export default function StudentAdvisor() {
           </div>
         ) : (
           <>
-            {/* ── Empty State ── */}
+            {/* â”€â”€ Empty State â”€â”€ */}
             {!hasStartedChat && (
               <div className="flex-1 flex flex-col items-center justify-center px-[24px]">
                 {/* Icon */}
@@ -735,7 +735,7 @@ export default function StudentAdvisor() {
               </div>
             )}
 
-            {/* ── Chat Messages ── */}
+            {/* â”€â”€ Chat Messages â”€â”€ */}
             {hasStartedChat && (
               <div className="flex-1 overflow-y-auto px-[16px] pb-[220px]">
                 <div className="max-w-[800px] mx-auto flex flex-col gap-[20px] pt-[16px]">
@@ -755,7 +755,7 @@ export default function StudentAdvisor() {
                           </p>
                         </div>
                       ) : (
-                        /* AI Response — clean typography, no bubble */
+                        /* AI Response â€” clean typography, no bubble */
                         <div className="max-w-[92%] pl-[4px]">
                           <div className="flex items-center gap-[8px] mb-[6px]">
                             <div
@@ -797,7 +797,7 @@ export default function StudentAdvisor() {
         )}
       </div>
 
-      {/* ── Input Bar ── */}
+      {/* â”€â”€ Input Bar â”€â”€ */}
       {matric && !profileLoading && (
         <div
           className="fixed left-0 right-0 z-30 px-[12px] pb-safe"

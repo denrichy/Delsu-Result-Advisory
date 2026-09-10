@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/useAuth';
 import ProcessingSheet from '../components/ProcessingSheet';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
+const fontBody = "'Public Sans', sans-serif";
 
 export default function Login() {
   const [role, setRole] = useState('student'); // 'student' | 'adviser'
@@ -96,7 +96,7 @@ export default function Login() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F3F3' }}>
         <div className="flex flex-col items-center gap-[12px]">
           <div className="w-[32px] h-[32px] rounded-full border-[3px] border-[#1944F1] border-t-transparent animate-spin" />
-          <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#767676' }}>Loading…</p>
+          <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#767676' }}>Loadingâ€¦</p>
         </div>
       </div>
     );
@@ -114,7 +114,7 @@ export default function Login() {
         <div className="mb-[32px]">
           <h1
             style={{
-              fontFamily: "'Peace Sans', 'Nunito', sans-serif",
+              fontFamily: "'Satoshi', sans-serif",
               fontSize: '32px',
               fontWeight: 900,
               color: '#111111',
@@ -199,7 +199,7 @@ export default function Login() {
             <input
               id="password" type="password" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               disabled={loading} required
               style={{
                 fontFamily: fontBody,
@@ -251,7 +251,7 @@ export default function Login() {
               marginTop: '8px',
             }}
           >
-            {loading ? 'Signing in…' : `Sign In${role === 'adviser' ? ' as Adviser' : ''}`}
+            {loading ? 'Signing inâ€¦' : `Sign In${role === 'adviser' ? ' as Adviser' : ''}`}
           </button>
 
         </form>

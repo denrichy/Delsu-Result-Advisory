@@ -39,7 +39,7 @@ export default function Welcome() {
              <path d="M2 17l10 5 10-5" />
              <path d="M2 12l10 5 10-5" />
           </svg>
-          <span className="text-white font-bold text-[18px]" style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}>
+          <span className="text-white font-bold text-[18px]" style={{ fontFamily: "'Public Sans', sans-serif" }}>
             Compass
           </span>
         </div>
@@ -47,7 +47,7 @@ export default function Welcome() {
         {/* Headline */}
         <h1 
           className="text-[36px] font-bold text-white leading-[1.1] mb-[16px] tracking-tight"
-          style={{ fontFamily: "'Peace Sans', 'Nunito', sans-serif" }}
+          style={{ fontFamily: "'Satoshi', sans-serif" }}
         >
           Your Results,<br/>
           Finally <span style={{ color: '#1944F1' }}>Make Sense.</span>
@@ -56,7 +56,7 @@ export default function Welcome() {
         {/* Subtext */}
         <p 
           className="text-[15px] text-white/80 leading-[1.5] mb-[40px] max-w-[300px]"
-          style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+          style={{ fontFamily: "'Public Sans', sans-serif" }}
         >
           Track your CGPA, manage carryovers, and get personalized guidance from an AI advisor that knows your academic history.
         </p>
@@ -69,7 +69,7 @@ export default function Welcome() {
             style={{ 
               background: '#ffffff',
               color: '#1944F1',
-              fontFamily: "'Open Sauce One', 'Open Sans', sans-serif",
+              fontFamily: "'Public Sans', sans-serif",
               fontWeight: 700,
             }}
           >
@@ -82,7 +82,7 @@ export default function Welcome() {
             style={{
               background: 'rgba(255,255,255,0.15)',
               color: '#ffffff',
-              fontFamily: "'Open Sauce One', 'Open Sans', sans-serif",
+              fontFamily: "'Public Sans', sans-serif",
               fontWeight: 600,
               border: '1px solid rgba(255,255,255,0.25)',
             }}

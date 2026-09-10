@@ -4,8 +4,8 @@ import { useAuth } from '../context/useAuth';
 import { LayoutDashboard, Upload, Clock, LogOut, Menu, X, Sparkles } from 'lucide-react';
 import ConfirmSheet from './ConfirmSheet';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
-const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
+const fontBody = "'Public Sans', sans-serif";
+const fontDisplay = "'Satoshi', sans-serif";
 
 const navItems = [
   { label: 'Dashboard', path: '/app/adviser', icon: LayoutDashboard },

@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/useAuth';
 import ProcessingSheet from '../components/ProcessingSheet';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
-const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
+const fontBody = "'Public Sans', sans-serif";
+const fontDisplay = "'Satoshi', sans-serif";
 
 const inputStyle = {
   fontFamily: fontBody,
@@ -148,7 +148,7 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F3F3' }}>
         <div className="flex flex-col items-center gap-[12px]">
           <div className="w-[32px] h-[32px] rounded-full border-[3px] border-[#1944F1] border-t-transparent animate-spin" />
-          <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#767676' }}>Loading…</p>
+          <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#767676' }}>LoadingÃ¢â‚¬Â¦</p>
         </div>
       </div>
     );
@@ -213,7 +213,7 @@ export default function Signup() {
                 onChange={(e) => setMatricNumber(e.target.value.toUpperCase())}
                 placeholder="e.g. FOS/22/23/123456"
                 disabled={loading} required
-                style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '14px' }}
+                style={{ fontFamily: "'Geist Mono', monospace", fontSize: '14px' }}
               />
             </div>
           )}
@@ -266,7 +266,7 @@ export default function Signup() {
             <FocusInput
               id="password" type="password" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
               disabled={loading} required
             />
           </div>
@@ -277,7 +277,7 @@ export default function Signup() {
             <FocusInput
               id="confirmPassword" type="password" value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
               disabled={loading} required
             />
           </div>
@@ -299,7 +299,7 @@ export default function Signup() {
               opacity: loading ? 0.6 : 1, marginTop: '8px',
             }}
           >
-            {loading ? 'Creating Account…' : `Create ${role === 'adviser' ? 'Adviser' : 'Student'} Account`}
+            {loading ? 'Creating AccountÃ¢â‚¬Â¦' : `Create ${role === 'adviser' ? 'Adviser' : 'Student'} Account`}
           </button>
 
         </form>

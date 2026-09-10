@@ -88,13 +88,13 @@ export default function ProcessingSheet({ isOpen, status, title, subtitle, succe
             
             <h2 
               className="text-[20px] font-bold text-black mb-[8px] tracking-tight" 
-              style={{ fontFamily: "'Peace Sans', 'Nunito', sans-serif" }}
+              style={{ fontFamily: "'Satoshi', sans-serif" }}
             >
               {title || 'Processing...'}
             </h2>
             <p 
               className="text-[14px] text-[#767676] text-center" 
-              style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+              style={{ fontFamily: "'Public Sans', sans-serif" }}
             >
               {subtitle || 'Please wait a moment'}
             </p>
@@ -114,13 +114,13 @@ export default function ProcessingSheet({ isOpen, status, title, subtitle, succe
             
             <h2 
               className="text-[20px] font-bold text-black mb-[8px] tracking-tight" 
-              style={{ fontFamily: "'Peace Sans', 'Nunito', sans-serif" }}
+              style={{ fontFamily: "'Satoshi', sans-serif" }}
             >
               {successTitle || 'Success!'}
             </h2>
             <p 
               className="text-[14px] text-[#767676] text-center mb-[32px]" 
-              style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+              style={{ fontFamily: "'Public Sans', sans-serif" }}
             >
               {successSubtitle || 'Operation completed successfully'}
             </p>
@@ -128,7 +128,7 @@ export default function ProcessingSheet({ isOpen, status, title, subtitle, succe
             <button
               onClick={onContinue}
               className="bg-[#1944F1] text-white rounded-full py-[14px] px-[40px] font-bold text-[15px] transition-opacity active:opacity-80"
-              style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+              style={{ fontFamily: "'Public Sans', sans-serif" }}
             >
               Let's go
             </button>
@@ -147,13 +147,13 @@ export default function ProcessingSheet({ isOpen, status, title, subtitle, succe
             
             <h2 
               className="text-[20px] font-bold text-black mb-[8px] tracking-tight text-center" 
-              style={{ fontFamily: "'Peace Sans', 'Nunito', sans-serif" }}
+              style={{ fontFamily: "'Satoshi', sans-serif" }}
             >
               {errorTitle || 'Error'}
             </h2>
             <p 
               className="text-[14px] text-[#767676] text-center" 
-              style={{ fontFamily: "'Open Sauce One', 'Open Sans', sans-serif" }}
+              style={{ fontFamily: "'Public Sans', sans-serif" }}
             >
               {errorSubtitle || 'Something went wrong.'}
             </p>

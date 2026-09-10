@@ -1,37 +1,4 @@
-/* ============================================================
-   Google Fonts — Open Sauce One (body) + Nunito (display)
-   Peace Sans substitute: Nunito 900 — swap font-family in
-   --font-display once you have the Peace Sans .ttf/woff2 file.
-   ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap');
-
 @import "tailwindcss";
-
-/* Open Sauce One — self-hostable open-source font */
-@font-face {
-  font-family: 'Open Sauce One';
-  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Open Sauce One';
-  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Open Sauce One';
-  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Open Sauce One';
-  src: url('https://cdn.jsdelivr.net/gh/marcologous/Open-Sauce-Fonts@master/fonts/OpenSauceOne-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-display: swap;
-}
 
 @theme {
   /* ── Core Palette ─────────────────────────────────────────── */
@@ -40,8 +7,8 @@
   --color-brand-light:  #4D6FF5;   /* Lighter blue for tints */
   --color-brand-ghost:  rgba(25, 68, 241, 0.08); /* Subtle blue tint */
 
-  --color-canvas:       #F5F3F3;   /* White Smoke — app background */
-  --color-surface:      #FFFFFF;   /* Pure white — cards/sheets */
+  --color-canvas:       #F5F3F3;   /* White Smoke Ã¢â‚¬â€ app background */
+  --color-surface:      #FFFFFF;   /* Pure white Ã¢â‚¬â€ cards/sheets */
   --color-surface-2:    #EBE9E9;   /* Slightly deeper surface */
 
   --color-ink:          #111111;   /* Near-black body text */
@@ -51,12 +18,12 @@
   --color-border:       #DDDCDC;   /* Hairline borders */
   --color-border-focus: #1944F1;   /* Focused input border */
 
-  --color-success:      #12A86C;   /* Green — pass/good GPA */
-  --color-warning:      #E8920A;   /* Amber — at-risk courses */
-  --color-danger:       #E03B3B;   /* Red — carryovers/failures */
+  --color-success:      #12A86C;   /* Green Ã¢â‚¬â€ pass/good GPA */
+  --color-warning:      #E8920A;   /* Amber Ã¢â‚¬â€ at-risk courses */
+  --color-danger:       #E03B3B;   /* Red Ã¢â‚¬â€ carryovers/failures */
   --color-danger-ghost: rgba(224, 59, 59, 0.08);
 
-  /* Legacy achromatic tokens — kept so old pages don't break */
+  /* Legacy achromatic tokens Ã¢â‚¬â€ kept so old pages don't break */
   --color-midnight-ink:  #141414;
   --color-pure-canvas:   #ffffff;
   --color-graphite:      #707070;
@@ -67,7 +34,7 @@
   --color-slate-shadow:  #e0e0e0;
   --color-brand-ink:     #1944F1;
 
-  /* ── Typography ───────────────────────────────────────────── */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Typography Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
   /* Display: Satoshi */
   --font-display: 'Satoshi', sans-serif;
   --font-sans:    'Public Sans', sans-serif;
@@ -75,10 +42,10 @@
   --font-mono:    'Geist Mono', monospace;
   --font-serif:   'Georgia', serif;
 
-  /* ── Spacing ──────────────────────────────────────────────── */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Spacing Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
   --spacing-unit: 4px;
 
-  /* ── Radius ───────────────────────────────────────────────── */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Radius Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
   --radius-sm:   8px;
   --radius-md:   12px;
   --radius-lg:   16px;
@@ -86,7 +53,7 @@
   --radius-2xl:  24px;
   --radius-full: 9999px;
 
-  /* ── Shadows ──────────────────────────────────────────────── */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Shadows Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
   --shadow-card: 0px 2px 12px rgba(0, 0, 0, 0.06);
   --shadow-lg:   0px 8px 32px rgba(0, 0, 0, 0.10);
 }
@@ -95,7 +62,7 @@
    Typography Utilities
    ============================================================ */
 
-/* Display — Peace Sans / Nunito */
+/* Display Ã¢â‚¬â€ Peace Sans / Nunito */
 @utility text-display-xl {
   font-family: var(--font-display);
   font-size: 48px;
@@ -117,7 +84,7 @@
   line-height: 1.15;
 }
 
-/* Body — Open Sauce One */
+/* Body Ã¢â‚¬â€ Open Sauce One */
 @utility text-step-xs {
   font-family: var(--font-sans);
   font-size: 11px;

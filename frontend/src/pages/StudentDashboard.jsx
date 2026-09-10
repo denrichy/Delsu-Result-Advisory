@@ -5,10 +5,10 @@ import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabaseClient';
 import { BarChart3, Sparkles, Bell, ArrowRight } from 'lucide-react';
 
-const fontBody = "'Open Sauce One', 'Open Sans', sans-serif";
-const fontDisplay = "'Peace Sans', 'Nunito', sans-serif";
+const fontBody = "'Public Sans', sans-serif";
+const fontDisplay = "'Satoshi', sans-serif";
 
-/* ─── Feature Card Data ─── */
+/* â”€â”€â”€ Feature Card Data â”€â”€â”€ */
 const CARDS = [
   {
     id: 'results',
@@ -16,7 +16,7 @@ const CARDS = [
     title: 'Academic Record',
     tagline: 'Results & GPA',
     expandedTitle: 'Your Academic Record',
-    expandedDesc: 'View your full transcript, semester-by-semester GPA breakdown, carryovers, and outstanding courses — all in one place.',
+    expandedDesc: 'View your full transcript, semester-by-semester GPA breakdown, carryovers, and outstanding courses â€” all in one place.',
     buttonLabel: 'View Results',
     path: '/app/student/results',
     gradient: 'linear-gradient(145deg, #0D1B3D 0%, #1F2937 100%)',
@@ -55,7 +55,7 @@ const CARDS = [
   },
 ];
 
-/* ─── Expandable Feature Card ─── */
+/* â”€â”€â”€ Expandable Feature Card â”€â”€â”€ */
 function FeatureCard({ card, isExpanded, onToggle, navigate, unreadCount, index }) {
   const contentRef = useRef(null);
   const [contentHeight, setContentHeight] = useState(0);
@@ -206,7 +206,7 @@ function FeatureCard({ card, isExpanded, onToggle, navigate, unreadCount, index 
   );
 }
 
-/* ─── Main Dashboard ─── */
+/* â”€â”€â”€ Main Dashboard â”€â”€â”€ */
 export default function StudentDashboard() {
   const { user, loading, session } = useAuth();
   const navigate = useNavigate();
@@ -292,7 +292,7 @@ export default function StudentDashboard() {
                   fontFamily: fontDisplay, fontSize: '28px', fontWeight: 900,
                   color: '#0D1B3D', lineHeight: 1.15, margin: 0,
                 }}>
-                  Hey, {firstName || 'there'} 👋
+                  Hey, {firstName || 'there'} ðŸ‘‹
                 </h1>
               </>
             )}
@@ -317,7 +317,7 @@ export default function StudentDashboard() {
                 fontFamily: fontDisplay, fontSize: '52px', fontWeight: 900,
                 color: '#ffffff', lineHeight: 1, letterSpacing: '-2px',
               }}>
-                {profile.cgpa != null ? Number(profile.cgpa).toFixed(2) : '—'}
+                {profile.cgpa != null ? Number(profile.cgpa).toFixed(2) : 'â€”'}
               </div>
               {profile.total_credits != null && (
                 <p style={{
