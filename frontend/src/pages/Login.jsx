@@ -109,6 +109,7 @@ export default function Login() {
 
       {/* Form */}
       <div className="flex-1 flex flex-col justify-center px-[24px] pb-[40px] pb-safe">
+        <div className="w-full max-w-[440px] mx-auto">
 
         <div className="mb-[32px]">
           <h1
@@ -264,6 +265,7 @@ export default function Login() {
           </p>
         </div>
 
+        </div>
       </div>
 
       <ProcessingSheet

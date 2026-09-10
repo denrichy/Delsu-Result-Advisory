@@ -254,16 +254,6 @@ export default function AdviserDashboard() {
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  const carryoversByStudent = {};
-  if (dashData?.carryovers) {
-    dashData.carryovers.forEach(c => {
-      if (!carryoversByStudent[c.matric_number]) {
-        carryoversByStudent[c.matric_number] = [];
-      }
-      carryoversByStudent[c.matric_number].push(c);
-    });
-  }
-
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAFA' }}>
       <AdviserSidebar profile={profile} />
@@ -545,7 +535,7 @@ export default function AdviserDashboard() {
             actions={
               <button 
                 onClick={handleBulkNotify}
-                disabled={notifying || Object.keys(carryoversByStudent).length === 0}
+                disabled={notifying || dashData?.carryovers?.length === 0}
                 className="flex items-center gap-[4px] transition-colors disabled:opacity-50"
                 style={{ 
                   fontSize: '13px', fontWeight: 500, color: '#FFFFFF', 
@@ -559,42 +549,16 @@ export default function AdviserDashboard() {
           >
             {dataLoading ? (
                <div className="animate-pulse flex flex-col gap-[12px]">
-                 {[1,2,3].map(i => <div key={i} style={{ height: '40px', background: '#F3F4F6', borderRadius: '8px' }} />)}
+                 <div style={{ height: '40px', background: '#F3F4F6', borderRadius: '8px' }} />
                </div>
-            ) : Object.keys(carryoversByStudent).length > 0 ? (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: fontBody }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Student</th>
-                      <th style={{ padding: '10px 0', fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Courses</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.keys(carryoversByStudent).map((matric, i) => {
-                      const studentCarryovers = carryoversByStudent[matric];
-                      return (
-                        <tr key={i} style={{ borderBottom: '1px solid #F9FAFB' }}>
-                          <td style={{ padding: '14px 0', fontSize: '14px', fontWeight: 500, color: '#1F2937' }}>{matric}</td>
-                          <td style={{ padding: '14px 0' }}>
-                            <div className="flex flex-wrap gap-[8px]">
-                              {studentCarryovers.map((c, idx) => (
-                                <span 
-                                  key={idx} 
-                                  className="border border-[#FCA5A5] text-[#EF4444] bg-[#FEF2F2]"
-                                  style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px', fontWeight: 600, whiteSpace: 'nowrap' }}
-                                  title={`${c.session} (${c.semester})`}
-                                >
-                                  {c.course_code}
-                                </span>
-                              ))}
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+            ) : dashData?.carryover_count > 0 ? (
+              <div style={{ padding: '24px 0', textAlign: 'center' }}>
+                <p style={{ fontSize: '15px', color: '#4B5563', marginBottom: '8px' }}>
+                  There are <strong>{dashData.carryover_count}</strong> students with outstanding carryovers.
+                </p>
+                <p style={{ fontSize: '13px', color: '#9CA3AF' }}>
+                  Click the button above to send them an automated email and in-app reminder to register for their carryover courses.
+                </p>
               </div>
             ) : (
               <p style={{ fontSize: '14px', color: '#10B981', textAlign: 'center', padding: '24px 0' }}>No outstanding carryovers!</p>

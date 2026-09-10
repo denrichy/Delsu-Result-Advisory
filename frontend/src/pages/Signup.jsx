@@ -160,7 +160,8 @@ export default function Signup() {
 
 
       {/* Scrollable form */}
-      <div className="flex-1 overflow-y-auto px-[24px] pb-[40px] pb-safe">
+      <div className="flex-1 overflow-y-auto px-[24px] pb-[40px] pb-safe flex flex-col md:justify-center">
+        <div className="w-full max-w-[440px] mx-auto">
 
         <div className="mb-[28px] mt-[16px]">
           <h1 style={{ fontFamily: fontDisplay, fontSize: '32px', fontWeight: 900, color: '#111111', lineHeight: 1.1, marginBottom: '8px' }}>
@@ -310,6 +311,7 @@ export default function Signup() {
           </p>
         </div>
 
+        </div>
       </div>
 
       <ProcessingSheet

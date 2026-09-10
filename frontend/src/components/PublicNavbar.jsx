@@ -63,7 +63,7 @@ export default function PublicNavbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-pure-canvas border-b border-fog flex flex-col justify-center">
-      <div className="h-[60px] px-[24px] flex items-center justify-between">
+      <div className="h-[60px] px-[24px] flex items-center justify-between max-w-[1280px] mx-auto w-full">
         {/* Left: Logo/Wordmark */}
         <div className="flex-shrink-0">
           <Link to="/" className="text-step-base-2 text-midnight-ink">

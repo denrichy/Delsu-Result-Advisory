@@ -83,7 +83,7 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
     student_dept = "Computer Science"
     
     try:
-        from app.db import supabase
+        from app.db import supabase_admin as supabase
         res = supabase.table("students").select("name, department").eq("matric_number", matric_number).execute()
         if res.data:
             student_name = res.data[0].get("name") or "Student"
@@ -407,7 +407,7 @@ def generate_title_background_with_context(session_id: str, user_message: str, a
         )
         title = response.choices[0].message.content.strip().strip('"').strip("'")
         if title:
-            from app.db import supabase
+            from app.db import supabase_admin as supabase
             supabase.table("chat_sessions").update({"title": title}).eq("id", session_id).execute()
     except Exception as e:
         print(f"[DIAGNOSTIC] Failed to generate title in background: {e}")
@@ -428,7 +428,7 @@ def run_agent_stream(matric_number: str, user_message: str, conversation_history
     student_dept = "Computer Science"
     
     try:
-        from app.db import supabase
+        from app.db import supabase_admin as supabase
         res = supabase.table("students").select("name, department").eq("matric_number", matric_number).execute()
         if res.data:
             student_name = res.data[0].get("name") or "Student"
@@ -727,7 +727,7 @@ def run_agent_stream(matric_number: str, user_message: str, conversation_history
     # Save AI response to DB if session exists
     if session_id:
         try:
-            from app.db import supabase
+            from app.db import supabase_admin as supabase
             supabase.table("chat_messages").insert({
                 "session_id": session_id,
                 "role": "assistant",

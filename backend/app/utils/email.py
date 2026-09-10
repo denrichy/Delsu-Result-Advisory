@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()
+_env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(_env_path)
 
 # We pull the API key from environment variables.
 # You will need to add BREVO_API_KEY=your_key to your backend/.env

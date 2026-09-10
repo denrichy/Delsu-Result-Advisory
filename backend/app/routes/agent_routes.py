@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from app.agent import run_agent, run_agent_stream
-from app.db import supabase
+from app.db import supabase_admin as supabase
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
