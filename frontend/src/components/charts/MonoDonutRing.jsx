@@ -90,7 +90,7 @@ export default function MonoDonutRing({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 }}
-                className="text-3xl font-bold text-neutral-900 leading-none"
+                className="text-3xl font-display font-bold text-neutral-900 leading-none"
               >
                 {centerValue}
               </motion.span>

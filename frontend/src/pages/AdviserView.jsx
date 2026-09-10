@@ -169,7 +169,7 @@ export default function AdviserDashboard() {
     return (
       <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
         <div className="max-w-[440px] text-center p-10">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-3">Profile Not Found</h1>
+          <h1 className="text-2xl font-display font-bold text-neutral-900 mb-3">Profile Not Found</h1>
           <p className="text-sm text-neutral-500">No adviser profile found for this account. Please contact support or sign up again.</p>
         </div>
       </div>
@@ -180,7 +180,7 @@ export default function AdviserDashboard() {
     return (
       <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
         <div className="max-w-[440px] text-center p-10">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-3">Pending Verification</h1>
+          <h1 className="text-2xl font-display font-bold text-neutral-900 mb-3">Pending Verification</h1>
           <p className="text-sm text-neutral-500">Your adviser account is awaiting admin approval. You'll be able to access the dashboard once verified.</p>
         </div>
       </div>
@@ -237,7 +237,7 @@ export default function AdviserDashboard() {
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h1 className="text-xl font-bold text-neutral-900 leading-tight">
+                      <h1 className="text-xl font-display font-bold text-neutral-900 leading-tight">
                         Academic{' '}
                         <span className="font-light text-neutral-400">Overview</span>
                       </h1>
@@ -317,7 +317,7 @@ export default function AdviserDashboard() {
                 {/* Total Students */}
                 <div className="px-4 first:pl-0 last:pr-0">
                   <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Total Students</p>
-                  <p className="text-3xl font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                  <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
                     {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (totalStudents > 999 ? `${(totalStudents / 1000).toFixed(1)}k` : totalStudents)}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
@@ -329,7 +329,7 @@ export default function AdviserDashboard() {
                 {/* Avg CGPA */}
                 <div className="px-4 first:pl-0 last:pr-0">
                   <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg. CGPA</p>
-                  <p className="text-3xl font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                  <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
                     {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '—')}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
@@ -341,7 +341,7 @@ export default function AdviserDashboard() {
                 {/* Carryover Count */}
                 <div className="px-4 first:pl-0 last:pr-0">
                   <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Carryovers</p>
-                  <p className="text-3xl font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                  <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
                     {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.carryover_count ?? 0)}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
@@ -419,15 +419,15 @@ export default function AdviserDashboard() {
                   <div className="grid grid-cols-3 gap-4 mb-5">
                     <div>
                       <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Class Avg</p>
-                      <p className="text-2xl font-bold text-neutral-900 mt-1 tabular-nums">{courseStats.avg}%</p>
+                      <p className="text-2xl font-display font-bold text-neutral-900 mt-1 tabular-nums">{courseStats.avg}%</p>
                     </div>
                     <div>
                       <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Pass Rate</p>
-                      <p className="text-2xl font-bold text-emerald-600 mt-1 tabular-nums">{courseStats.passRate}%</p>
+                      <p className="text-2xl font-display font-bold text-emerald-600 mt-1 tabular-nums">{courseStats.passRate}%</p>
                     </div>
                     <div>
                       <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Students</p>
-                      <p className="text-2xl font-bold text-neutral-900 mt-1 tabular-nums">{courseStats.total}</p>
+                      <p className="text-2xl font-display font-bold text-neutral-900 mt-1 tabular-nums">{courseStats.total}</p>
                     </div>
                   </div>
                   <MonoPillPillars
@@ -616,12 +616,12 @@ export default function AdviserDashboard() {
                     <Skeleton h="h-16" w="w-full" />
                   ) : dashData?.carryover_count > 0 ? (
                     <div className="text-center py-4">
-                      <p className="text-4xl font-bold text-neutral-900 tabular-nums">{dashData.carryover_count}</p>
+                      <p className="text-4xl font-display font-bold text-neutral-900 tabular-nums">{dashData.carryover_count}</p>
                       <p className="text-xs text-neutral-400 mt-1">students with outstanding courses</p>
                     </div>
                   ) : (
                     <div className="text-center py-4">
-                      <p className="text-4xl font-bold text-emerald-500">0</p>
+                      <p className="text-4xl font-display font-bold text-emerald-500">0</p>
                       <p className="text-xs text-neutral-400 mt-1">No outstanding carryovers</p>
                     </div>
                   )}

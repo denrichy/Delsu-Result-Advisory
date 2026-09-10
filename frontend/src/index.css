@@ -68,11 +68,11 @@
   --color-brand-ink:     #1944F1;
 
   /* ── Typography ───────────────────────────────────────────── */
-  /* Display: Peace Sans (swap to font file when available)
-     Fallback chain: Nunito 900 → Fredoka → sans-serif         */
-  --font-display: 'Peace Sans', 'Nunito', 'Fredoka', sans-serif;
-  --font-sans:    'Open Sauce One', 'Open Sans', sans-serif;
-  --font-mono:    'IBM Plex Mono', monospace;
+  /* Display: Satoshi */
+  --font-display: 'Satoshi', sans-serif;
+  --font-sans:    'Public Sans', sans-serif;
+  --font-geist:   'Geist', 'Geist Sans', sans-serif;
+  --font-mono:    'Geist Mono', monospace;
   --font-serif:   'Georgia', serif;
 
   /* ── Spacing ──────────────────────────────────────────────── */
