@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { Info,  useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
@@ -11,8 +11,9 @@ import { motion } from 'motion/react';
 import {
   Users, TrendingUp, AlertTriangle, BookX,
   ChevronDown, RefreshCw, Award, ArrowUpRight, Bell,
-} from 'lucide-react';
+ } from 'lucide-react';
 import { cn } from '../lib/cn';
+import Tooltip from '../components/ui/Tooltip';
 
 const API = import.meta.env.VITE_API_BASE;
 
@@ -269,7 +270,12 @@ export default function AdviserDashboard() {
                     <div className="flex flex-col items-center">
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-neutral-900" />
-                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Passing</p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Cleared</p>
+                          <Tooltip content="Number of students in good standing without any carryovers">
+                            <Info size={12} className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" />
+                          </Tooltip>
+                        </div>
                       </div>
                       <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
                         {dataLoading ? <Skeleton h="h-6" w="w-12" /> : passingCount}
@@ -278,7 +284,12 @@ export default function AdviserDashboard() {
                     <div className="flex flex-col items-center">
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-amber-400" />
-                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">At-Risk</p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">At-Risk</p>
+                          <Tooltip content="Students with a CGPA below the safe threshold (2.0)">
+                            <Info size={12} className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" />
+                          </Tooltip>
+                        </div>
                       </div>
                       <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
                         {dataLoading ? <Skeleton h="h-6" w="w-12" /> : atRiskCount}
@@ -287,7 +298,12 @@ export default function AdviserDashboard() {
                     <div className="flex flex-col items-center">
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-red-400" />
-                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Carryovers</p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Carryovers</p>
+                          <Tooltip content="Students with one or more outstanding failed courses">
+                            <Info size={12} className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" />
+                          </Tooltip>
+                        </div>
                       </div>
                       <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
                         {dataLoading ? <Skeleton h="h-6" w="w-12" /> : carryoverCount}
@@ -331,7 +347,12 @@ export default function AdviserDashboard() {
 
                 {/* Avg CGPA */}
                 <div className="px-4 first:pl-0 last:pr-0">
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg. CGPA</p>
+                  <div className="flex items-center gap-1">
+                      <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg CGPA</p>
+                      <Tooltip content="The overall average CGPA across all students in your level">
+                        <Info size={12} className="text-neutral-300 hover:text-neutral-500 transition-colors cursor-pointer" />
+                      </Tooltip>
+                    </div>
                   <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
                     {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '—')}
                   </p>

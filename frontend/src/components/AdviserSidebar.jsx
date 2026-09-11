@@ -75,13 +75,13 @@ export default function AdviserSidebar({ profile }) {
                 style={{
                   padding: '12px 14px',
                   borderRadius: '10px',
-                  background: active ? '#F0F3FF' : 'transparent',
-                  color: active ? '#1944F1' : '#4B5563',
+                  background: active ? '#1944F1' : 'transparent',
+                  color: active ? '#ffffff' : '#4B5563',
                   fontWeight: active ? 600 : 400,
                   fontSize: '14px',
                 }}
               >
-                <Icon size={18} style={{ color: active ? '#1944F1' : '#9CA3AF' }} />
+                <Icon size={18} style={{ color: active ? '#ffffff' : '#9CA3AF' }} />
                 {item.label}
               </button>
             );

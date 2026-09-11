@@ -255,7 +255,7 @@ export default function AdviserUpload() {
                 <button
                   onClick={handleConfirmUpload}
                   disabled={isConfirming}
-                  className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 flex-1"
+                  className="bg-[#1944F1] text-white text-step-sm rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 flex-1"
                 >
                   {isConfirming ? 'Processing...' : 'Confirm & Upload'}
                 </button>
@@ -318,7 +318,7 @@ export default function AdviserUpload() {
               <button
                 onClick={handlePreviewUpload}
                 disabled={!semester || !sessionYear || !file || isUploading}
-                className="bg-midnight-ink text-pure-canvas text-step-sm rounded-full py-[16px] px-[32px] mt-[16px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#1944F1] text-white text-step-sm rounded-full py-[16px] px-[32px] mt-[16px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading ? 'Analyzing...' : 'Preview Upload'}
               </button>
