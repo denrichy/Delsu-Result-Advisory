@@ -34,7 +34,7 @@ export default function MonoPillPillars({
         {/* Grid lines */}
         {showGrid && (
           <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-            {gridLines.reverse().map((val, i) => (
+            {[...gridLines].reverse().map((val, i) => (
               <div key={i} className="flex items-center gap-2 w-full">
                 <span className="text-[10px] text-neutral-400 font-mono w-8 text-right shrink-0">
                   {val > 999 ? `${(val / 1000).toFixed(0)}k` : val}
@@ -82,18 +82,28 @@ export default function MonoPillPillars({
                   </motion.div>
                 )}
 
-                {/* Bar */}
+                {/* Bar Container */}
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: Math.max(barHeight, item.value > 0 ? 6 : 0) }}
                   transition={{ type: 'spring', stiffness: 300, damping: 28, delay: i * 0.04 }}
-                  className="w-full max-w-[44px] cursor-pointer transition-colors duration-200"
+                  className="w-full max-w-[44px] cursor-pointer relative overflow-hidden"
                   style={{
-                    background: isHovered ? hoverColor : (item.color || accentColor),
+                    background: item.color || accentColor,
                     borderRadius: '9999px',
                     opacity: isHovered ? 1 : 0.85,
+                    transition: 'opacity 0.2s',
                   }}
-                />
+                >
+                  {/* Hover fill animation */}
+                  <motion.div 
+                    initial={{ height: '0%' }}
+                    animate={{ height: isHovered ? '100%' : '0%' }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="absolute bottom-0 left-0 right-0 w-full"
+                    style={{ background: hoverColor }}
+                  />
+                </motion.div>
 
                 {/* Value below bar */}
                 {showValues && (

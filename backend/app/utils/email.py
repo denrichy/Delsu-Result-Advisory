@@ -76,7 +76,7 @@ def send_result_notifications_async(student_emails: list[dict], semester: str, s
                 "htmlContent": html_content
             }
             
-            response = requests.post(url, json=payload, headers=headers)
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             print(f"Sent email to {email}: {response.json()}")
         except Exception as e:
@@ -141,7 +141,7 @@ def send_carryover_notifications_async(student_emails: list[dict]):
                 "htmlContent": html_content
             }
             
-            response = requests.post(url, json=payload, headers=headers)
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             print(f"Sent carryover email to {email}: {response.json()}")
         except Exception as e:
