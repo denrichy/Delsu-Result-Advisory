@@ -47,7 +47,7 @@ export default function MonoPillPillars({
 
         {/* Bars */}
         <div
-          className="absolute bottom-0 left-10 right-0 flex items-end gap-1.5"
+          className={cn("absolute bottom-0 right-0 flex items-end gap-1.5", showGrid ? "left-10" : "left-0")}
           style={{ height: `${height - 20}px` }}
         >
           {data.map((item, i) => {
@@ -108,7 +108,7 @@ export default function MonoPillPillars({
       </div>
 
       {/* Labels */}
-      <div className="flex ml-10 mt-2 gap-1.5">
+      <div className={cn("flex mt-2 gap-1.5", showGrid ? "ml-10" : "ml-0")}>
         {data.map((item, i) => (
           <div key={i} className="flex-1 text-center">
             <span

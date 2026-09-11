@@ -75,7 +75,7 @@ export default function MonoArcMeter({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="text-3xl font-bold text-neutral-900 leading-none font-mono"
+            className="text-3xl font-bold text-neutral-900 leading-none font-display"
           >
             {valueFormatter(percentage * 100)}
           </motion.span>

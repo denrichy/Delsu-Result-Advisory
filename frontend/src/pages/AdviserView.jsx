@@ -16,9 +16,9 @@ import { cn } from '../lib/cn';
 
 const API = import.meta.env.VITE_API_BASE;
 
-/* ───────────────────────────────────────────── */
-/*  Bento Card — unified wrapper                 */
-/* ───────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Bento Card â€” unified wrapper                 */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function BentoCard({ children, className = '', delay = 0, noPad = false }) {
   return (
     <motion.div
@@ -36,9 +36,9 @@ function BentoCard({ children, className = '', delay = 0, noPad = false }) {
   );
 }
 
-/* ───────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /*  Main Dashboard                               */
-/* ───────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function AdviserDashboard() {
   const { session, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -103,7 +103,10 @@ export default function AdviserDashboard() {
         fetch(`${API}/analytics/courses`, { headers }),
       ]);
       if (summaryRes.ok) setDashData(await summaryRes.json());
-      if (coursesRes.ok) setCourses(await coursesRes.json());
+      if (coursesRes.ok) {
+          const fetchedCourses = await coursesRes.json();
+          setCourses([...new Set(fetchedCourses)]);
+        }
     } catch (e) { console.error('Dashboard fetch error', e); }
     finally { setDataLoading(false); setRefreshing(false); }
   }, [session?.user?.id]);
@@ -187,7 +190,7 @@ export default function AdviserDashboard() {
     );
   }
 
-  /* ── Prepare chart data ── */
+  /* â”€â”€ Prepare chart data â”€â”€ */
   const cgpaDistData = dashData?.cgpa_distribution ? [
     { label: '1st Class', value: dashData.cgpa_distribution.first_class || 0 },
     { label: '2nd Upper', value: dashData.cgpa_distribution.second_upper || 0 },
@@ -210,11 +213,13 @@ export default function AdviserDashboard() {
   // Pass rate for arc gauge
   const totalStudents = dashData?.total_students || 0;
   const atRiskCount = dashData?.at_risk_count || 0;
-  const passRate = totalStudents > 0 ? Math.round(((totalStudents - atRiskCount) / totalStudents) * 100) : 0;
+  const carryoverCount = dashData?.carryover_count || 0;
+  const passingCount = Math.max(0, totalStudents - carryoverCount);
+  const passRate = totalStudents > 0 ? Math.round((passingCount / totalStudents) * 100) : 0;
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  /* ── Loading skeleton ── */
+  /* â”€â”€ Loading skeleton â”€â”€ */
   const Skeleton = ({ h = 'h-6', w = 'w-24' }) => (
     <div className={cn('animate-pulse rounded-lg bg-neutral-100', h, w)} />
   );
@@ -227,10 +232,10 @@ export default function AdviserDashboard() {
       <div className="lg:ml-[260px] min-h-screen">
         <div className="max-w-[1200px] mx-auto px-5 pb-12 pt-20 lg:!pt-10">
 
-          {/* ═══════════════════════ ROW 1: Hero + KPI Cards ═══════════════════════ */}
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 1: Hero + KPI Cards â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
 
-            {/* ── Hero Panel (spans 5 cols, 2 rows) ── */}
+            {/* â”€â”€ Hero Panel (spans 5 cols, 2 rows) â”€â”€ */}
             <BentoCard className="lg:col-span-5 lg:row-span-2" delay={0.05}>
               <div className="flex flex-col h-full justify-between">
                 {/* Title area */}
@@ -257,7 +262,7 @@ export default function AdviserDashboard() {
                   {profile && (
                     <div className="mb-6">
                       <p className="text-sm font-semibold text-neutral-800">{profile.name}</p>
-                      <p className="text-xs text-neutral-400">{profile.department} · Level {dashData?.adviser?.level || '—'}</p>
+                      <p className="text-xs text-neutral-400">{profile.department} Â· Level {dashData?.adviser?.level || 'â€”'}</p>
                     </div>
                   )}
 
@@ -268,7 +273,7 @@ export default function AdviserDashboard() {
                       <div>
                         <p className="text-xs text-neutral-400">Passing</p>
                         <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
-                          {dataLoading ? '—' : totalStudents - atRiskCount}
+                          {dataLoading ? 'â€”' : totalStudents - atRiskCount}
                         </p>
                       </div>
                     </div>
@@ -277,7 +282,7 @@ export default function AdviserDashboard() {
                       <div>
                         <p className="text-xs text-neutral-400">At-Risk</p>
                         <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
-                          {dataLoading ? '—' : atRiskCount}
+                          {dataLoading ? 'â€”' : atRiskCount}
                         </p>
                       </div>
                     </div>
@@ -286,7 +291,7 @@ export default function AdviserDashboard() {
                       <div>
                         <p className="text-xs text-neutral-400">Carryovers</p>
                         <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
-                          {dataLoading ? '—' : dashData?.carryover_count || 0}
+                          {dataLoading ? 'â€”' : dashData?.carryover_count || 0}
                         </p>
                       </div>
                     </div>
@@ -311,7 +316,7 @@ export default function AdviserDashboard() {
               </div>
             </BentoCard>
 
-            {/* ── KPI Cards (top-right, 3 across) ── */}
+            {/* â”€â”€ KPI Cards (top-right, 3 across) â”€â”€ */}
             <BentoCard className="lg:col-span-7" delay={0.1}>
               <div className="grid grid-cols-3 divide-x divide-neutral-100">
                 {/* Total Students */}
@@ -322,7 +327,7 @@ export default function AdviserDashboard() {
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <Users size={12} className="text-neutral-400" />
-                    <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || '—'}</span>
+                    <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || 'â€”'}</span>
                   </div>
                 </div>
 
@@ -330,7 +335,7 @@ export default function AdviserDashboard() {
                 <div className="px-4 first:pl-0 last:pr-0">
                   <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg. CGPA</p>
                   <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
-                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '—')}
+                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? 'â€”')}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <TrendingUp size={12} className="text-emerald-500" />
@@ -352,7 +357,7 @@ export default function AdviserDashboard() {
               </div>
             </BentoCard>
 
-            {/* ── CGPA Distribution Bar (below KPIs, right side) ── */}
+            {/* â”€â”€ CGPA Distribution Bar (below KPIs, right side) â”€â”€ */}
             <BentoCard className="lg:col-span-7" delay={0.15}>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -382,15 +387,15 @@ export default function AdviserDashboard() {
             </BentoCard>
           </div>
 
-          {/* ═══════════════════════ ROW 2: Charts + Lists ═══════════════════════ */}
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 2: Charts + Lists â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
 
-            {/* ── Course Performance (7 cols) ── */}
+            {/* â”€â”€ Course Performance (7 cols) â”€â”€ */}
             <BentoCard className="lg:col-span-7" delay={0.2}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">Course Performance</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">Select a course to view grade breakdown</p>
+                  
                 </div>
                 <div className="relative">
                   <select
@@ -441,7 +446,7 @@ export default function AdviserDashboard() {
               ) : null}
             </BentoCard>
 
-            {/* ── Class of Degree Donut (5 cols) ── */}
+            {/* â”€â”€ Class of Degree Donut (5 cols) â”€â”€ */}
             <BentoCard className="lg:col-span-5" delay={0.25}>
               <div className="mb-4">
                 <p className="text-sm font-semibold text-neutral-900">Class of Degree</p>
@@ -468,10 +473,10 @@ export default function AdviserDashboard() {
             </BentoCard>
           </div>
 
-          {/* ═══════════════════════ ROW 3: Leaderboards ═══════════════════════ */}
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 3: Leaderboards â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
-            {/* ── Top Performers ── */}
+            {/* â”€â”€ Top Performers â”€â”€ */}
             <BentoCard delay={0.3}>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -512,7 +517,7 @@ export default function AdviserDashboard() {
               )}
             </BentoCard>
 
-            {/* ── At-Risk Students ── */}
+            {/* â”€â”€ At-Risk Students â”€â”€ */}
             <BentoCard delay={0.35}>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -551,10 +556,10 @@ export default function AdviserDashboard() {
             </BentoCard>
           </div>
 
-          {/* ═══════════════════════ ROW 4: Uploads + Carryovers ═══════════════════════ */}
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 4: Uploads + Carryovers â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-            {/* ── Recent Uploads ── */}
+            {/* â”€â”€ Recent Uploads â”€â”€ */}
             <BentoCard className="lg:col-span-8" delay={0.4}>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-neutral-900">Recent Uploads</p>
@@ -588,7 +593,7 @@ export default function AdviserDashboard() {
                           onClick={() => navigate(`/app/adviser/upload/${u.id}`)}
                         >
                           <td className="py-3 text-sm font-medium text-neutral-800">{u.filename || 'Unknown'}</td>
-                          <td className="py-3 text-xs text-neutral-500">{u.semester && u.session ? `${u.semester} – ${u.session}` : '—'}</td>
+                          <td className="py-3 text-xs text-neutral-500">{u.semester && u.session ? `${u.semester} â€“ ${u.session}` : 'â€”'}</td>
                           <td className="py-3 text-xs text-neutral-500 text-right tabular-nums">{u.raw_row_count || 0}</td>
                           <td className="py-3 text-xs text-neutral-400 text-right">
                             {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
@@ -603,7 +608,7 @@ export default function AdviserDashboard() {
               )}
             </BentoCard>
 
-            {/* ── Carryover Notify ── */}
+            {/* â”€â”€ Carryover Notify â”€â”€ */}
             <BentoCard className="lg:col-span-4" delay={0.45}>
               <div className="flex flex-col h-full justify-between">
                 <div>
@@ -642,7 +647,7 @@ export default function AdviserDashboard() {
         </div>
       </div>
 
-      {/* ── Modals ── */}
+      {/* â”€â”€ Modals â”€â”€ */}
       <ConfirmSheet
         isOpen={isConfirming}
         title="Notify Students?"
