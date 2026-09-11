@@ -654,7 +654,7 @@ export default function StudentAdvisor() {
         className="fixed left-0 right-0 z-40 pt-safe"
         style={{ top: 0 }}
       >
-        <div className="flex items-center justify-between h-[56px] px-[16px]" style={{ background: '#F5F3F3' }}>
+        <div className="flex items-center justify-between h-[56px] px-[16px] max-w-md mx-auto w-full" style={{ background: '#F5F3F3' }}>
           <button
             onClick={() => setSidebarOpen(true)}
             className="flex items-center justify-center w-[40px] h-[40px] rounded-full transition-all active:scale-95"
@@ -693,7 +693,7 @@ export default function StudentAdvisor() {
       </div>
 
       {/* â”€â”€ Main Content â”€â”€ */}
-      <div className="flex-1 flex flex-col pt-safe" style={{ paddingTop: '56px' }}>
+      <div className="flex-1 flex flex-col pt-safe max-w-md mx-auto w-full" style={{ paddingTop: '56px' }}>
 
         {profileLoading ? (
           <div className="flex-1 flex justify-center items-center">
@@ -738,7 +738,7 @@ export default function StudentAdvisor() {
             {/* â”€â”€ Chat Messages â”€â”€ */}
             {hasStartedChat && (
               <div className="flex-1 overflow-y-auto px-[16px] pb-[220px]">
-                <div className="max-w-[800px] mx-auto flex flex-col gap-[20px] pt-[16px]">
+                <div className="w-full flex flex-col gap-[20px] pt-[16px]">
                   {messages.map((msg, idx) => (
                     <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                       {msg.role === 'user' ? (
@@ -804,7 +804,7 @@ export default function StudentAdvisor() {
           style={{ bottom: '68px' }}
         >
           <div
-            className="max-w-[800px] mx-auto rounded-[20px] p-[6px] flex items-end gap-[6px]"
+            className="max-w-md mx-auto w-full rounded-[20px] p-[6px] flex items-end gap-[6px]"
             style={{
               background: '#FFFFFF',
               border: '1px solid #E5E7EB',
@@ -860,3 +860,4 @@ export default function StudentAdvisor() {
     </div>
   );
 }
+

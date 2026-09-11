@@ -270,7 +270,7 @@ export default function StudentDashboard() {
       <Navbar />
 
       {/* Content pushed below top header */}
-      <div className="px-[20px] pt-safe">
+      <div className="px-[20px] pt-safe max-w-md mx-auto w-full">
         <div style={{ paddingTop: '68px' }}>
 
           {/* Greeting */}

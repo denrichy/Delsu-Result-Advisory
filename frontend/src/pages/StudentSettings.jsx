@@ -43,7 +43,7 @@ export default function StudentSettings() {
     <div className="min-h-screen pb-[100px]" style={{ background: '#F5F3F3' }}>
       <Navbar />
 
-      <div className="px-[20px] pt-[28px]">
+      <div className="px-[20px] pt-[28px] max-w-md mx-auto w-full">
         {/* Header */}
         <div className="mb-[32px]">
           <p style={{ fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#6B7280', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '8px' }}>

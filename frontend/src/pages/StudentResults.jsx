@@ -141,7 +141,7 @@ export default function StudentResults() {
     <>
       <Navbar />
       <div className="min-h-screen bg-pure-canvas px-[16px] md:px-[24px] py-[48px] md:py-[64px]">
-        <div className="max-w-[600px] mx-auto">
+        <div className="max-w-md mx-auto w-full">
           {loading ? (
             <>
               <div className="flex items-center justify-between mb-[40px]">

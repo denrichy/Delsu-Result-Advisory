@@ -96,7 +96,7 @@ export default function StudentNotifications() {
     <>
       <Navbar />
       <div className="min-h-screen bg-pure-canvas px-[24px] py-[64px]">
-        <div className="max-w-[800px] mx-auto">
+        <div className="max-w-md mx-auto w-full">
           
           <div className="mb-[48px] flex justify-between items-start">
             <div>

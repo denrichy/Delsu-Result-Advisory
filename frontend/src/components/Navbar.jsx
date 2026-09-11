@@ -83,7 +83,7 @@ export default function Navbar() {
             className="fixed top-0 left-0 right-0 z-50 pt-safe"
             style={{ background: '#F5F3F3' }}
           >
-            <div className="flex items-center justify-between h-[56px] px-[20px]">
+            <div className="flex items-center justify-between h-[56px] px-[20px] max-w-md mx-auto w-full">
             {/* Profile Avatar */}
             <Link
               to="/app/student/settings"
