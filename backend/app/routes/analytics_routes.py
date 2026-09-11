@@ -62,13 +62,14 @@ def get_carryovers_route(auth_user_id: str = Header(None)):
 @router.get("/courses")
 def get_courses(auth_user_id: str = Header(None)):
     level = get_adviser_level(auth_user_id)
-    
-    query = supabase.table("courses").select("course_code")
-    if level:
-        query = query.eq("level", level)
-        
-    res = query.execute()
-    return [c["course_code"] for c in res.data] if res.data else []
+    profiles = _get_bulk_student_data(level)
+    active_courses = set()
+    for p in profiles:
+        for r in p.get("results", []):
+            code = r.get("course_code")
+            if code:
+                active_courses.add(code)
+    return sorted(list(active_courses))
 
 @router.post("/notify-carryovers")
 def notify_carryovers_route(background_tasks: BackgroundTasks, auth_user_id: str = Header(None)):

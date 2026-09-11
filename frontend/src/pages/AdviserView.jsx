@@ -265,33 +265,33 @@ export default function AdviserDashboard() {
                   
 
                   {/* Student breakdown dots */}
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-neutral-900" />
-                      <div>
-                        <p className="text-xs text-neutral-400">Passing</p>
-                        <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
-                          {dataLoading ? 'â€”' : totalStudents - atRiskCount}
-                        </p>
+                  <div className="flex items-center justify-between w-full mt-2">
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2 h-2 rounded-full bg-neutral-900" />
+                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Cleared</p>
                       </div>
+                      <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
+                        {dataLoading ? <Skeleton h="h-6" w="w-12" /> : passingCount}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-amber-400" />
-                      <div>
-                        <p className="text-xs text-neutral-400">At-Risk</p>
-                        <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
-                          {dataLoading ? 'â€”' : atRiskCount}
-                        </p>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2 h-2 rounded-full bg-amber-400" />
+                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">At-Risk</p>
                       </div>
+                      <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
+                        {dataLoading ? <Skeleton h="h-6" w="w-12" /> : atRiskCount}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-red-400" />
-                      <div>
-                        <p className="text-xs text-neutral-400">Carryovers</p>
-                        <p className="text-lg font-bold text-neutral-900 tabular-nums leading-none mt-0.5">
-                          {dataLoading ? 'â€”' : dashData?.carryover_count || 0}
-                        </p>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2 h-2 rounded-full bg-red-400" />
+                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Carryovers</p>
                       </div>
+                      <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
+                        {dataLoading ? <Skeleton h="h-6" w="w-12" /> : carryoverCount}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -333,7 +333,7 @@ export default function AdviserDashboard() {
                 <div className="px-4 first:pl-0 last:pr-0">
                   <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg. CGPA</p>
                   <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
-                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? 'â€”')}
+                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '—')}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <TrendingUp size={12} className="text-emerald-500" />
@@ -671,3 +671,4 @@ export default function AdviserDashboard() {
     </div>
   );
 }
+

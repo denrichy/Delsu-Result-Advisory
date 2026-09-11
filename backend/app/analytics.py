@@ -60,13 +60,21 @@ def _get_bulk_student_data(level: int = None):
     return profiles
 
 def get_class_average(course_code: str):
-    course_res = supabase.table('courses').select('id').eq('course_code', course_code.upper()).execute()
-    if not course_res.data:
-        return None
-    course_id = course_res.data[0]['id']
+    normalized = course_code.replace(" ", "").upper()
+    course_res = supabase.table('courses').select('id, course_code').execute()
+    course_ids = [c['id'] for c in course_res.data if c.get("course_code", "").replace(" ", "").upper() == normalized]
     
-    results_res = supabase.table('results').select('score').eq('course_id', course_id).execute()
-    scores = [r['score'] for r in results_res.data if r.get('score') is not None]
+    if not course_ids:
+        return None
+    
+    # Chunk course_ids to avoid URL length issues just in case, though usually few
+    scores = []
+    chunk_size = 50
+    for i in range(0, len(course_ids), chunk_size):
+        chunk = course_ids[i:i + chunk_size]
+        results_res = supabase.table('results').select('score').in_('course_id', chunk).execute()
+        if results_res.data:
+            scores.extend([r['score'] for r in results_res.data if r.get('score') is not None])
     
     if not scores:
         return 0.0
@@ -74,19 +82,24 @@ def get_class_average(course_code: str):
     return round(sum(scores) / len(scores), 2)
 
 def get_grade_distribution(course_code: str):
-    course_res = supabase.table('courses').select('id').eq('course_code', course_code.upper()).execute()
+    normalized = course_code.replace(" ", "").upper()
+    course_res = supabase.table('courses').select('id, course_code').execute()
+    course_ids = [c['id'] for c in course_res.data if c.get("course_code", "").replace(" ", "").upper() == normalized]
+    
     distribution = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
     
-    if not course_res.data:
+    if not course_ids:
         return distribution
         
-    course_id = course_res.data[0]['id']
-    results_res = supabase.table('results').select('grade').eq('course_id', course_id).execute()
-    
-    for r in results_res.data:
-        grade = r.get('grade')
-        if grade in distribution:
-            distribution[grade] += 1
+    chunk_size = 50
+    for i in range(0, len(course_ids), chunk_size):
+        chunk = course_ids[i:i + chunk_size]
+        results_res = supabase.table('results').select('grade').in_('course_id', chunk).execute()
+        if results_res.data:
+            for r in results_res.data:
+                grade = r.get('grade')
+                if grade in distribution:
+                    distribution[grade] += 1
             
     return distribution
 
