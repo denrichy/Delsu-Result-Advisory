@@ -269,7 +269,7 @@ export default function AdviserDashboard() {
                     <div className="flex flex-col items-center">
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-neutral-900" />
-                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Cleared</p>
+                        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Passing</p>
                       </div>
                       <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
                         {dataLoading ? <Skeleton h="h-6" w="w-12" /> : passingCount}
