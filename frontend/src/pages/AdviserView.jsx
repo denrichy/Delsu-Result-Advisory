@@ -1,4 +1,4 @@
-import { Info,  useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
@@ -9,7 +9,7 @@ import MonoDonutRing from '../components/charts/MonoDonutRing';
 import MonoArcMeter from '../components/charts/MonoArcMeter';
 import { motion } from 'motion/react';
 import {
-  Users, TrendingUp, AlertTriangle, BookX,
+  Info, Users, TrendingUp, AlertTriangle, BookX,
   ChevronDown, RefreshCw, Award, ArrowUpRight, Bell,
  } from 'lucide-react';
 import { cn } from '../lib/cn';
@@ -277,11 +277,9 @@ export default function AdviserDashboard() {
                           </Tooltip>
                         </div>
                       </div>
-                      <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
+                      <div className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
                         {dataLoading ? <Skeleton h="h-6" w="w-12" /> : passingCount}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center">
+                      </div></div><div className="flex flex-col items-center">
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-amber-400" />
                         <div className="flex items-center gap-1">
@@ -291,11 +289,9 @@ export default function AdviserDashboard() {
                           </Tooltip>
                         </div>
                       </div>
-                      <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
+                      <div className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
                         {dataLoading ? <Skeleton h="h-6" w="w-12" /> : atRiskCount}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center">
+                      </div></div><div className="flex flex-col items-center">
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-red-400" />
                         <div className="flex items-center gap-1">
@@ -305,9 +301,9 @@ export default function AdviserDashboard() {
                           </Tooltip>
                         </div>
                       </div>
-                      <p className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
+                      <div className="text-xl font-display font-bold text-neutral-900 tabular-nums leading-none">
                         {dataLoading ? <Skeleton h="h-6" w="w-12" /> : carryoverCount}
-                      </p>
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -354,7 +350,7 @@ export default function AdviserDashboard() {
                       </Tooltip>
                     </div>
                   <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
-                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '—')}
+                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '-')}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <TrendingUp size={12} className="text-emerald-500" />
@@ -413,7 +409,7 @@ export default function AdviserDashboard() {
             <BentoCard className="lg:col-span-7" delay={0.2}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm font-semibold text-neutral-900">Course Performance</p>
+                  <p className="text-sm font-semibold text-neutral-900">Course Performance</p><p className="text-xs text-neutral-400 mt-0.5">Select a course to view grade breakdown</p>
                   
                 </div>
                 <div className="relative">
@@ -692,4 +688,7 @@ export default function AdviserDashboard() {
     </div>
   );
 }
+
+
+
 
