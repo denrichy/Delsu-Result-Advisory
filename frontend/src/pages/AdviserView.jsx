@@ -17,9 +17,9 @@ import Tooltip from '../components/ui/Tooltip';
 
 const API = import.meta.env.VITE_API_BASE;
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-/*  Bento Card â€” unified wrapper                 */
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+/*  Bento Card Ã¢â‚¬â€ unified wrapper                 */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 function BentoCard({ children, className = '', delay = 0, noPad = false }) {
   return (
     <motion.div
@@ -37,9 +37,9 @@ function BentoCard({ children, className = '', delay = 0, noPad = false }) {
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 /*  Main Dashboard                               */
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 export default function AdviserDashboard() {
   const { session, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -194,7 +194,7 @@ export default function AdviserDashboard() {
     );
   }
 
-  /* â”€â”€ Prepare chart data â”€â”€ */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Prepare chart data Ã¢â€â‚¬Ã¢â€â‚¬ */
   const cgpaDistData = dashData?.cgpa_distribution ? [
     { label: '1st Class', value: dashData.cgpa_distribution.first_class || 0 },
     { label: '2nd Upper', value: dashData.cgpa_distribution.second_upper || 0 },
@@ -212,7 +212,7 @@ export default function AdviserDashboard() {
     { label: 'F', value: courseStats.dist.F, color: '#EF4444' },
   ] : [];
 
-  const donutColors = ['#18181B', '#3F3F46', '#71717A', '#A1A1AA', '#D4D4D8', '#E4E4E7'];
+  const donutColors = ['#10B981', '#3B82F6', '#F59E0B', '#F97316', '#64748B', '#EF4444'];
 
   // Pass rate for arc gauge
   const totalStudents = dashData?.total_students || 0;
@@ -223,7 +223,7 @@ export default function AdviserDashboard() {
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  /* â”€â”€ Loading skeleton â”€â”€ */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Loading skeleton Ã¢â€â‚¬Ã¢â€â‚¬ */
   const Skeleton = ({ h = 'h-6', w = 'w-24' }) => (
     <div className={cn('animate-pulse rounded-lg bg-neutral-100', h, w)} />
   );
@@ -236,10 +236,10 @@ export default function AdviserDashboard() {
       <div className="lg:ml-[260px] min-h-screen">
         <div className="max-w-[1200px] mx-auto px-5 pb-12 pt-20 lg:!pt-10">
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 1: Hero + KPI Cards â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â ROW 1: Hero + KPI Cards Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
 
-            {/* â”€â”€ Hero Panel (spans 5 cols, 2 rows) â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ Hero Panel (spans 5 cols, 2 rows) Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard className="lg:col-span-5 lg:row-span-2" delay={0.05}>
               <div className="flex flex-col h-full justify-between">
                 {/* Title area */}
@@ -326,18 +326,21 @@ export default function AdviserDashboard() {
               </div>
             </BentoCard>
 
-            {/* â”€â”€ KPI Cards (top-right, 3 across) â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ KPI Cards (top-right, 3 across) Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard className="lg:col-span-7" delay={0.1}>
               <div className="grid grid-cols-3 divide-x divide-neutral-100">
                 {/* Total Students */}
                 <div className="px-4 first:pl-0 last:pr-0">
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Total Students</p>
+                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                    <span className="hidden sm:inline">Total Students</span>
+                    <span className="sm:hidden">All Students</span>
+                  </p>
                   <p className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
                     {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (totalStudents > 999 ? `${(totalStudents / 1000).toFixed(1)}k` : totalStudents)}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <Users size={12} className="text-neutral-400" />
-                    <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || 'â€”'}</span>
+                    <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || 'Ã¢â‚¬â€'}</span>
                   </div>
                 </div>
 
@@ -372,7 +375,7 @@ export default function AdviserDashboard() {
               </div>
             </BentoCard>
 
-            {/* â”€â”€ CGPA Distribution Bar (below KPIs, right side) â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ CGPA Distribution Bar (below KPIs, right side) Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard className="lg:col-span-7" delay={0.15}>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -402,10 +405,10 @@ export default function AdviserDashboard() {
             </BentoCard>
           </div>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 2: Charts + Lists â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â ROW 2: Charts + Lists Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
 
-            {/* â”€â”€ Course Performance (7 cols) â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ Course Performance (7 cols) Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard className="lg:col-span-7" delay={0.2}>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -461,7 +464,7 @@ export default function AdviserDashboard() {
               ) : null}
             </BentoCard>
 
-            {/* â”€â”€ Class of Degree Donut (5 cols) â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ Class of Degree Donut (5 cols) Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard className="lg:col-span-5" delay={0.25}>
               <div className="mb-4">
                 <p className="text-sm font-semibold text-neutral-900">Class of Degree</p>
@@ -488,10 +491,10 @@ export default function AdviserDashboard() {
             </BentoCard>
           </div>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 3: Leaderboards â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â ROW 3: Leaderboards Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
-            {/* â”€â”€ Top Performers â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ Top Performers Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard delay={0.3}>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -532,7 +535,7 @@ export default function AdviserDashboard() {
               )}
             </BentoCard>
 
-            {/* â”€â”€ At-Risk Students â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ At-Risk Students Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard delay={0.35}>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -571,10 +574,10 @@ export default function AdviserDashboard() {
             </BentoCard>
           </div>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROW 4: Uploads + Carryovers â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â ROW 4: Uploads + Carryovers Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-            {/* â”€â”€ Recent Uploads â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ Recent Uploads Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard className="lg:col-span-8" delay={0.4}>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-neutral-900">Recent Uploads</p>
@@ -608,7 +611,7 @@ export default function AdviserDashboard() {
                           onClick={() => navigate(`/app/adviser/upload/${u.id}`)}
                         >
                           <td className="py-3 text-sm font-medium text-neutral-800">{u.filename || 'Unknown'}</td>
-                          <td className="py-3 text-xs text-neutral-500">{u.semester && u.session ? `${u.semester} â€“ ${u.session}` : 'â€”'}</td>
+                          <td className="py-3 text-xs text-neutral-500">{u.semester && u.session ? `${u.semester} Ã¢â‚¬â€œ ${u.session}` : 'Ã¢â‚¬â€'}</td>
                           <td className="py-3 text-xs text-neutral-500 text-right tabular-nums">{u.raw_row_count || 0}</td>
                           <td className="py-3 text-xs text-neutral-400 text-right">
                             {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
@@ -623,7 +626,7 @@ export default function AdviserDashboard() {
               )}
             </BentoCard>
 
-            {/* â”€â”€ Carryover Notify â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬ Carryover Notify Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <BentoCard className="lg:col-span-4" delay={0.45}>
               <div className="flex flex-col h-full justify-between">
                 <div>
@@ -662,7 +665,7 @@ export default function AdviserDashboard() {
         </div>
       </div>
 
-      {/* â”€â”€ Modals â”€â”€ */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Modals Ã¢â€â‚¬Ã¢â€â‚¬ */}
       <ConfirmSheet
         isOpen={isConfirming}
         title="Notify Students?"
