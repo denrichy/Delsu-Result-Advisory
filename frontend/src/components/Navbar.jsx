@@ -66,7 +66,7 @@ export default function Navbar() {
   const isStudent = userRole === 'student';
   const isAdviser = userRole === 'adviser';
 
-  // For student pages â€” top header + bottom tab bar
+  // For student pages — top header + bottom tab bar
   if (isStudent) {
     const tabs = [
       { path: '/app/student', icon: Home, label: 'Home' },
@@ -180,7 +180,7 @@ export default function Navbar() {
     );
   }
 
-  // For adviser/admin pages â€” top header bar
+  // For adviser/admin pages — top header bar
   return (
     <nav className="sticky top-0 z-50 flex flex-col justify-center" style={{ background: '#FFFFFF', borderBottom: '1px solid #DDDCDC' }}>
       <div className="h-[60px] px-[24px] flex items-center justify-between">

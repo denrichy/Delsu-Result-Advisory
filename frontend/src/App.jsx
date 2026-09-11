@@ -33,7 +33,7 @@ function App() {
         {/* Student */}
         <Route path="/app/student" element={<StudentDashboard />} />
         <Route path="/app/student/results" element={<StudentResults />} />
-        <Route path="/app/student/advisor/:sessionId?" element={<StudentAdvisor />} />
+        <Route path="/app/student/advisor/:sessionId" element={<StudentAdvisor />} />
         <Route path="/app/student/notifications" element={<StudentNotifications />} />
         <Route path="/app/student/settings" element={<StudentSettings />} />
 

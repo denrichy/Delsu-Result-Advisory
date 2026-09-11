@@ -266,7 +266,7 @@ export default function Signup() {
             <FocusInput
               id="password" type="password" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
+              placeholder="••••••••"
               disabled={loading} required
             />
           </div>
@@ -277,7 +277,7 @@ export default function Signup() {
             <FocusInput
               id="confirmPassword" type="password" value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
+              placeholder="••••••••"
               disabled={loading} required
             />
           </div>

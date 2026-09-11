@@ -104,8 +104,11 @@ export default function AdviserDashboard() {
       ]);
       if (summaryRes.ok) setDashData(await summaryRes.json());
       if (coursesRes.ok) {
-          const fetchedCourses = await coursesRes.json();
-          setCourses([...new Set(fetchedCourses)]);
+          const raw = await coursesRes.json();
+          const normalized = raw
+            .map(c => c.replace(/\s+/g, '').toUpperCase())
+            .filter(c => c && c !== 'CHOOSECOURSE');
+          setCourses([...new Set(normalized)].sort());
         }
     } catch (e) { console.error('Dashboard fetch error', e); }
     finally { setDataLoading(false); setRefreshing(false); }
@@ -259,12 +262,7 @@ export default function AdviserDashboard() {
                   </div>
 
                   {/* Adviser info */}
-                  {profile && (
-                    <div className="mb-6">
-                      <p className="text-sm font-semibold text-neutral-800">{profile.name}</p>
-                      <p className="text-xs text-neutral-400">{profile.department} Â· Level {dashData?.adviser?.level || 'â€”'}</p>
-                    </div>
-                  )}
+                  
 
                   {/* Student breakdown dots */}
                   <div className="flex items-center gap-6">

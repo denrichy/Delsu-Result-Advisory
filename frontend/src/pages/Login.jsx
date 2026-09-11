@@ -199,7 +199,7 @@ export default function Login() {
             <input
               id="password" type="password" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+              placeholder="••••••••"
               disabled={loading} required
               style={{
                 fontFamily: fontBody,
