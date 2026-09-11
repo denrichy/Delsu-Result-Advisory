@@ -27,7 +27,7 @@ function BentoCard({ children, className = '', delay = 0, noPad = false }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay, ease: 'easeOut' }}
       className={cn(
-        'bg-white border border-neutral-200 rounded-2xl overflow-hidden',
+        'bg-white border border-neutral-200 rounded-2xl',
         !noPad && 'p-5',
         className
       )}
@@ -688,6 +688,7 @@ export default function AdviserDashboard() {
     </div>
   );
 }
+
 
 
 

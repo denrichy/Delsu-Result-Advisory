@@ -89,15 +89,28 @@ def notify_carryovers_route(background_tasks: BackgroundTasks, auth_user_id: str
     db_notifications = []
     email_list = []
     
+    courses_by_matric = {}
+    for c in carryovers:
+        matric = c["matric_number"]
+        code = c.get("course_code", "Unknown")
+        if matric not in courses_by_matric:
+            courses_by_matric[matric] = []
+        courses_by_matric[matric].append(code)
+    
     for s in students_data:
+        matric = s["matric_number"]
+        student_courses = courses_by_matric.get(matric, [])
+        course_str = ", ".join(student_courses)
+        
         db_notifications.append({
             "student_id": s["id"],
-            "message": "Reminder: You have outstanding carryover courses. Please check your dashboard and ensure you attend classes for them."
+            "message": f"Reminder: You have outstanding carryover courses ({course_str}). Please check your dashboard and ensure you attend classes for them."
         })
         if s.get("email"):
             email_list.append({
                 "email": s["email"],
-                "matric": s["matric_number"]
+                "matric": matric,
+                "courses": student_courses
             })
             
     if db_notifications:

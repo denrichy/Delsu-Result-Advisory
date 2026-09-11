@@ -82,7 +82,8 @@ def send_result_notifications_async(student_emails: list[dict], semester: str, s
         except Exception as e:
             print(f"Failed to send email to {email}: {e}")
 
-def render_carryover_email(matric_number: str) -> str:
+def render_carryover_email(matric_number: str, courses: list) -> str:
+    course_items = "".join([f"<li><strong>{c}</strong></li>" for c in courses]) if courses else "<li>Unknown Courses</li>"
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -90,7 +91,10 @@ def render_carryover_email(matric_number: str) -> str:
         <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
             <h2 style="color: #1a1a1a;">Important Academic Notice</h2>
             <p>Hello <strong>{matric_number}</strong>,</p>
-            <p>This is a reminder from your academic adviser. You have outstanding carryover courses that require your attention.</p>
+            <p>This is a reminder from your academic adviser. You have outstanding carryover courses that require your attention:</p>
+            <ul>
+                {course_items}
+            </ul>
             <p>Please log in to your student portal to review your carryover courses, and ensure you register and attend classes for them.</p>
             <br/>
             <a href="{FRONTEND_URL}/app/login" style="display: inline-block; padding: 10px 20px; background-color: #c75c5c; color: #ffffff; text-decoration: none; border-radius: 5px;">View Carryovers</a>
@@ -119,12 +123,13 @@ def send_carryover_notifications_async(student_emails: list[dict]):
     for student in student_emails:
         email = student.get("email")
         matric = student.get("matric")
+        courses = student.get("courses", [])
         
         if not email:
             continue
             
         try:
-            html_content = render_carryover_email(matric)
+            html_content = render_carryover_email(matric, courses)
             
             payload = {
                 "sender": {
