@@ -2,7 +2,7 @@ from app.db import supabase
 from app.performance import calculate_gpa
 from collections import defaultdict
 
-def _get_bulk_student_data(level: int = None):
+def _get_bulk_student_data(level: int = None, session: str = None, semester: str = None):
     # Fetch students
     query = supabase.table('students').select('id, matric_number, current_level, baseline_units, baseline_gps, auth_user_id')
     if level:
@@ -21,7 +21,12 @@ def _get_bulk_student_data(level: int = None):
     
     for i in range(0, len(student_ids), chunk_size):
         chunk = student_ids[i:i + chunk_size]
-        res = supabase.table("results").select("student_id, score, grade, semester, session, courses(course_code, course_title, units, course_type, level)").in_("student_id", chunk).execute()
+        q = supabase.table("results").select("student_id, score, grade, semester, session, courses(course_code, course_title, units, course_type, level)").in_("student_id", chunk)
+        if session:
+            q = q.eq('session', session)
+        if semester:
+            q = q.eq('semester', semester)
+        res = q.execute()
         if res.data:
             all_results.extend(res.data)
             
@@ -60,7 +65,7 @@ def _get_bulk_student_data(level: int = None):
             
     return profiles
 
-def get_class_average(course_code: str):
+def get_class_average(course_code: str, level: int = None, session: str = None, semester: str = None):
     normalized = course_code.replace(" ", "").upper()
     course_res = supabase.table('courses').select('id, course_code').execute()
     course_ids = [c['id'] for c in course_res.data if c.get("course_code", "").replace(" ", "").upper() == normalized]
@@ -68,21 +73,35 @@ def get_class_average(course_code: str):
     if not course_ids:
         return None
     
-    # Chunk course_ids to avoid URL length issues just in case, though usually few
+    # Optional: fetch valid student IDs for the level
+    valid_student_ids = None
+    if level:
+        students_res = supabase.table('students').select('id').eq('current_level', level).execute()
+        valid_student_ids = {s['id'] for s in (students_res.data or [])}
+
     scores = []
     chunk_size = 50
     for i in range(0, len(course_ids), chunk_size):
         chunk = course_ids[i:i + chunk_size]
-        results_res = supabase.table('results').select('score').in_('course_id', chunk).execute()
+        query = supabase.table('results').select('score, student_id, session, semester').in_('course_id', chunk)
+        if session:
+            query = query.eq('session', session)
+        if semester:
+            query = query.eq('semester', semester)
+            
+        results_res = query.execute()
         if results_res.data:
-            scores.extend([r['score'] for r in results_res.data if r.get('score') is not None])
+            for r in results_res.data:
+                if r.get('score') is not None:
+                    if valid_student_ids is None or r.get('student_id') in valid_student_ids:
+                        scores.append(r['score'])
     
     if not scores:
         return 0.0
         
     return round(sum(scores) / len(scores), 2)
 
-def get_grade_distribution(course_code: str):
+def get_grade_distribution(course_code: str, level: int = None, session: str = None, semester: str = None):
     normalized = course_code.replace(" ", "").upper()
     course_res = supabase.table('courses').select('id, course_code').execute()
     course_ids = [c['id'] for c in course_res.data if c.get("course_code", "").replace(" ", "").upper() == normalized]
@@ -92,44 +111,66 @@ def get_grade_distribution(course_code: str):
     if not course_ids:
         return distribution
         
+    valid_student_ids = None
+    if level:
+        students_res = supabase.table('students').select('id').eq('current_level', level).execute()
+        valid_student_ids = {s['id'] for s in (students_res.data or [])}
+
     chunk_size = 50
     for i in range(0, len(course_ids), chunk_size):
         chunk = course_ids[i:i + chunk_size]
-        results_res = supabase.table('results').select('grade').in_('course_id', chunk).execute()
+        query = supabase.table('results').select('grade, student_id, session, semester').in_('course_id', chunk)
+        if session:
+            query = query.eq('session', session)
+        if semester:
+            query = query.eq('semester', semester)
+            
+        results_res = query.execute()
         if results_res.data:
             for r in results_res.data:
-                grade = r.get('grade')
-                if grade in distribution:
-                    distribution[grade] += 1
+                if valid_student_ids is None or r.get('student_id') in valid_student_ids:
+                    grade = r.get('grade')
+                    if grade in distribution:
+                        distribution[grade] += 1
             
     return distribution
 
-def get_top_students(limit: int = 5, level: int = None):
-    profiles = _get_bulk_student_data(level)
+def get_top_students(limit: int = 5, level: int = None, session: str = None, semester: str = None):
+    profiles = _get_bulk_student_data(level, session, semester)
     student_gpas = []
     
     for p in profiles:
-        gpa = calculate_gpa(p["results"], p["baseline_units"], p["baseline_gps"])
+        # If session or semester is specified, we calculate SGPA (ignore baseline)
+        if session or semester:
+            gpa = calculate_gpa(p["results"], 0, 0.0)
+        else:
+            gpa = calculate_gpa(p["results"], p["baseline_units"], p["baseline_gps"])
+            
         if gpa is not None:
             student_gpas.append({"matric_number": p["matric_number"], "gpa": gpa})
             
     student_gpas.sort(key=lambda x: x['gpa'], reverse=True)
     return student_gpas[:limit]
 
-def get_at_risk_students(gpa_threshold: float = 2.0, level: int = None):
-    profiles = _get_bulk_student_data(level)
+def get_at_risk_students(gpa_threshold: float = 2.0, level: int = None, session: str = None, semester: str = None):
+    profiles = _get_bulk_student_data(level, session, semester)
     at_risk = []
     
     for p in profiles:
-        gpa = calculate_gpa(p["results"], p["baseline_units"], p["baseline_gps"])
+        # If session or semester is specified, we calculate SGPA (ignore baseline)
+        if session or semester:
+            gpa = calculate_gpa(p["results"], 0, 0.0)
+        else:
+            gpa = calculate_gpa(p["results"], p["baseline_units"], p["baseline_gps"])
+            
         if gpa is not None and gpa < gpa_threshold:
             at_risk.append({"matric_number": p["matric_number"], "gpa": gpa})
             
     at_risk.sort(key=lambda x: x['gpa'])
     return at_risk
 
-def get_pass_fail_rate(course_code: str):
-    dist = get_grade_distribution(course_code)
+def get_pass_fail_rate(course_code: str, level: int = None, session: str = None, semester: str = None):
+    dist = get_grade_distribution(course_code, level, session, semester)
     total = sum(dist.values())
     
     if total == 0:

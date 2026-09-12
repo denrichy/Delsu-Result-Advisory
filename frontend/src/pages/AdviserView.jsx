@@ -58,11 +58,29 @@ export default function AdviserDashboard() {
 
   const [isManualRefresh, setIsManualRefresh] = useState(false);
 
-  const { data: dashData, isLoading, refetch: refetchDash, isRefetching: refreshing } = useQuery({
-    queryKey: ['adviserDashboard', session?.user?.id],
+  const [selectedSession, setSelectedSession] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('');
+
+  const { data: filters } = useQuery({
+    queryKey: ['adviserFilters', session?.user?.id],
     queryFn: async () => {
       const headers = { 'auth-user-id': session.user.id };
-      const res = await fetch(`${API}/analytics/dashboard-summary`, { headers });
+      const res = await fetch(`${API}/analytics/filters`, { headers });
+      if (!res.ok) throw new Error('Failed to fetch filters');
+      return res.json();
+    },
+    enabled: !!session?.user?.id && !!profile?.verified,
+  });
+
+
+  const { data: dashData, isLoading, refetch: refetchDash, isRefetching: refreshing } = useQuery({
+    queryKey: ['adviserDashboard', session?.user?.id, selectedSession, selectedSemester],
+    queryFn: async () => {
+      const headers = { 'auth-user-id': session.user.id };
+      const params = new URLSearchParams();
+      if (selectedSession) params.append('session', selectedSession);
+      if (selectedSemester) params.append('semester', selectedSemester);
+      const res = await fetch(`${API}/analytics/dashboard-summary?${params.toString()}`, { headers });
       if (!res.ok) throw new Error('Failed to fetch dashboard');
       return res.json();
     },
@@ -72,10 +90,13 @@ export default function AdviserDashboard() {
   const dataLoading = isLoading || isManualRefresh;
 
   const { data: courses = [] } = useQuery({
-    queryKey: ['adviserCourses', session?.user?.id],
+    queryKey: ['adviserCourses', session?.user?.id, selectedSession, selectedSemester],
     queryFn: async () => {
       const headers = { 'auth-user-id': session.user.id };
-      const res = await fetch(`${API}/analytics/courses`, { headers });
+      const params = new URLSearchParams();
+      if (selectedSession) params.append('session', selectedSession);
+      if (selectedSemester) params.append('semester', selectedSemester);
+      const res = await fetch(`${API}/analytics/courses?${params.toString()}`, { headers });
       if (!res.ok) throw new Error('Failed to fetch courses');
       const raw = await res.json();
       const normalized = raw
@@ -95,9 +116,13 @@ export default function AdviserDashboard() {
   const [selectedCourse, setSelectedCourse] = useState('');
   
   const { data: courseStats, isLoading: courseStatsLoading } = useQuery({
-    queryKey: ['classStats', selectedCourse],
+    queryKey: ['classStats', selectedCourse, session?.user?.id, selectedSession, selectedSemester],
     queryFn: async () => {
-      const res = await fetch(`${API}/analytics/class-stats/${selectedCourse}`);
+      const headers = { 'auth-user-id': session.user.id };
+      const params = new URLSearchParams();
+      if (selectedSession) params.append('session', selectedSession);
+      if (selectedSemester) params.append('semester', selectedSemester);
+      const res = await fetch(`${API}/analytics/class-stats/${selectedCourse}?${params.toString()}`, { headers });
       if (!res.ok) throw new Error('Failed to fetch class stats');
       const data = await res.json();
       const total = data.grade_distribution ? Object.values(data.grade_distribution).reduce((a, b) => a + b, 0) : 0;
@@ -231,6 +256,33 @@ export default function AdviserDashboard() {
       <div className="lg:ml-[260px] min-h-screen">
         <div className="max-w-[1200px] mx-auto px-5 pb-12 pt-20 lg:!pt-10">
 
+          {/* Global Filters */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h2 className="text-xl font-bold text-neutral-900" style={{ fontFamily: "'Satoshi', sans-serif" }}>Class Overview</h2>
+            <div className="flex items-center gap-3">
+              <select
+                value={selectedSession}
+                onChange={(e) => setSelectedSession(e.target.value)}
+                className="bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm text-neutral-700 outline-none focus:border-[#1944F1] focus:ring-1 focus:ring-[#1944F1] transition-all"
+              >
+                <option value="">All Sessions</option>
+                {filters?.sessions?.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
+                className="bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm text-neutral-700 outline-none focus:border-[#1944F1] focus:ring-1 focus:ring-[#1944F1] transition-all"
+              >
+                <option value="">Both Semesters</option>
+                {filters?.semesters?.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {/* UI Section */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
 
@@ -242,7 +294,7 @@ export default function AdviserDashboard() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h1 className="text-xl font-display font-bold text-neutral-900 leading-tight">
-                        Academic{' '}
+                        {selectedSession || selectedSemester ? 'Semester' : 'Cumulative'}{' '}
                         <span className="font-light text-neutral-400">Overview</span>
                       </h1>
                       <p className="text-xs text-neutral-400 mt-1">{today}</p>
