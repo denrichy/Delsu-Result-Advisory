@@ -137,9 +137,9 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
         row_vals = df.iloc[row_idx].astype(str).str.strip().tolist()
         for i, val in enumerate(row_vals):
             v_lower = re.sub(r'\s+', ' ', str(val).lower())
-            if matric_regex.search(val):
+            if matric_regex.search(str(val)):
                 matric_idx = i
-            elif name_regex.search(val):
+            elif name_regex.search(str(val)):
                 name_idx = i
             elif "sex" == v_lower or "sex " in v_lower:
                 sex_idx = i
@@ -269,18 +269,18 @@ def detect_long_format_columns(df):
         counts = {"matric": 0, "name": 0, "course": 0, "plain_score": 0, "concat_score": 0, "grade": 0}
         
         for val in test_vals:
-            if course_regex.match(val):
+            if course_regex.match(str(val)):
                 counts["course"] += 1
-            elif grade_regex.match(val.upper()):
+            elif grade_regex.match(str(val).upper()):
                 counts["grade"] += 1
-            elif concat_score_regex.match(val.upper()):
+            elif concat_score_regex.match(str(val).upper()):
                 counts["concat_score"] += 1
-            elif val.isdigit():
+            elif str(val).isdigit():
                 counts["plain_score"] += 1
-            elif matric_regex.match(val):
+            elif matric_regex.match(str(val)):
                 counts["matric"] += 1
                 
-            words = val.split()
+            words = str(val).split()
             if len(words) >= 2:
                 valid_name = True
                 has_alpha = False
