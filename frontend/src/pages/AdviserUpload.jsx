@@ -27,8 +27,6 @@ export default function AdviserUpload() {
 
   // Modal State
   const [modalState, setModalState] = useState({ isOpen: false, status: 'idle', title: '', subtitle: '', type: '' });
-  const navigate = useNavigate();
-
   const currentYear = new Date().getFullYear();
   const sessionOptions = [
     `${currentYear - 1}/${currentYear}`,
