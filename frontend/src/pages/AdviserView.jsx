@@ -56,7 +56,9 @@ export default function AdviserDashboard() {
     initialData: userProfile || undefined,
   });
 
-  const { data: dashData, isLoading: dataLoading, refetch: refetchDash, isRefetching: refreshing } = useQuery({
+  const [isManualRefresh, setIsManualRefresh] = useState(false);
+
+  const { data: dashData, isLoading, refetch: refetchDash, isRefetching: refreshing } = useQuery({
     queryKey: ['adviserDashboard', session?.user?.id],
     queryFn: async () => {
       const headers = { 'auth-user-id': session.user.id };
@@ -66,6 +68,8 @@ export default function AdviserDashboard() {
     },
     enabled: !!session?.user?.id && !!profile?.verified,
   });
+
+  const dataLoading = isLoading || isManualRefresh;
 
   const { data: courses = [] } = useQuery({
     queryKey: ['adviserCourses', session?.user?.id],
@@ -129,8 +133,10 @@ export default function AdviserDashboard() {
 
 
 
-  const handleRefresh = () => {
-    refetchDash();
+  const handleRefresh = async () => {
+    setIsManualRefresh(true);
+    await refetchDash();
+    setIsManualRefresh(false);
   };
 
   const handleBulkNotify = () => {
