@@ -136,7 +136,7 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
     for row_idx in range(course_row_idx + 3):
         row_vals = df.iloc[row_idx].astype(str).str.strip().tolist()
         for i, val in enumerate(row_vals):
-            v_lower = re.sub(r'\s+', ' ', val.lower())
+            v_lower = re.sub(r'\s+', ' ', str(val).lower())
             if matric_regex.search(val):
                 matric_idx = i
             elif name_regex.search(val):
