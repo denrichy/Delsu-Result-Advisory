@@ -42,11 +42,12 @@ function BentoCard({ children, className = '', delay = 0, noPad = false }) {
 /*  Main Dashboard                               */
 /* UI Section */
 export default function AdviserDashboard() {
-  const { session, loading: authLoading, signOut } = useAuth();
+  const { session, user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [isNotifying, setNotifying] = useState(false);
 
   const { data: dashData, isLoading: dataLoading, refetch } = useQuery({
     queryKey: ['adviserDashboard', user?.id],
