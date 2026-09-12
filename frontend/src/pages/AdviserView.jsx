@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -45,18 +45,16 @@ export default function AdviserDashboard() {
   const { session, user, loading: authLoading, signOut, userProfile } = useAuth();
   const navigate = useNavigate();
 
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-
-  // Sync global profile to local state
-  useEffect(() => {
-    if (userProfile) {
-      setProfile(userProfile);
-      setProfileLoading(false);
-    } else if (!authLoading) {
-      setProfileLoading(false);
-    }
-  }, [userProfile, authLoading]);
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['adviserProfile', session?.user?.id],
+    queryFn: async () => {
+      const res = await fetch(`${API}/auth/adviser-profile/${session.user.id}`);
+      if (!res.ok) throw new Error('Failed to fetch profile');
+      return res.json();
+    },
+    enabled: !!session?.user?.id,
+    initialData: userProfile || undefined,
+  });
 
   const { data: dashData, isLoading: dataLoading, refetch: refetchDash, isRefetching: refreshing } = useQuery({
     queryKey: ['adviserDashboard', session?.user?.id],
@@ -116,17 +114,16 @@ export default function AdviserDashboard() {
 
 
 
+  const queryClient = useQueryClient();
+
   // Poll for verification if pending
   useEffect(() => {
     if (!session?.user?.id || !profile || profile.verified !== false) return;
     const iv = setInterval(() => {
-      fetch(`${API}/auth/adviser-profile/${session.user.id}`)
-        .then(r => r.json())
-        .then(data => { if (data.found && data.verified) setProfile(data); })
-        .catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ['adviserProfile'] });
     }, 5000);
     return () => clearInterval(iv);
-  }, [session?.user?.id, profile]);
+  }, [session?.user?.id, profile, queryClient]);
 
 
 

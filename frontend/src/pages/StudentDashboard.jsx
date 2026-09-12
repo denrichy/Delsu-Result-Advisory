@@ -222,7 +222,7 @@ export default function StudentDashboard() {
       return res.json();
     },
     enabled: !!user?.id,
-    initialData: userProfile,
+    initialData: userProfile || undefined,
   });
 
   const { data: notifications = [] } = useQuery({
