@@ -13,6 +13,7 @@ export default function AdviserHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, status: 'idle', uploadId: null, rowCount: 0, errorMessage: '' });
 
   useEffect(() => {
     if (!session?.user?.id) return;

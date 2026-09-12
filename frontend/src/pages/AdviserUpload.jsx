@@ -134,37 +134,36 @@ export default function AdviserUpload() {
 
       <div className="lg:ml-[260px]" style={{ minHeight: '100vh' }}>
         {(loading || profileLoading) ? (
-          <main className="max-w-[1000px] w-full mx-auto px-[24px] pb-[64px] lg:!pt-[40px]" style={{ paddingTop: '80px' }}>
-            <div className="mb-[40px]">
-              <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-2"></div>
-              <div className="h-8 w-48 bg-gray-200 animate-pulse rounded"></div>
-            </div>
-            <div className="flex flex-col gap-[24px] max-w-[480px]">
-              <div className="h-[48px] w-full bg-gray-200 animate-pulse rounded-[12px]"></div>
-              <div className="h-[48px] w-full bg-gray-200 animate-pulse rounded-[12px]"></div>
-              <div className="h-[48px] w-full bg-gray-200 animate-pulse rounded-[12px]"></div>
-              <div className="h-[54px] w-[180px] bg-gray-200 animate-pulse rounded-full mt-[16px]"></div>
+          <main className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-[24px] py-[64px]">
+            <div className="w-full max-w-[480px] flex flex-col items-center text-center">
+              <div className="mb-[40px] flex flex-col items-center">
+                <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-2"></div>
+                <div className="h-8 w-48 bg-gray-200 animate-pulse rounded"></div>
+              </div>
+              <div className="flex flex-col gap-[24px] w-full">
+                <div className="h-[48px] w-full bg-gray-200 animate-pulse rounded-[12px]"></div>
+                <div className="h-[48px] w-full bg-gray-200 animate-pulse rounded-[12px]"></div>
+                <div className="h-[48px] w-full bg-gray-200 animate-pulse rounded-[12px]"></div>
+                <div className="h-[54px] w-full sm:w-[180px] mx-auto bg-gray-200 animate-pulse rounded-full mt-[16px]"></div>
+              </div>
             </div>
           </main>
         ) : (
-          <main
-            className="max-w-[1000px] w-full mx-auto px-[24px] pb-[64px] lg:!pt-[40px]"
-            style={{ paddingTop: '80px' }}
-          >
+          <main className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-[24px] py-[64px]">
             {/* Always show State 1: Form */}
-            <div>
+            <div className="w-full max-w-[480px] flex flex-col items-center text-center">
               <div className="mb-[40px]">
                 <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">UPLOAD RESULTS</p>
                 <h1 className="text-step-3xl text-midnight-ink font-bold" style={{ fontFamily: "'Satoshi', sans-serif" }}>New Broadsheet</h1>
               </div>
 
-              <div className="flex flex-col gap-[24px] max-w-[480px]">
+              <div className="flex flex-col gap-[24px] w-full text-left">
                 <div className="flex flex-col gap-[8px]">
                   <label className="text-step-sm-2 text-midnight-ink font-medium" style={{ fontFamily: "'Satoshi', sans-serif" }}>Semester</label>
                   <select
                     value={semester}
                     onChange={(e) => setSemester(e.target.value)}
-                    className="border border-fog rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-white focus:outline-none focus:border-midnight-ink transition-colors"
+                    className="border border-fog rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-white focus:outline-none focus:border-midnight-ink transition-colors w-full"
                   >
                     <option value="" disabled>Select Semester...</option>
                     <option value="First Semester">First Semester</option>
@@ -177,7 +176,7 @@ export default function AdviserUpload() {
                   <select
                     value={sessionYear}
                     onChange={(e) => setSessionYear(e.target.value)}
-                    className="border border-fog rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-white focus:outline-none focus:border-midnight-ink transition-colors"
+                    className="border border-fog rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-white focus:outline-none focus:border-midnight-ink transition-colors w-full"
                   >
                     <option value="" disabled>Select Session...</option>
                     {sessionOptions.map((opt) => (
@@ -192,14 +191,14 @@ export default function AdviserUpload() {
                     type="file"
                     accept=".xlsx"
                     onChange={(e) => setFile(e.target.files[0])}
-                    className="border border-fog bg-white rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-graphite file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mist file:text-midnight-ink hover:file:bg-fog transition-all"
+                    className="border border-fog bg-white rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-graphite w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mist file:text-midnight-ink hover:file:bg-fog transition-all"
                   />
                 </div>
 
                 <button
                   onClick={handlePreviewUpload}
                   disabled={!semester || !sessionYear || !file || isUploading}
-                  className="bg-[#1944F1] text-white text-step-sm rounded-full py-[16px] px-[32px] mt-[16px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold w-max"
+                  className="bg-[#1944F1] text-white text-step-sm rounded-full py-[16px] px-[32px] mt-[16px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold w-full sm:w-auto sm:mx-auto"
                   style={{ fontFamily: "'Satoshi', sans-serif" }}
                 >
                   Preview Upload
