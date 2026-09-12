@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -41,15 +42,47 @@ function BentoCard({ children, className = '', delay = 0, noPad = false }) {
 /*  Main Dashboard                               */
 /* UI Section */
 export default function AdviserDashboard() {
-  const { session, loading: authLoading, signOut } = useAuth();
+  const { session, user, loading: authLoading, signOut, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  const [dashData, setDashData] = useState(null);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  // Sync global profile to local state
+  useEffect(() => {
+    if (userProfile) {
+      setProfile(userProfile);
+      setProfileLoading(false);
+    } else if (!authLoading) {
+      setProfileLoading(false);
+    }
+  }, [userProfile, authLoading]);
+
+  const { data: dashData, isLoading: dataLoading, refetch: refetchDash, isRefetching: refreshing } = useQuery({
+    queryKey: ['adviserDashboard', session?.user?.id],
+    queryFn: async () => {
+      const headers = { 'auth-user-id': session.user.id };
+      const res = await fetch(`${API}/analytics/dashboard-summary`, { headers });
+      if (!res.ok) throw new Error('Failed to fetch dashboard');
+      return res.json();
+    },
+    enabled: !!session?.user?.id && !!profile?.verified,
+  });
+
+  const { data: courses = [] } = useQuery({
+    queryKey: ['adviserCourses', session?.user?.id],
+    queryFn: async () => {
+      const headers = { 'auth-user-id': session.user.id };
+      const res = await fetch(`${API}/analytics/courses`, { headers });
+      if (!res.ok) throw new Error('Failed to fetch courses');
+      const raw = await res.json();
+      const normalized = raw
+        .map(c => c.replace(/\s+/g, '').toUpperCase())
+        .filter(c => c && c !== 'CHOOSECOURSE');
+      return [...new Set(normalized)].sort();
+    },
+    enabled: !!session?.user?.id && !!profile?.verified,
+  });
   const [notifying, setNotifying] = useState(false);
 
   // Modal states
@@ -57,30 +90,31 @@ export default function AdviserDashboard() {
   const [processState, setProcessState] = useState({ isOpen: false, status: 'processing', errorTitle: '', errorSubtitle: '' });
 
   // Course stats
-  const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState('');
-  const [courseStats, setCourseStats] = useState(null);
-  const [courseStatsLoading, setCourseStatsLoading] = useState(false);
+  
+  const { data: courseStats, isLoading: courseStatsLoading } = useQuery({
+    queryKey: ['classStats', selectedCourse],
+    queryFn: async () => {
+      const res = await fetch(`${API}/analytics/class-stats/${selectedCourse}`);
+      if (!res.ok) throw new Error('Failed to fetch class stats');
+      const data = await res.json();
+      const total = data.grade_distribution ? Object.values(data.grade_distribution).reduce((a, b) => a + b, 0) : 0;
+      return {
+        avg: data.class_average,
+        dist: { A: 0, B: 0, C: 0, D: 0, F: 0, ...data.grade_distribution },
+        passRate: data.pass_fail_rate?.pass_rate || 0,
+        failRate: data.pass_fail_rate?.fail_rate || 0,
+        total,
+      };
+    },
+    enabled: !!selectedCourse,
+  });
 
   useEffect(() => {
     if (!authLoading && !session) navigate('/app/login');
   }, [authLoading, session, navigate]);
 
-  // Fetch profile
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    setProfileLoading(true);
-    fetch(`${API}/auth/adviser-profile/${session.user.id}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.found === true) {
-          if (data.revoked === true) { signOut(); setProfile(null); }
-          else setProfile(data);
-        } else setProfile(null);
-      })
-      .catch(() => setProfile(null))
-      .finally(() => setProfileLoading(false));
-  }, [session?.user?.id]);
+
 
   // Poll for verification if pending
   useEffect(() => {
@@ -94,55 +128,12 @@ export default function AdviserDashboard() {
     return () => clearInterval(iv);
   }, [session?.user?.id, profile]);
 
-  // Fetch dashboard data
-  const fetchDashboard = useCallback(async () => {
-    if (!session?.user?.id) return;
-    try {
-      const headers = { 'auth-user-id': session.user.id };
-      const [summaryRes, coursesRes] = await Promise.all([
-        fetch(`${API}/analytics/dashboard-summary`, { headers }),
-        fetch(`${API}/analytics/courses`, { headers }),
-      ]);
-      if (summaryRes.ok) setDashData(await summaryRes.json());
-      if (coursesRes.ok) {
-          const raw = await coursesRes.json();
-          const normalized = raw
-            .map(c => c.replace(/\s+/g, '').toUpperCase())
-            .filter(c => c && c !== 'CHOOSECOURSE');
-          setCourses([...new Set(normalized)].sort());
-        }
-    } catch (e) { console.error('Dashboard fetch error', e); }
-    finally { setDataLoading(false); setRefreshing(false); }
-  }, [session?.user?.id]);
 
-  useEffect(() => {
-    if (session && profile?.verified) fetchDashboard();
-  }, [session, profile?.verified, fetchDashboard]);
 
-  // Fetch course stats
-  useEffect(() => {
-    if (!selectedCourse) { setCourseStats(null); return; }
-    setCourseStatsLoading(true);
-    fetch(`${API}/analytics/class-stats/${selectedCourse}`)
-      .then(r => r.json())
-      .then(data => {
-        const total = data.grade_distribution ? Object.values(data.grade_distribution).reduce((a, b) => a + b, 0) : 0;
-        setCourseStats({
-          avg: data.class_average,
-          dist: { A: 0, B: 0, C: 0, D: 0, F: 0, ...data.grade_distribution },
-          passRate: data.pass_fail_rate?.pass_rate || 0,
-          failRate: data.pass_fail_rate?.fail_rate || 0,
-          total,
-        });
-      })
-      .catch(() => {})
-      .finally(() => setCourseStatsLoading(false));
-  }, [selectedCourse]);
+
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    setDataLoading(true);
-    fetchDashboard();
+    refetchDash();
   };
 
   const handleBulkNotify = () => {

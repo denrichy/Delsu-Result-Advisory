@@ -3,28 +3,27 @@ import { supabase } from '../lib/supabaseClient';
 
 export const AuthContext = createContext(null);
 
-// After a session is established, detect role by probing the adviser profile.
-// If it returns 200 → 'adviser'. Otherwise → 'student'.
-async function detectRole(userId) {
+// After a session is established, detect role and fetch profile.
+async function fetchUserContext(userId) {
   try {
     // 1. Check adviser profile
     const advRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${userId}`);
     const advData = await advRes.json();
     if (advData.found === true) {
-      return 'adviser';
+      return { role: 'adviser', profile: advData };
     }
 
     // 2. Check student profile
     const stuRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${userId}`);
     const stuData = await stuRes.json();
     if (stuData.found === true) {
-      return 'student';
+      return { role: 'student', profile: stuData };
     }
 
-    return 'student'; // Default fallback
+    return { role: 'student', profile: null }; // Default fallback
   } catch (err) {
     console.error('Network or unexpected error during role detection:', err);
-    return 'student';
+    return { role: 'student', profile: null };
   }
 }
 
@@ -32,16 +31,19 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null); // 'student' | 'adviser' | null
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const resolveSession = async (s) => {
     setSession(s);
     setUser(s?.user ?? null);
     if (s?.user?.id) {
-      const role = await detectRole(s.user.id);
+      const { role, profile } = await fetchUserContext(s.user.id);
       setUserRole(role);
+      setUserProfile(profile);
     } else {
       setUserRole(null);
+      setUserProfile(null);
     }
     setLoading(false);
   };
@@ -65,10 +67,11 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUserRole(null);
+    setUserProfile(null);
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, userRole, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, userRole, userProfile, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

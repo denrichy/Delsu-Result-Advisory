@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -208,55 +209,57 @@ function FeatureCard({ card, isExpanded, onToggle, navigate, unreadCount, index 
 
 /* â”€â”€â”€ Main Dashboard â”€â”€â”€ */
 export default function StudentDashboard() {
-  const { user, loading, session } = useAuth();
+  const { user, loading: authLoading, session, userProfile } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const queryClient = useQueryClient();
   const [expandedCard, setExpandedCard] = useState('results');
 
-  useEffect(() => {
-    if (!loading && !session) navigate('/app/login');
-  }, [loading, session, navigate]);
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['studentProfile', user?.id],
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${user.id}`);
+      if (!res.ok) throw new Error('Failed to fetch profile');
+      return res.json();
+    },
+    enabled: !!user?.id,
+    initialData: userProfile,
+  });
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['studentNotifications', profile?.id],
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/notifications/student/${profile.id}`);
+      if (!res.ok) throw new Error('Failed to fetch notifications');
+      return res.json();
+    },
+    enabled: !!profile?.id,
+  });
+
+  const unreadCount = Array.isArray(notifications) ? notifications.filter(n => !n.read).length : 0;
 
   useEffect(() => {
-    if (!user?.id) return;
-    if (refreshTrigger === 0) setProfileLoading(true);
-
-    fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${user.id}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        setProfile(data);
-        if (data?.id) {
-          fetch(`${import.meta.env.VITE_API_BASE}/notifications/student/${data.id}`)
-            .then(r => r.json())
-            .then(notifs => {
-              if (Array.isArray(notifs)) setUnreadCount(notifs.filter(n => !n.read).length);
-            })
-            .catch(console.error);
-        }
-      })
-      .catch(() => setProfile(null))
-      .finally(() => { if (refreshTrigger === 0) setProfileLoading(false); });
-  }, [user?.id, refreshTrigger]);
+    if (!authLoading && !session) navigate('/app/login');
+  }, [authLoading, session, navigate]);
 
   useEffect(() => {
     if (!user?.id) return;
     let timeoutId;
     const handleUpdate = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => setRefreshTrigger(prev => prev + 1), 2000);
+      timeoutId = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['studentProfile'] });
+        queryClient.invalidateQueries({ queryKey: ['studentNotifications'] });
+      }, 2000);
     };
     const channel = supabase
       .channel('student-dashboard-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, handleUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, handleUpdate)
+      .on('postgres_changes', { event: '*', table: 'students' }, handleUpdate)
       .subscribe();
     return () => { clearTimeout(timeoutId); supabase.removeChannel(channel); };
-  }, [user?.id]);
+  }, [user?.id, queryClient]);
 
-  if (loading) return null;
+  if (authLoading) return null;
   if (!session) return null;
 
   const firstName = profile?.name ? profile.name.split(' ')[0] : null;
