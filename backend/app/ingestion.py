@@ -17,8 +17,8 @@ def detect_sheet_format(filepath):
         row_vals = df.iloc[i].astype(str).tolist()
         cols = []
         for val in row_vals:
-            if course_code_regex.match(val.strip()):
-                cols.append(val.strip())
+            if course_code_regex.match(str(val).strip()):
+                cols.append(str(val).strip())
         if len(cols) >= 1 and len(cols) > len(wide_course_cols):
             wide_course_cols = cols
             course_row_idx = i

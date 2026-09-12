@@ -432,18 +432,25 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
 
 def clean_all_phantoms():
     try:
-        res = supabase.table("students").select("id, baseline_units").execute()
+        res = supabase.table("students").select("id, baseline_units, auth_user_id").execute()
         if not res.data: return
-        phantom_ids = []
+        delete_ids = []
+        update_ids = []
         for s in res.data:
-            if s.get("baseline_units", 0) > 0:
-                r_res = supabase.table("results").select("id").eq("student_id", s["id"]).limit(1).execute()
-                if not r_res.data:
-                    phantom_ids.append(s["id"])
+            r_res = supabase.table("results").select("id").eq("student_id", s["id"]).limit(1).execute()
+            if not r_res.data:
+                if not s.get("auth_user_id"):
+                    delete_ids.append(s["id"])
+                elif s.get("baseline_units", 0) > 0:
+                    update_ids.append(s["id"])
         
         batch_size = 50
-        for i in range(0, len(phantom_ids), batch_size):
-            batch = phantom_ids[i:i+batch_size]
+        for i in range(0, len(delete_ids), batch_size):
+            batch = delete_ids[i:i+batch_size]
+            supabase.table("students").delete().in_("id", batch).execute()
+
+        for i in range(0, len(update_ids), batch_size):
+            batch = update_ids[i:i+batch_size]
             supabase.table("students").update({
                 "baseline_units": 0,
                 "baseline_gps": 0.0,
@@ -472,12 +479,18 @@ async def delete_upload(upload_id: str, background_tasks: BackgroundTasks):
         for sid in student_ids:
             remain_res = supabase.table("results").select("id").eq("student_id", sid).limit(1).execute()
             if not remain_res.data:
-                # No more results for this student, wipe their baselines
-                supabase.table("students").update({
-                    "baseline_units": 0,
-                    "baseline_gps": 0.0,
-                    "outstanding_courses": ""
-                }).eq("id", sid).execute()
+                # No more results for this student
+                stu_res = supabase.table("students").select("auth_user_id").eq("id", sid).execute()
+                if stu_res.data and not stu_res.data[0].get("auth_user_id"):
+                    # Unclaimed student with no results -> delete them
+                    supabase.table("students").delete().eq("id", sid).execute()
+                else:
+                    # Claimed student -> wipe their baselines
+                    supabase.table("students").update({
+                        "baseline_units": 0,
+                        "baseline_gps": 0.0,
+                        "outstanding_courses": ""
+                    }).eq("id", sid).execute()
                 
         # Trigger background sweeping of any straggler phantom students
         background_tasks.add_task(clean_all_phantoms)
