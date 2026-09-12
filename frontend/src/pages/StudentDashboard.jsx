@@ -208,7 +208,7 @@ function FeatureCard({ card, isExpanded, onToggle, navigate, unreadCount, index 
 
 /* â”€â”€â”€ Main Dashboard â”€â”€â”€ */
 export default function StudentDashboard() {
-  const { user, loading, session } = useAuth();
+  const { session, user, loading: authLoading, signOut, userProfile: profile } = useAuth();
   const navigate = useNavigate();
   const profileLoading = authLoading;
   const [unreadCount, setUnreadCount] = useState(0);
@@ -226,8 +226,8 @@ export default function StudentDashboard() {
   }, [profile?.id, refreshTrigger]);
 
   useEffect(() => {
-    if (!loading && !session) navigate('/app/login');
-  }, [loading, session, navigate]);
+    if (!authLoading && !session) navigate('/app/login');
+  }, [authLoading, session, navigate]);
 
   
 
@@ -246,7 +246,7 @@ export default function StudentDashboard() {
     return () => { clearTimeout(timeoutId); supabase.removeChannel(channel); };
   }, [user?.id]);
 
-  if (loading) return null;
+  if (authLoading) return null;
   if (!session) return null;
 
   const firstName = profile?.name ? profile.name.split(' ')[0] : null;
