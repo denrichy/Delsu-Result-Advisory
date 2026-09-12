@@ -8,9 +8,9 @@ load_dotenv(_env_path)
 
 # We pull the API key from environment variables.
 # You will need to add BREVO_API_KEY=your_key to your backend/.env
-BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "").strip()
 # You MUST verify this sender email in your Brevo dashboard!
-BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", "denrichy111@gmail.com")
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", "denrichy111@gmail.com").strip()
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://delsu-result-advisory.vercel.app").rstrip("/")
 
 def render_result_email(matric_number: str, semester: str, session: str) -> str:
