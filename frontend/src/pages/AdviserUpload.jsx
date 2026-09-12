@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
+import Modal from '../components/ui/Modal';
+import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 
 export default function AdviserUpload() {
   const { session, loading } = useAuth();
@@ -22,6 +24,10 @@ export default function AdviserUpload() {
 
   // Success State
   const [uploadResult, setUploadResult] = useState(null);
+
+  // Modal State
+  const [modalState, setModalState] = useState({ isOpen: false, status: 'idle', title: '', subtitle: '', type: '' });
+  const navigate = useNavigate();
 
   const currentYear = new Date().getFullYear();
   const sessionOptions = [
@@ -52,6 +58,7 @@ export default function AdviserUpload() {
     if (!file || !semester || !sessionYear) return;
 
     setIsUploading(true);
+    setModalState({ isOpen: true, status: 'processing', type: 'preview', title: 'Analyzing Sheet...', subtitle: 'Validating format and extracting records.' });
     const formData = new FormData();
     formData.append('file', file);
 
@@ -62,13 +69,14 @@ export default function AdviserUpload() {
       });
       const data = await res.json();
       if (res.ok) {
+        setModalState({ isOpen: false });
         setPreviewData(data);
       } else {
-        alert(data.detail || 'Upload failed');
+        setModalState({ isOpen: true, status: 'error', title: 'Upload Failed', subtitle: data.detail || 'Upload failed' });
       }
     } catch (err) {
       console.error(err);
-      alert('Network error occurred during preview.');
+      setModalState({ isOpen: true, status: 'error', title: 'Network Error', subtitle: 'Network error occurred during preview.' });
     } finally {
       setIsUploading(false);
     }
@@ -76,10 +84,11 @@ export default function AdviserUpload() {
 
   const handleConfirmUpload = async () => {
     if (!previewData?.all_rows || !profile?.id) return;
-    
+
     setIsConfirming(true);
     setUploadProgress(0);
-    
+    setModalState({ isOpen: true, status: 'processing', type: 'uploading', title: 'Uploading Results...', subtitle: 'Saving records to the database.' });
+
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
         if (prev >= 90) return 90;
@@ -99,28 +108,28 @@ export default function AdviserUpload() {
           filename: file.name
         }),
       });
-      
+
       clearInterval(progressInterval);
       setUploadProgress(100);
-      
+
       await new Promise(r => setTimeout(r, 300));
-      
+
       const data = await res.json();
       if (res.ok) {
         setUploadResult(data);
+        setModalState({ isOpen: true, status: 'success', type: 'upload_success', title: 'Upload Successful', subtitle: 'All results have been published successfully.' });
       } else {
-        alert(data.detail || 'Confirmation failed');
+        setModalState({ isOpen: true, status: 'error', title: 'Confirmation Failed', subtitle: data.detail || 'Confirmation failed' });
       }
     } catch (err) {
       clearInterval(progressInterval);
       console.error(err);
-      alert('Network error occurred during confirmation.');
+      setModalState({ isOpen: true, status: 'error', title: 'Network Error', subtitle: 'Network error occurred during confirmation.' });
     } finally {
       setIsConfirming(false);
       setUploadProgress(0);
     }
   };
-
   if (loading || profileLoading) return null;
   if (!session) return null;
 
@@ -326,6 +335,78 @@ export default function AdviserUpload() {
           </div>
         )}
         </main>
+
+        {/* State Modals */}
+        <Modal 
+          isOpen={modalState.isOpen} 
+          onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+          hideClose={modalState.status === 'processing'}
+        >
+          {modalState.status === 'processing' && (
+            <div className="flex flex-col items-center text-center py-4">
+              <Loader2 className="w-[48px] h-[48px] text-[#1944F1] animate-spin mb-4" />
+              <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.title}</h3>
+              <p className="text-neutral-500 mb-6" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.subtitle}</p>
+              
+              {modalState.type === 'uploading' && (
+                <div className="w-full bg-neutral-100 rounded-full h-[8px] overflow-hidden mt-2">
+                  <div 
+                    className="bg-[#1944F1] h-full rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {modalState.status === 'success' && modalState.type === 'upload_success' && (
+            <div className="flex flex-col items-center text-center py-4">
+              <div className="w-[48px] h-[48px] rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <CheckCircle2 className="text-green-600" size={24} />
+              </div>
+              <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.title}</h3>
+              <p className="text-neutral-500 mb-6" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.subtitle}</p>
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => {
+                     setModalState({ isOpen: false, status: 'idle', title: '', subtitle: '', type: '' });
+                     setPreviewData(null);
+                     setUploadResult(null);
+                     setFile(null);
+                  }}
+                  className="flex-1 py-[12px] bg-neutral-100 text-neutral-700 font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+                  style={{ fontFamily: "'Satoshi', sans-serif" }}
+                >
+                  Upload Another
+                </button>
+                <button
+                  onClick={() => navigate('/adviser')}
+                  className="flex-1 py-[12px] bg-[#1944F1] text-white font-semibold rounded-full hover:bg-blue-700 transition-colors"
+                  style={{ fontFamily: "'Satoshi', sans-serif" }}
+                >
+                  View Dashboard
+                </button>
+              </div>
+            </div>
+          )}
+
+          {modalState.status === 'error' && (
+            <div className="flex flex-col items-center text-center py-4">
+              <div className="w-[48px] h-[48px] rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <XCircle className="text-red-600" size={24} />
+              </div>
+              <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.title}</h3>
+              <p className="text-neutral-500 mb-6" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.subtitle}</p>
+              <button
+                onClick={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+                className="w-full py-[12px] bg-neutral-100 text-neutral-700 font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+                style={{ fontFamily: "'Satoshi', sans-serif" }}
+              >
+                Close
+              </button>
+            </div>
+          )}
+        </Modal>
       </div>
     </div>
   );

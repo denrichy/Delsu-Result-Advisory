@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
+import Modal from '../components/ui/Modal';
+import { AlertTriangle, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 
 export default function AdviserHistory() {
   const { user, session } = useAuth();
@@ -58,10 +60,14 @@ export default function AdviserHistory() {
     fetchHistory();
   }, [user?.id, session, navigate]);
 
-  const handleDelete = async (uploadId, rowCount) => {
-    const confirmDelete = window.confirm(`Are you sure? This will permanently delete ${rowCount || 'all associated'} results.`);
-    if (!confirmDelete) return;
+  const handleDeleteClick = (uploadId, rowCount) => {
+    setDeleteModal({ isOpen: true, status: 'confirm', uploadId, rowCount, errorMessage: '' });
+  };
 
+  const executeDelete = async () => {
+    const { uploadId } = deleteModal;
+    setDeleteModal(prev => ({ ...prev, status: 'processing' }));
+    
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE}/upload/${uploadId}`, {
         method: 'DELETE',
@@ -72,12 +78,11 @@ export default function AdviserHistory() {
         throw new Error(errData.detail || 'Failed to delete upload');
       }
 
-      // Remove from UI
       setHistory((prev) => prev.filter((item) => item.id !== uploadId));
-      alert('Upload and its results were deleted successfully.');
+      setDeleteModal(prev => ({ ...prev, status: 'success' }));
     } catch (err) {
       console.error(err);
-      alert(`Error deleting upload: ${err.message}`);
+      setDeleteModal(prev => ({ ...prev, status: 'error', errorMessage: err.message }));
     }
   };
 
@@ -159,7 +164,7 @@ export default function AdviserHistory() {
                         View
                       </button>
                       <button
-                        onClick={() => handleDelete(item.id, item.raw_row_count)}
+                        onClick={() => handleDeleteClick(item.id, item.raw_row_count)}
                         className="flex-1 inline-flex items-center justify-center px-[12px] py-[6px] text-step-sm font-medium rounded-full border border-red-200 text-red-600 bg-pure-canvas hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 transition-all"
                       >
                         Delete
@@ -230,7 +235,7 @@ export default function AdviserHistory() {
                             View
                           </button>
                           <button
-                            onClick={() => handleDelete(item.id, item.raw_row_count)}
+                            onClick={() => handleDeleteClick(item.id, item.raw_row_count)}
                             className="inline-flex items-center justify-center px-[12px] py-[6px] text-step-xs font-semibold rounded-full border border-red-200 text-red-600 bg-pure-canvas hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 transition-all"
                           >
                             Delete
