@@ -114,9 +114,8 @@ async def upload_preview(file: UploadFile = File(...)):
                                 cause_str = " ➔ Cause: Total Units match, but the calculated CGPA differs. Check individual grades."
                                 
                         anomalies.append({
-                            "matric_number": matric,
-                            "issue": f"Mathematical Discrepancy",
-                            "details": f"System calculated CGPA as {calc_cgpa} (from {calc_cum_tcp} Total Units), but the Official broadsheet states CGPA is {data['official_cgpa']} (from {data['official_cum_tcp']} Total Units).{cause_str}"
+                            "row": None,
+                            "description": f"[{matric}] Mathematical Discrepancy: System calculated CGPA as {calc_cgpa} (from {calc_cum_tcp} Total Units), but the Official broadsheet states CGPA is {data['official_cgpa']} (from {data['official_cum_tcp']} Total Units).{cause_str}"
                         })
             
             return {
@@ -126,7 +125,11 @@ async def upload_preview(file: UploadFile = File(...)):
                 "preview_rows": long_data[:10],
                 "all_rows": long_data,
                 "course_metadata": metadata,
-                "anomalies": anomalies
+                "anomalies": anomalies,
+                "stats": {
+                    "total_students": len(set(r.get("matric_number") for r in long_data if r.get("matric_number"))),
+                    "unique_courses": len(set(r.get("course_code") for r in long_data if r.get("course_code")))
+                }
             }
         elif fmt == "long":
             header_idx = detect_res.get("header_idx", 0)
@@ -195,7 +198,12 @@ async def upload_preview(file: UploadFile = File(...)):
                 "mapping": mapping,
                 "preview_rows": all_rows[:10],
                 "all_rows": all_rows,
-                "total_row_count": len(df)
+                "total_row_count": len(df),
+                "anomalies": [],
+                "stats": {
+                    "total_students": len(set(r.get("matric_number") for r in all_rows if r.get("matric_number"))),
+                    "unique_courses": len(set(r.get("course_code") for r in all_rows if r.get("course_code")))
+                }
             }
         else:
             return {
