@@ -7,8 +7,8 @@
   --color-brand-light:  #4D6FF5;   /* Lighter blue for tints */
   --color-brand-ghost:  rgba(25, 68, 241, 0.08); /* Subtle blue tint */
 
-  --color-canvas:       #F5F3F3;   /* White Smoke Ã¢â‚¬” app background */
-  --color-surface:      #FFFFFF;   /* Pure white Ã¢â‚¬” cards/sheets */
+  --color-canvas:       #F5F3F3;   /* White Smoke — app background */
+  --color-surface:      #FFFFFF;   /* Pure white — cards/sheets */
   --color-surface-2:    #EBE9E9;   /* Slightly deeper surface */
 
   --color-ink:          #111111;   /* Near-black body text */
@@ -18,12 +18,12 @@
   --color-border:       #DDDCDC;   /* Hairline borders */
   --color-border-focus: #1944F1;   /* Focused input border */
 
-  --color-success:      #12A86C;   /* Green Ã¢â‚¬” pass/good GPA */
-  --color-warning:      #E8920A;   /* Amber Ã¢â‚¬” at-risk courses */
-  --color-danger:       #E03B3B;   /* Red Ã¢â‚¬” carryovers/failures */
+  --color-success:      #12A86C;   /* Green — pass/good GPA */
+  --color-warning:      #E8920A;   /* Amber — at-risk courses */
+  --color-danger:       #E03B3B;   /* Red — carryovers/failures */
   --color-danger-ghost: rgba(224, 59, 59, 0.08);
 
-  /* Legacy achromatic tokens Ã¢â‚¬” kept so old pages don't break */
+  /* Legacy achromatic tokens — kept so old pages don't break */
   --color-midnight-ink:  #141414;
   --color-pure-canvas:   #ffffff;
   --color-graphite:      #707070;
@@ -34,7 +34,7 @@
   --color-slate-shadow:  #e0e0e0;
   --color-brand-ink:     #1944F1;
 
-  /* Ã¢”â‚¬Ã¢”â‚¬ Typography Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬ */
+  /* /* Typography */
   /* Display: Satoshi */
   --font-display: 'Satoshi', sans-serif;
   --font-sans:    'Public Sans', sans-serif;
@@ -42,10 +42,10 @@
   --font-mono:    'Geist Mono', monospace;
   --font-serif:   'Georgia', serif;
 
-  /* Ã¢”â‚¬Ã¢”â‚¬ Spacing Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬ */
+  /* /* Spacing */
   --spacing-unit: 4px;
 
-  /* Ã¢”â‚¬Ã¢”â‚¬ Radius Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬ */
+  /* /* Radius */
   --radius-sm:   8px;
   --radius-md:   12px;
   --radius-lg:   16px;
@@ -53,7 +53,7 @@
   --radius-2xl:  24px;
   --radius-full: 9999px;
 
-  /* Ã¢”â‚¬Ã¢”â‚¬ Shadows Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬Ã¢”â‚¬ */
+  /* /* Shadows */
   --shadow-card: 0px 2px 12px rgba(0, 0, 0, 0.06);
   --shadow-lg:   0px 8px 32px rgba(0, 0, 0, 0.10);
 }
@@ -62,7 +62,7 @@
    Typography Utilities
    ============================================================ */
 
-/* Display Ã¢â‚¬” Peace Sans / Nunito */
+/* Display — Peace Sans / Nunito */
 @utility text-display-xl {
   font-family: var(--font-display);
   font-size: 48px;
@@ -84,7 +84,7 @@
   line-height: 1.15;
 }
 
-/* Body Ã¢â‚¬” Open Sauce One */
+/* Body — Open Sauce One */
 @utility text-step-xs {
   font-family: var(--font-sans);
   font-size: 11px;
