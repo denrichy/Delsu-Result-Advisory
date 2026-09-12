@@ -337,7 +337,6 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                     insert_data = {
                         "matric_number": matric,
                         "name": student_baselines[matric].get("name"),
-                        "password_hash": get_password_hash("password123"), # default password
                         "current_level": adviser_level if adviser_level else 100,
                         "department": adviser_department,
                         "baseline_units": student_baselines[matric].get("baseline_units"),
