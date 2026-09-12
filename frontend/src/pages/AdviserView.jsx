@@ -10,7 +10,7 @@ import MonoDonutRing from '../components/charts/MonoDonutRing';
 import MonoArcMeter from '../components/charts/MonoArcMeter';
 import { motion } from 'motion/react';
 import {
-  Info, Users, TrendingUp, AlertTriangle, BookX,
+  Info, Users, TrendingUp, AlertTriangle, BookX, X,
   ChevronDown, RefreshCw, Award, ArrowUpRight, Bell,
  } from 'lucide-react';
 import { cn } from '../lib/cn';
@@ -360,7 +360,7 @@ export default function AdviserDashboard() {
                   <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
                     <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Carryovers</p>
                     <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
-                      {dataLoading ? <Skeleton h="h-8" w="w-16" /> : carryoverCount}
+                      {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.carryover_count ?? 0)}
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-2">
                       <div className="flex items-center justify-center w-3 h-3 rounded bg-red-100">
