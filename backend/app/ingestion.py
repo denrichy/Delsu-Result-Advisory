@@ -172,6 +172,12 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
         matric = row[matric_idx] if matric_idx != -1 else None
         if pd.isna(matric) or str(matric).strip() == "":
             continue
+        
+        # Use the global student_matric_regex, because matric_regex is locally shadowed
+        import re as _re
+        student_matric_regex = _re.compile(r'^[A-Za-z]{2,}(?:/[A-Za-z0-9]+)+$')
+        if not student_matric_regex.match(str(matric).strip()):
+            continue
             
         name = row[name_idx] if name_idx != -1 else None
         name = str(name).strip() if pd.notna(name) and str(name).strip() != "nan" else None
@@ -180,9 +186,10 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
         sex = str(sex).strip() if pd.notna(sex) and str(sex).strip() != "nan" else None
         
         def safe_float(idx):
-            if idx != -1:
+            if idx != -1 and pd.notna(row[idx]):
                 try:
-                    return float(row[idx])
+                    val = float(row[idx])
+                    return val if pd.notna(val) else None
                 except:
                     pass
             return None
@@ -202,6 +209,7 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
             if pd.notna(val) and str(val).strip() != "nan":
                 outstanding_courses_str = str(val).strip()
         
+        has_scores = False
         for code, idx in course_indices.items():
             cell_val = row[idx]
             if pd.isna(cell_val) or str(cell_val).strip() == "":
@@ -209,6 +217,7 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
                 
             parsed = parse_score_grade(cell_val)
             if parsed:
+                has_scores = True
                 long_format_data.append({
                     "matric_number": str(matric).strip(),
                     "name": name,
@@ -227,6 +236,26 @@ def melt_wide_format(filepath, course_columns, course_row_idx=0):
                     "score": parsed["score"],
                     "grade": parsed["grade"]
                 })
+        
+        if not has_scores:
+            long_format_data.append({
+                "matric_number": str(matric).strip(),
+                "name": name,
+                "sex": sex,
+                "baseline_units": int(baseline_units),
+                "baseline_gps": baseline_gps,
+                "outstanding_courses": outstanding_courses_str,
+                "official_curr_tcp": curr_tcp,
+                "official_curr_tgp": curr_tgp,
+                "official_cum_tcp": cum_tcp,
+                "official_cum_tgp": cum_tgp,
+                "official_cgpa": cum_cgpa,
+                "course_code": None,
+                "units": 0,
+                "course_type": None,
+                "score": None,
+                "grade": None
+            })
                 
     return long_format_data, list(course_metadata.values())
 
