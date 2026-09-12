@@ -128,17 +128,12 @@ def get_dashboard_summary(auth_user_id: str = Header(None)):
     level = adviser_info.get("level") if adviser_info else None
     adviser_id = adviser_info.get("id") if adviser_info else None
 
-    # 1. Total students at adviser's level
-    students_query = supabase.table("students").select("id")
-    if level is not None:
-        students_query = students_query.eq("current_level", level)
-    students_res = students_query.execute()
-    total_students = len(students_res.data) if students_res.data else 0
-
     # Profiles & CGPA calculations
-    profiles = _get_bulk_student_data(level)
-    if len(profiles) > total_students:
-        total_students = len(profiles)
+    all_profiles = _get_bulk_student_data(level)
+    
+    # Filter out empty students (no results, no baselines)
+    profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0]
+    total_students = len(profiles)
 
     all_gpas = []
     cgpa_distribution = {
