@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
 import Modal from '../components/ui/Modal';
-import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle2, Loader2, XCircle, AlertTriangle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function AdviserUpload() {
   const { session, loading } = useAuth();
-  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -15,38 +14,33 @@ export default function AdviserUpload() {
   const [semester, setSemester] = useState('');
   const [sessionYear, setSessionYear] = useState('');
   const [file, setFile] = useState(null);
+  
   const [isUploading, setIsUploading] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Preview State
   const [previewData, setPreviewData] = useState(null);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Success State
   const [uploadResult, setUploadResult] = useState(null);
 
   // Modal State
   const [modalState, setModalState] = useState({ isOpen: false, status: 'idle', title: '', subtitle: '', type: '' });
+  const navigate = useNavigate();
+
   const currentYear = new Date().getFullYear();
   const sessionOptions = [
     `${currentYear - 1}/${currentYear}`,
     `${currentYear - 2}/${currentYear - 1}`,
     `${currentYear - 3}/${currentYear - 2}`,
+    `${currentYear - 4}/${currentYear - 3}`,
   ];
 
-  // Redirect if no session
-  useEffect(() => {
-    if (!loading && !session) {
-      navigate('/app/adviser-login');
-    }
-  }, [loading, session, navigate]);
-
-  // Fetch adviser profile
   useEffect(() => {
     if (!session?.user?.id) return;
-    setProfileLoading(true);
-    fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`)
-      .then((r) => r.json())
+    fetch(`${import.meta.env.VITE_API_BASE}/adviser/${session.user.id}`)
+      .then((res) => res.json())
       .then((data) => setProfile(data.found === true ? data : null))
       .catch(() => setProfile(null))
       .finally(() => setProfileLoading(false));
@@ -67,8 +61,8 @@ export default function AdviserUpload() {
       });
       const data = await res.json();
       if (res.ok) {
-        setModalState({ isOpen: false });
         setPreviewData(data);
+        setModalState({ isOpen: true, status: 'preview_results', type: 'preview_results' });
       } else {
         setModalState({ isOpen: true, status: 'error', title: 'Upload Failed', subtitle: data.detail || 'Upload failed' });
       }
@@ -128,6 +122,7 @@ export default function AdviserUpload() {
       setUploadProgress(0);
     }
   };
+
   if (loading || profileLoading) return null;
   if (!session) return null;
 
@@ -135,162 +130,25 @@ export default function AdviserUpload() {
     <div style={{ minHeight: '100vh', background: '#FAFAFA' }}>
       <AdviserSidebar profile={profile} />
 
-      {/* Main content wrapper */}
       <div className="lg:ml-[260px]" style={{ minHeight: '100vh' }}>
         <main
-          className="max-w-[720px] mx-auto px-[24px] pb-[64px] lg:!pt-[40px]"
+          className="max-w-[1000px] w-full mx-auto px-[24px] pb-[64px] lg:!pt-[40px]"
           style={{ paddingTop: '80px' }}
         >
-        
-        {/* State 3: Success */}
-        {uploadResult ? (
-          <div>
-            <div className="mb-[40px]">
-              <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
-              <h1 className="text-step-3xl text-midnight-ink">Upload Complete</h1>
-            </div>
-            <div className="border border-fog rounded-[16px] p-[24px] mb-[32px]">
-              <p className="text-step-sm-2 text-midnight-ink font-medium mb-[16px]">Results successfully inserted!</p>
-              <ul className="text-step-sm-2 text-graphite space-y-[8px]">
-                <li>Students created: <strong>{uploadResult.students_created}</strong></li>
-                <li>Courses created: <strong>{uploadResult.courses_created}</strong></li>
-                <li>Results inserted: <strong>{uploadResult.results_inserted}</strong></li>
-              </ul>
-            </div>
-            <div className="flex gap-[16px]">
-              <button
-                onClick={() => {
-                  setUploadResult(null);
-                  setPreviewData(null);
-                  setFile(null);
-                  setSemester('');
-                  setSessionYear('');
-                }}
-                className="bg-pure-canvas border border-midnight-ink text-midnight-ink text-step-sm rounded-full py-[12px] px-[24px] hover:bg-fog transition-colors"
-              >
-                Upload Another
-              </button>
-              <button
-                onClick={() => navigate('/app/adviser')}
-                className="bg-pure-canvas border border-midnight-ink text-midnight-ink text-step-sm rounded-full py-[12px] px-[24px] hover:bg-fog transition-colors"
-              >
-                Back to Dashboard
-              </button>
-            </div>
-          </div>
-        ) : previewData ? (
-          /* State 2: Preview */
-          <div>
-            <div className="mb-[40px]">
-              <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>
-              <h1 className="text-step-3xl text-midnight-ink">Preview Upload</h1>
-            </div>
-
-            <div className="border border-fog rounded-[16px] p-[24px] mb-[32px]">
-              <p className="text-step-sm-2 text-midnight-ink mb-[8px]">
-                Detected: <strong className="capitalize">{previewData.format}</strong> format ({Math.round(previewData.confidence * 100)}% confidence)
-              </p>
-              <p className="text-step-sm-2 text-graphite mb-[24px]">
-                Total rows detected: <strong>{previewData.total_row_count}</strong>
-              </p>
-
-              {previewData.format === 'wide' && previewData.course_metadata && (
-                <div className="mb-[24px]">
-                  <p className="text-step-sm-2 text-midnight-ink font-medium mb-[8px]">Detected Courses:</p>
-                  <div className="flex flex-wrap gap-[8px]">
-                    {Array.isArray(previewData.course_metadata) ? previewData.course_metadata.map((meta) => (
-                      <span key={meta.course_code} className="text-step-xs text-ash border border-fog rounded-[4px] px-[8px] py-[4px]">
-                        {meta.course_code} ({meta.units}U, {meta.course_type})
-                      </span>
-                    )) : Object.entries(previewData.course_metadata).map(([code, meta]) => (
-                      <span key={code} className="text-step-xs text-ash border border-fog rounded-[4px] px-[8px] py-[4px]">
-                        {code} ({meta.units}U, {meta.course_type})
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {previewData.anomalies && previewData.anomalies.length > 0 && (
-                <div className="mb-[24px] border border-[#f5c6cb] bg-[#f8d7da] rounded-[8px] p-[16px]">
-                  <h3 className="text-[#721c24] text-step-sm-2 font-semibold mb-[8px]">⚠️ Anomalies Detected ({previewData.anomalies.length})</h3>
-                  <p className="text-[#721c24] text-step-xs mb-[12px]">The system detected discrepancies between the computed math and the official math in the broadsheet. You can proceed with the upload, or cancel the upload.</p>
-                  <ul className="space-y-[8px]">
-                    {previewData.anomalies.map((anomaly, idx) => (
-                      <li key={idx} className="bg-white/50 rounded-[4px] p-[8px] text-step-xs text-[#721c24]">
-                        <strong>{anomaly.matric_number}</strong>: {anomaly.details}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="border border-fog rounded-[8px] overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-fog text-midnight-ink text-step-xs">
-                    <tr>
-                      <th className="px-[16px] py-[12px] font-medium border-b border-fog">Matric Number</th>
-                      <th className="px-[16px] py-[12px] font-medium border-b border-fog">Course Code</th>
-                      <th className="px-[16px] py-[12px] font-medium border-b border-fog">Score</th>
-                      <th className="px-[16px] py-[12px] font-medium border-b border-fog">Grade</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-step-sm-2 text-graphite">
-                    {previewData.preview_rows.map((row, idx) => (
-                      <tr key={idx} className="border-b border-fog last:border-b-0">
-                        <td className="px-[16px] py-[12px]">{row.matric_number || '-'}</td>
-                        <td className="px-[16px] py-[12px]">{row.course_code || '-'}</td>
-                        <td className="px-[16px] py-[12px]">{row.score !== null ? row.score : '-'}</td>
-                        <td className="px-[16px] py-[12px]">{row.grade || '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-[16px]">
-              {isConfirming && (
-                <div className="w-full bg-fog rounded-full h-[6px] overflow-hidden">
-                  <div 
-                    className="bg-midnight-ink h-full rounded-full transition-all duration-300 ease-out" 
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-              )}
-              <div className="flex gap-[16px]">
-                <button
-                  onClick={handleConfirmUpload}
-                  disabled={isConfirming}
-                  className="bg-[#1944F1] text-white text-step-sm rounded-full py-[12px] px-[24px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 flex-1"
-                >
-                  {isConfirming ? 'Processing...' : 'Confirm & Upload'}
-                </button>
-                <button
-                  onClick={() => setPreviewData(null)}
-                  disabled={isConfirming}
-                  className="bg-pure-canvas border border-fog text-midnight-ink text-step-sm rounded-full py-[12px] px-[24px] hover:border-graphite transition-colors flex-1 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* State 1: Form */
+          {/* Always show State 1: Form */}
           <div>
             <div className="mb-[40px]">
               <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">UPLOAD RESULTS</p>
-              <h1 className="text-step-3xl text-midnight-ink">New Broadsheet</h1>
+              <h1 className="text-step-3xl text-midnight-ink font-bold" style={{ fontFamily: "'Satoshi', sans-serif" }}>New Broadsheet</h1>
             </div>
 
             <div className="flex flex-col gap-[24px] max-w-[480px]">
               <div className="flex flex-col gap-[8px]">
-                <label className="text-step-sm-2 text-midnight-ink font-medium">Semester</label>
+                <label className="text-step-sm-2 text-midnight-ink font-medium" style={{ fontFamily: "'Satoshi', sans-serif" }}>Semester</label>
                 <select
                   value={semester}
                   onChange={(e) => setSemester(e.target.value)}
-                  className="border border-fog rounded-[8px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-transparent focus:outline-none focus:border-graphite transition-colors"
+                  className="border border-fog rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-white focus:outline-none focus:border-midnight-ink transition-colors"
                 >
                   <option value="" disabled>Select Semester...</option>
                   <option value="First Semester">First Semester</option>
@@ -299,11 +157,11 @@ export default function AdviserUpload() {
               </div>
 
               <div className="flex flex-col gap-[8px]">
-                <label className="text-step-sm-2 text-midnight-ink font-medium">Session</label>
+                <label className="text-step-sm-2 text-midnight-ink font-medium" style={{ fontFamily: "'Satoshi', sans-serif" }}>Session</label>
                 <select
                   value={sessionYear}
                   onChange={(e) => setSessionYear(e.target.value)}
-                  className="border border-fog rounded-[8px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-transparent focus:outline-none focus:border-graphite transition-colors"
+                  className="border border-fog rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-midnight-ink bg-white focus:outline-none focus:border-midnight-ink transition-colors"
                 >
                   <option value="" disabled>Select Session...</option>
                   {sessionOptions.map((opt) => (
@@ -313,32 +171,32 @@ export default function AdviserUpload() {
               </div>
 
               <div className="flex flex-col gap-[8px]">
-                <label className="text-step-sm-2 text-midnight-ink font-medium">Broadsheet File (.xlsx)</label>
+                <label className="text-step-sm-2 text-midnight-ink font-medium" style={{ fontFamily: "'Satoshi', sans-serif" }}>Broadsheet File (.xlsx)</label>
                 <input
                   type="file"
                   accept=".xlsx"
                   onChange={(e) => setFile(e.target.files[0])}
-                  className="border border-fog rounded-[8px] px-[16px] py-[12px] text-step-sm-2 text-graphite file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-fog file:text-midnight-ink hover:file:bg-graphite hover:file:text-pure-canvas transition-all"
+                  className="border border-fog bg-white rounded-[12px] px-[16px] py-[12px] text-step-sm-2 text-graphite file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mist file:text-midnight-ink hover:file:bg-fog transition-all"
                 />
               </div>
 
               <button
                 onClick={handlePreviewUpload}
                 disabled={!semester || !sessionYear || !file || isUploading}
-                className="bg-[#1944F1] text-white text-step-sm rounded-full py-[16px] px-[32px] mt-[16px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#1944F1] text-white text-step-sm rounded-full py-[16px] px-[32px] mt-[16px] hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                style={{ fontFamily: "'Satoshi', sans-serif" }}
               >
-                {isUploading ? 'Analyzing...' : 'Preview Upload'}
+                Preview Upload
               </button>
             </div>
           </div>
-        )}
         </main>
 
         {/* State Modals */}
         <Modal 
           isOpen={modalState.isOpen} 
           onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
-          hideClose={modalState.status === 'processing'}
+          hideClose={modalState.status === 'processing' || modalState.status === 'preview_results'}
         >
           {modalState.status === 'processing' && (
             <div className="flex flex-col items-center text-center py-4">
@@ -357,13 +215,72 @@ export default function AdviserUpload() {
             </div>
           )}
 
+          {modalState.status === 'preview_results' && previewData && (
+            <div className="flex flex-col text-left">
+              <div className="mb-6 text-center">
+                <h3 className="text-[24px] font-bold text-midnight-ink mb-1" style={{ fontFamily: "'Satoshi', sans-serif" }}>Preview Results</h3>
+                <p className="text-neutral-500 text-[14px]" style={{ fontFamily: "'Satoshi', sans-serif" }}>Review the extracted data before saving.</p>
+              </div>
+              
+              <div className="bg-mist rounded-[12px] p-5 mb-4 flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-neutral-600 font-medium text-[15px]" style={{ fontFamily: "'Satoshi', sans-serif" }}>Students Found</span>
+                  <span className="font-bold text-midnight-ink text-xl tabular-nums">{previewData.stats?.total_students || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-neutral-600 font-medium text-[15px]" style={{ fontFamily: "'Satoshi', sans-serif" }}>Courses Detected</span>
+                  <span className="font-bold text-midnight-ink text-xl tabular-nums">{previewData.stats?.unique_courses || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-neutral-600 font-medium text-[15px]" style={{ fontFamily: "'Satoshi', sans-serif" }}>Anomalies Detected</span>
+                  <span className={`font-bold text-xl tabular-nums ${previewData.anomalies?.length > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                    {previewData.anomalies?.length || 0}
+                  </span>
+                </div>
+              </div>
+              
+              {previewData.anomalies?.length > 0 && (
+                <div className="mb-6 max-h-[150px] overflow-y-auto bg-red-50 border border-red-100 rounded-[12px] p-4 custom-scrollbar">
+                  <h4 className="text-red-800 font-bold text-[14px] mb-3 flex items-center gap-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>
+                    <AlertTriangle size={16} /> Data Issues
+                  </h4>
+                  <ul className="text-[13px] text-red-700 space-y-2 list-disc pl-5">
+                    {previewData.anomalies.map((ano, i) => (
+                       <li key={i}>{ano.row ? `Row ${ano.row}: ` : ''}{ano.description}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              <div className="flex w-full gap-3 mt-4">
+                <button
+                  onClick={() => {
+                     setModalState({ isOpen: false, status: 'idle', title: '', subtitle: '', type: '' });
+                     setPreviewData(null);
+                  }}
+                  className="flex-1 py-[14px] bg-neutral-100 text-neutral-700 font-bold rounded-full hover:bg-neutral-200 transition-colors"
+                  style={{ fontFamily: "'Satoshi', sans-serif" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmUpload}
+                  className="flex-1 py-[14px] bg-[#1944F1] text-white font-bold rounded-full hover:bg-blue-700 transition-colors"
+                  style={{ fontFamily: "'Satoshi', sans-serif" }}
+                >
+                  Confirm & Upload
+                </button>
+              </div>
+            </div>
+          )}
+
           {modalState.status === 'success' && modalState.type === 'upload_success' && (
             <div className="flex flex-col items-center text-center py-4">
-              <div className="w-[48px] h-[48px] rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <CheckCircle2 className="text-green-600" size={24} />
+              <div className="w-[64px] h-[64px] rounded-full bg-green-100 flex items-center justify-center mb-6">
+                <CheckCircle2 className="text-green-600" size={32} />
               </div>
-              <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.title}</h3>
-              <p className="text-neutral-500 mb-6" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.subtitle}</p>
+              <h3 className="text-[24px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.title}</h3>
+              <p className="text-neutral-500 mb-8" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.subtitle}</p>
               <div className="flex w-full gap-3">
                 <button
                   onClick={() => {
@@ -371,18 +288,20 @@ export default function AdviserUpload() {
                      setPreviewData(null);
                      setUploadResult(null);
                      setFile(null);
+                     setSemester('');
+                     setSessionYear('');
                   }}
-                  className="flex-1 py-[12px] bg-neutral-100 text-neutral-700 font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+                  className="flex-1 py-[14px] bg-neutral-100 text-neutral-700 font-bold rounded-full hover:bg-neutral-200 transition-colors"
                   style={{ fontFamily: "'Satoshi', sans-serif" }}
                 >
                   Upload Another
                 </button>
                 <button
-                  onClick={() => navigate('/adviser')}
-                  className="flex-1 py-[12px] bg-[#1944F1] text-white font-semibold rounded-full hover:bg-blue-700 transition-colors"
+                  onClick={() => navigate('/app/adviser')}
+                  className="flex-1 py-[14px] bg-[#1944F1] text-white font-bold rounded-full hover:bg-blue-700 transition-colors"
                   style={{ fontFamily: "'Satoshi', sans-serif" }}
                 >
-                  View Dashboard
+                  Dashboard
                 </button>
               </div>
             </div>
@@ -390,14 +309,14 @@ export default function AdviserUpload() {
 
           {modalState.status === 'error' && (
             <div className="flex flex-col items-center text-center py-4">
-              <div className="w-[48px] h-[48px] rounded-full bg-red-100 flex items-center justify-center mb-4">
-                <XCircle className="text-red-600" size={24} />
+              <div className="w-[64px] h-[64px] rounded-full bg-red-100 flex items-center justify-center mb-6">
+                <XCircle className="text-red-600" size={32} />
               </div>
-              <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.title}</h3>
-              <p className="text-neutral-500 mb-6" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.subtitle}</p>
+              <h3 className="text-[24px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.title}</h3>
+              <p className="text-neutral-500 mb-8" style={{ fontFamily: "'Satoshi', sans-serif" }}>{modalState.subtitle}</p>
               <button
                 onClick={() => setModalState(prev => ({ ...prev, isOpen: false }))}
-                className="w-full py-[12px] bg-neutral-100 text-neutral-700 font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+                className="w-full py-[14px] bg-neutral-100 text-neutral-700 font-bold rounded-full hover:bg-neutral-200 transition-colors"
                 style={{ fontFamily: "'Satoshi', sans-serif" }}
               >
                 Close

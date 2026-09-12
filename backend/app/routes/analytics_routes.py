@@ -134,6 +134,7 @@ def get_dashboard_summary(auth_user_id: str = Header(None)):
     # Filter out empty students (no results, no baselines)
     profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0 or p.get("auth_user_id")]
     total_students = len(profiles)
+    evaluated_students = sum(1 for p in profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0)
 
     all_gpas = []
     cgpa_distribution = {
@@ -191,9 +192,13 @@ def get_dashboard_summary(auth_user_id: str = Header(None)):
         )
         recent_uploads = uploads_res.data if uploads_res.data else []
 
+    cleared_count = max(0, evaluated_students - carryover_count) if evaluated_students > 0 else 0
+
     return {
         "adviser": adviser_info,
         "total_students": total_students,
+        "evaluated_students": evaluated_students,
+        "cleared_count": cleared_count,
         "average_cgpa": average_cgpa,
         "at_risk_count": at_risk_count,
         "carryover_count": carryover_count,

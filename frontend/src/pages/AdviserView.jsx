@@ -210,10 +210,11 @@ export default function AdviserDashboard() {
 
   // Pass rate for arc gauge
   const totalStudents = dashData?.total_students || 0;
+  const evaluatedStudents = dashData?.evaluated_students || 0;
   const atRiskCount = dashData?.at_risk_count || 0;
   const carryoverCount = dashData?.carryover_count || 0;
-  const passingCount = Math.max(0, totalStudents - carryoverCount);
-  const passRate = totalStudents > 0 ? Math.round((passingCount / totalStudents) * 100) : 0;
+  const passingCount = dashData?.cleared_count || 0;
+  const passRate = evaluatedStudents > 0 ? Math.round((passingCount / evaluatedStudents) * 100) : 0;
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
