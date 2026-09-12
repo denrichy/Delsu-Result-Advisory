@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -42,38 +41,128 @@ function BentoCard({ children, className = '', delay = 0, noPad = false }) {
 /*  Main Dashboard                               */
 /* UI Section */
 export default function AdviserDashboard() {
-  const { session, user, loading: authLoading, signOut } = useAuth();
+  const { session, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [isNotifying, setNotifying] = useState(false);
 
-  const { data: dashData, isLoading: dataLoading, refetch } = useQuery({
-    queryKey: ['adviserDashboard', user?.id],
-    queryFn: async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/analytics/adviser-dashboard/${user.id}`);
-      if (!res.ok) throw new Error('Dashboard fetch error');
-      return res.json();
-    },
-    enabled: !!user?.id,
-  });
+  const [dashData, setDashData] = useState(null);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [notifying, setNotifying] = useState(false);
 
-  const handleBulkNotify = async () => {
-    if (!dashData?.carryover_count || dashData.carryover_count === 0) return;
-    setNotifying(true);
+  // Modal states
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [processState, setProcessState] = useState({ isOpen: false, status: 'processing', errorTitle: '', errorSubtitle: '' });
+
+  // Course stats
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [courseStats, setCourseStats] = useState(null);
+  const [courseStatsLoading, setCourseStatsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !session) navigate('/app/login');
+  }, [authLoading, session, navigate]);
+
+  // Fetch profile
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    setProfileLoading(true);
+    fetch(`${API}/auth/adviser-profile/${session.user.id}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.found === true) {
+          if (data.revoked === true) { signOut(); setProfile(null); }
+          else setProfile(data);
+        } else setProfile(null);
+      })
+      .catch(() => setProfile(null))
+      .finally(() => setProfileLoading(false));
+  }, [session?.user?.id]);
+
+  // Poll for verification if pending
+  useEffect(() => {
+    if (!session?.user?.id || !profile || profile.verified !== false) return;
+    const iv = setInterval(() => {
+      fetch(`${API}/auth/adviser-profile/${session.user.id}`)
+        .then(r => r.json())
+        .then(data => { if (data.found && data.verified) setProfile(data); })
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [session?.user?.id, profile]);
+
+  // Fetch dashboard data
+  const fetchDashboard = useCallback(async () => {
+    if (!session?.user?.id) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/analytics/notify-carryovers/${user.id}`, {
-        method: 'POST'
-      });
+      const headers = { 'auth-user-id': session.user.id };
+      const [summaryRes, coursesRes] = await Promise.all([
+        fetch(`${API}/analytics/dashboard-summary`, { headers }),
+        fetch(`${API}/analytics/courses`, { headers }),
+      ]);
+      if (summaryRes.ok) setDashData(await summaryRes.json());
+      if (coursesRes.ok) {
+          const raw = await coursesRes.json();
+          const normalized = raw
+            .map(c => c.replace(/\s+/g, '').toUpperCase())
+            .filter(c => c && c !== 'CHOOSECOURSE');
+          setCourses([...new Set(normalized)].sort());
+        }
+    } catch (e) { console.error('Dashboard fetch error', e); }
+    finally { setDataLoading(false); setRefreshing(false); }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (session && profile?.verified) fetchDashboard();
+  }, [session, profile?.verified, fetchDashboard]);
+
+  // Fetch course stats
+  useEffect(() => {
+    if (!selectedCourse) { setCourseStats(null); return; }
+    setCourseStatsLoading(true);
+    fetch(`${API}/analytics/class-stats/${selectedCourse}`)
+      .then(r => r.json())
+      .then(data => {
+        const total = data.grade_distribution ? Object.values(data.grade_distribution).reduce((a, b) => a + b, 0) : 0;
+        setCourseStats({
+          avg: data.class_average,
+          dist: { A: 0, B: 0, C: 0, D: 0, F: 0, ...data.grade_distribution },
+          passRate: data.pass_fail_rate?.pass_rate || 0,
+          failRate: data.pass_fail_rate?.fail_rate || 0,
+          total,
+        });
+      })
+      .catch(() => {})
+      .finally(() => setCourseStatsLoading(false));
+  }, [selectedCourse]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setDataLoading(true);
+    fetchDashboard();
+  };
+
+  const handleBulkNotify = () => {
+    setIsConfirming(true);
+  };
+
+  const executeBulkNotify = async () => {
+    setIsConfirming(false);
+    setNotifying(true);
+    setProcessState({ isOpen: true, status: 'processing', errorTitle: '', errorSubtitle: '' });
+    try {
+      const headers = { 'auth-user-id': session.user.id };
+      const res = await fetch(`${API}/analytics/notify-carryovers`, { method: 'POST', headers });
       if (res.ok) {
-        alert('Notifications sent successfully!');
+        setProcessState({ isOpen: true, status: 'success', errorTitle: '', errorSubtitle: '' });
       } else {
-        alert('Failed to send notifications');
+        setProcessState({ isOpen: true, status: 'error', errorTitle: 'Notification Failed', errorSubtitle: 'Server returned an error. Please try again.' });
       }
-    } catch (err) {
-      console.error(err);
-      alert('Error sending notifications');
+    } catch (e) {
+      setProcessState({ isOpen: true, status: 'error', errorTitle: 'Network Error', errorSubtitle: 'Could not reach the server. Check your connection.' });
     } finally {
       setNotifying(false);
     }

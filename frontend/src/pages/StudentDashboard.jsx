@@ -208,28 +208,38 @@ function FeatureCard({ card, isExpanded, onToggle, navigate, unreadCount, index 
 
 /* â”€â”€â”€ Main Dashboard â”€â”€â”€ */
 export default function StudentDashboard() {
-  const { session, user, loading: authLoading, signOut, userProfile: profile } = useAuth();
+  const { user, loading, session } = useAuth();
   const navigate = useNavigate();
-  const profileLoading = authLoading;
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [expandedCard, setExpandedCard] = useState('results');
 
   useEffect(() => {
-    if (!profile?.id) return;
-    fetch(`${import.meta.env.VITE_API_BASE}/notifications/student/${profile.id}`)
-      .then(r => r.json())
-      .then(notifs => {
-        if (Array.isArray(notifs)) setUnreadCount(notifs.filter(n => !n.read).length);
-      })
-      .catch(console.error);
-  }, [profile?.id, refreshTrigger]);
+    if (!loading && !session) navigate('/app/login');
+  }, [loading, session, navigate]);
 
   useEffect(() => {
-    if (!authLoading && !session) navigate('/app/login');
-  }, [authLoading, session, navigate]);
+    if (!user?.id) return;
+    if (refreshTrigger === 0) setProfileLoading(true);
 
-  
+    fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${user.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setProfile(data);
+        if (data?.id) {
+          fetch(`${import.meta.env.VITE_API_BASE}/notifications/student/${data.id}`)
+            .then(r => r.json())
+            .then(notifs => {
+              if (Array.isArray(notifs)) setUnreadCount(notifs.filter(n => !n.read).length);
+            })
+            .catch(console.error);
+        }
+      })
+      .catch(() => setProfile(null))
+      .finally(() => { if (refreshTrigger === 0) setProfileLoading(false); });
+  }, [user?.id, refreshTrigger]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -246,7 +256,7 @@ export default function StudentDashboard() {
     return () => { clearTimeout(timeoutId); supabase.removeChannel(channel); };
   }, [user?.id]);
 
-  if (authLoading) return null;
+  if (loading) return null;
   if (!session) return null;
 
   const firstName = profile?.name ? profile.name.split(' ')[0] : null;
