@@ -13,17 +13,17 @@ import AdviserUpload from './pages/AdviserUpload';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdviserHistory from './pages/AdviserHistory';
-
 import AdviserUploadDetails from './pages/AdviserUploadDetails';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Mobile Welcome Screen — app entry point */}
+        {/* Mobile Welcome Screen */}
         <Route path="/" element={<Welcome />} />
 
-        {/* Web marketing page (keep accessible at /web) */}
+        {/* Web marketing page */}
         <Route path="/web" element={<Home />} />
         
         {/* App Shell */}
@@ -31,24 +31,24 @@ function App() {
         <Route path="/app/signup" element={<Signup />} />
 
         {/* Student */}
-        <Route path="/app/student" element={<StudentDashboard />} />
-        <Route path="/app/student/results" element={<StudentResults />} />
-        <Route path="/app/student/advisor" element={<StudentAdvisor />} />
-        <Route path="/app/student/advisor/:sessionId" element={<StudentAdvisor />} />
-        <Route path="/app/student/notifications" element={<StudentNotifications />} />
-        <Route path="/app/student/settings" element={<StudentSettings />} />
+        <Route path="/app/student" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+        <Route path="/app/student/results" element={<ProtectedRoute allowedRoles={['student']}><StudentResults /></ProtectedRoute>} />
+        <Route path="/app/student/advisor" element={<ProtectedRoute allowedRoles={['student']}><StudentAdvisor /></ProtectedRoute>} />
+        <Route path="/app/student/advisor/:sessionId" element={<ProtectedRoute allowedRoles={['student']}><StudentAdvisor /></ProtectedRoute>} />
+        <Route path="/app/student/notifications" element={<ProtectedRoute allowedRoles={['student']}><StudentNotifications /></ProtectedRoute>} />
+        <Route path="/app/student/settings" element={<ProtectedRoute allowedRoles={['student']}><StudentSettings /></ProtectedRoute>} />
 
-        {/* Legacy login/signup redirects kept as aliases */}
+        {/* Legacy aliases */}
         <Route path="/app/student-login" element={<Login />} />
         <Route path="/app/student-signup" element={<Signup />} />
         <Route path="/app/adviser-login" element={<Login />} />
         <Route path="/app/adviser-signup" element={<Signup />} />
 
         {/* Adviser */}
-        <Route path="/app/adviser" element={<AdviserView />} />
-        <Route path="/app/adviser/upload" element={<AdviserUpload />} />
-        <Route path="/app/adviser/upload/:uploadId" element={<AdviserUploadDetails />} />
-        <Route path="/app/adviser/history" element={<AdviserHistory />} />
+        <Route path="/app/adviser" element={<ProtectedRoute allowedRoles={['adviser']}><AdviserView /></ProtectedRoute>} />
+        <Route path="/app/adviser/upload" element={<ProtectedRoute allowedRoles={['adviser']}><AdviserUpload /></ProtectedRoute>} />
+        <Route path="/app/adviser/upload/:uploadId" element={<ProtectedRoute allowedRoles={['adviser']}><AdviserUploadDetails /></ProtectedRoute>} />
+        <Route path="/app/adviser/history" element={<ProtectedRoute allowedRoles={['adviser']}><AdviserHistory /></ProtectedRoute>} />
 
         {/* Admin */}
         <Route path="/app/admin-login" element={<AdminLogin />} />

@@ -322,54 +322,55 @@ export default function AdviserDashboard() {
             </BentoCard>
 
             {/* UI Section */}
-            <BentoCard className="lg:col-span-7" delay={0.1}>
-              <div className="grid grid-cols-3 divide-x divide-neutral-100">
-                {/* Total Students */}
-                <div className="px-4 first:pl-0 last:pr-0">
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                    <span className="hidden sm:inline">Total Students</span>
-                    <span className="sm:hidden">All Students</span>
-                  </p>
-                  <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
-                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (totalStudents > 999 ? `${(totalStudents / 1000).toFixed(1)}k` : totalStudents)}
+              <BentoCard className="lg:col-span-7 flex flex-col justify-center" delay={0.1}>
+                <div className="flex items-center justify-between w-full divide-x divide-neutral-100">
+                  {/* Total Students */}
+                  <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
+                    <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                      <span className="hidden sm:inline">Total Students</span>
+                      <span className="sm:hidden">All Students</span>
+                    </p>
+                    <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                      {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (totalStudents > 999 ? `${(totalStudents / 1000).toFixed(1)}k` : totalStudents)}
+                    </div>
+                    <div className="flex items-center justify-center gap-1 mt-2">
+                      <Users size={12} className="text-neutral-400" />
+                      <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || '-'} </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 mt-2">
-                    <Users size={12} className="text-neutral-400" />
-                    <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || '-'} 
-</span>
+  
+                  {/* Avg CGPA */}
+                  <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
+                    <div className="flex items-center justify-center gap-1">
+                        <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg CGPA</p>
+                        <Tooltip content="The overall average CGPA across all students in your level">
+                          <Info size={12} className="text-neutral-300 hover:text-neutral-500 transition-colors cursor-pointer" />
+                        </Tooltip>
+                      </div>
+                    <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                      {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '-')}
+                      </div>
+                    <div className="flex items-center justify-center gap-1 mt-2">
+                      <TrendingUp size={12} className="text-emerald-500" />
+                      <span className="text-[11px] text-emerald-600 font-medium">of 5.0</span>
+                    </div>
+                  </div>
+  
+                  {/* Carryovers */}
+                  <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
+                    <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Carryovers</p>
+                    <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
+                      {dataLoading ? <Skeleton h="h-8" w="w-16" /> : carryoverCount}
+                    </div>
+                    <div className="flex items-center justify-center gap-1 mt-2">
+                      <div className="flex items-center justify-center w-3 h-3 rounded bg-red-100">
+                        <X className="text-red-600" size={8} strokeWidth={3} />
+                      </div>
+                      <span className="text-[11px] text-neutral-400">students</span>
+                    </div>
                   </div>
                 </div>
-
-                {/* Avg CGPA */}
-                <div className="px-4 first:pl-0 last:pr-0">
-                  <div className="flex items-center gap-1">
-                      <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg CGPA</p>
-                      <Tooltip content="The overall average CGPA across all students in your level">
-                        <Info size={12} className="text-neutral-300 hover:text-neutral-500 transition-colors cursor-pointer" />
-                      </Tooltip>
-                    </div>
-                  <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
-                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.average_cgpa ?? '-')}
-                    </div>
-                  <div className="flex items-center gap-1 mt-2">
-                    <TrendingUp size={12} className="text-emerald-500" />
-                    <span className="text-[11px] text-emerald-600 font-medium">of 5.0</span>
-                  </div>
-                </div>
-
-                {/* Carryover Count */}
-                <div className="px-4 first:pl-0 last:pr-0">
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Carryovers</p>
-                  <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
-                    {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.carryover_count ?? 0)}
-                    </div>
-                  <div className="flex items-center gap-1 mt-2">
-                    <BookX size={12} className="text-red-400" />
-                    <span className="text-[11px] text-neutral-400">students</span>
-                  </div>
-                </div>
-              </div>
-            </BentoCard>
+              </BentoCard>
 
             {/* UI Section */}
             <BentoCard className="lg:col-span-7" delay={0.15}>

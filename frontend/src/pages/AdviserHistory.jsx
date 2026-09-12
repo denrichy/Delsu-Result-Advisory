@@ -250,6 +250,82 @@ export default function AdviserHistory() {
           </div>
         </main>
       </div>
+
+      <Modal 
+        isOpen={deleteModal.isOpen} 
+        onClose={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
+        hideClose={deleteModal.status === 'processing'}
+      >
+        {deleteModal.status === 'confirm' && (
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-[48px] h-[48px] rounded-full bg-red-50 flex items-center justify-center mb-4">
+              <AlertTriangle className="text-red-500" size={24} />
+            </div>
+            <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>Delete Upload</h3>
+            <p className="text-neutral-500 mb-6 text-sm" style={{ fontFamily: "'Satoshi', sans-serif" }}>
+              Are you sure you want to delete this upload? This will completely remove {deleteModal.rowCount} student records associated with it. This action cannot be undone.
+            </p>
+            <div className="flex w-full gap-3">
+              <button
+                onClick={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
+                className="flex-1 py-[12px] bg-neutral-100 text-neutral-700 font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+                style={{ fontFamily: "'Satoshi', sans-serif" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDelete}
+                className="flex-1 py-[12px] bg-red-600 text-white font-semibold rounded-full hover:bg-red-700 transition-colors"
+                style={{ fontFamily: "'Satoshi', sans-serif" }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        )}
+
+        {deleteModal.status === 'processing' && (
+          <div className="flex flex-col items-center text-center py-4">
+            <Loader2 className="w-[48px] h-[48px] text-red-500 animate-spin mb-4" />
+            <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>Deleting Records...</h3>
+            <p className="text-neutral-500 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>Removing {deleteModal.rowCount} records from the database.</p>
+          </div>
+        )}
+
+        {deleteModal.status === 'success' && (
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-[48px] h-[48px] rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <CheckCircle2 className="text-green-600" size={24} />
+            </div>
+            <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>Successfully Deleted</h3>
+            <p className="text-neutral-500 mb-6" style={{ fontFamily: "'Satoshi', sans-serif" }}>The upload and all associated records have been removed.</p>
+            <button
+              onClick={() => setDeleteModal({ isOpen: false, status: 'idle', uploadId: null, rowCount: 0, errorMessage: '' })}
+              className="w-full py-[12px] bg-neutral-100 text-neutral-700 font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+              style={{ fontFamily: "'Satoshi', sans-serif" }}
+            >
+              Close
+            </button>
+          </div>
+        )}
+
+        {deleteModal.status === 'error' && (
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-[48px] h-[48px] rounded-full bg-red-100 flex items-center justify-center mb-4">
+              <XCircle className="text-red-600" size={24} />
+            </div>
+            <h3 className="text-[20px] font-bold text-neutral-900 mb-2" style={{ fontFamily: "'Satoshi', sans-serif" }}>Deletion Failed</h3>
+            <p className="text-neutral-500 mb-6" style={{ fontFamily: "'Satoshi', sans-serif" }}>{deleteModal.errorMessage || 'An error occurred while deleting the records.'}</p>
+            <button
+              onClick={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
+              className="w-full py-[12px] bg-neutral-100 text-neutral-700 font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+              style={{ fontFamily: "'Satoshi', sans-serif" }}
+            >
+              Close
+            </button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
