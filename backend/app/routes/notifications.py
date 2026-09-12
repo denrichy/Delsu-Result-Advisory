@@ -29,3 +29,13 @@ def mark_notification_read(notification_id: str):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/student/{student_id}/read-all")
+def mark_all_notifications_read(student_id: str):
+    try:
+        # Mark all unread notifications for this student as read
+        res = supabase.table("notifications").update({"read": True}).eq("student_id", student_id).eq("read", False).execute()
+        return {"message": "All marked as read", "count": len(res.data) if res.data else 0}
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

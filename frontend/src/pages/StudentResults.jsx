@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabaseClient';
 
@@ -119,7 +119,7 @@ function CourseRow({ course, isLast }) {
     <div className={`flex items-center justify-between py-[14px] ${!isLast ? 'border-b border-border/50' : ''}`}>
       <div className="flex-1 min-w-0 mr-4">
         <div className="flex items-baseline gap-[8px]">
-          <span className="font-geist text-[13px] font-semibold text-ink tracking-wide">
+          <span className="font-display text-[15px] font-bold text-ink">
             {course.course_code}
           </span>
           {course.title && (
@@ -168,9 +168,7 @@ export default function StudentResults() {
 
     const fetchResults = async () => {
       try {
-        // Only show loading skeleton on first load, not on realtime refresh
         if (refreshTrigger === 0) setLoading(true);
-        // 1. Fetch profile to get matric_number
         const profileRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
         if (!profileRes.ok) throw new Error('Failed to fetch profile');
 
@@ -184,7 +182,6 @@ export default function StudentResults() {
           return;
         }
 
-        // 2. Fetch Results
         const gpaRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matricNumber}/gpa/cumulative`);
 
         if (gpaRes.status === 404) {
@@ -209,7 +206,7 @@ export default function StudentResults() {
           previous_outstanding: coursesData.previous_outstanding || [],
           current_outstanding: coursesData.current_outstanding || []
         });
-        setError(''); // Clear error if it was previously set
+        setError('');
       } catch (err) {
         console.error(err);
         setError('An error occurred while fetching results. Please try again.');
@@ -236,16 +233,8 @@ export default function StudentResults() {
 
     const channel = supabase
       .channel('student-results-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'results' },
-        handleUpdate
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'students' },
-        handleUpdate
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, handleUpdate)
       .subscribe();
 
     return () => {
@@ -254,7 +243,6 @@ export default function StudentResults() {
     };
   }, [session?.user?.id]);
 
-  // Organize courses by session and semester
   const organizedData = useMemo(() => {
     if (!studentData?.courses?.length) return {};
     return studentData.courses
@@ -284,7 +272,6 @@ export default function StudentResults() {
     return [...new Set(studentData.courses.map(c => c.session || 'Unknown Session'))].sort((a, b) => b.localeCompare(a));
   }, [studentData?.courses]);
 
-  // Total units completed
   const totalUnits = useMemo(() => {
     if (!studentData?.courses?.length) return 0;
     return studentData.courses.reduce((sum, c) => sum + (parseInt(c.units) || 0), 0);
@@ -300,96 +287,108 @@ export default function StudentResults() {
   if (!session) return null;
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-canvas">
-        <div className="max-w-[600px] mx-auto w-full px-[20px] md:px-[24px] pt-[32px] md:pt-[48px] pb-[80px]">
+    <div className="min-h-screen bg-canvas">
+      <div className="max-w-[600px] mx-auto w-full px-[20px] md:px-[24px] pt-[24px] pb-[80px]">
+        
+        {/* ── Custom Header ───────────────────────────── */}
+        <div className="flex items-center justify-between mb-[32px] animate-fade-in">
+          <button 
+            onClick={() => navigate('/app/student')}
+            className="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-surface border border-border/60 hover:bg-surface-2 transition-colors"
+          >
+            <ArrowLeft size={20} className="text-ink-2" />
+          </button>
+          <button 
+            onClick={() => navigate('/app/student/advisor')}
+            className="flex items-center gap-[6px] px-[16px] py-[10px] rounded-full bg-brand/8 text-brand hover:bg-brand/15 transition-colors font-semibold text-[13px]"
+          >
+            <Sparkles size={16} />
+            <span>Ask Compass</span>
+          </button>
+        </div>
 
-          {loading ? (
-            /* ── Loading State ────────────────────────────── */
-            <div className="animate-fade-in">
-              {/* Hero skeleton */}
-              <div className="flex flex-col items-center mb-[40px]">
-                <div className="skeleton w-[160px] h-[160px] rounded-full mb-[16px]" />
-                <div className="skeleton w-[120px] h-[16px] rounded mb-[8px]" />
-                <div className="skeleton w-[200px] h-[12px] rounded" />
+        {loading ? (
+          /* ── Loading State ────────────────────────────── */
+          <div className="animate-fade-in">
+            <div className="flex flex-col items-center mb-[40px]">
+              <div className="skeleton w-[160px] h-[160px] rounded-full mb-[16px]" />
+              <div className="skeleton w-[120px] h-[16px] rounded mb-[8px]" />
+              <div className="skeleton w-[200px] h-[12px] rounded" />
+            </div>
+            <div className="flex justify-center gap-[32px] mb-[40px]">
+              <div className="skeleton w-[80px] h-[48px] rounded-[12px]" />
+              <div className="skeleton w-[80px] h-[48px] rounded-[12px]" />
+            </div>
+            {[1, 2].map(i => (
+              <div key={i} className="skeleton w-full h-[180px] rounded-[16px] mb-[16px]" />
+            ))}
+          </div>
+
+        ) : error ? (
+          /* ── Error State ─────────────────────────────── */
+          <div className="flex flex-col items-center justify-center py-[80px] animate-fade-in">
+            <div className="w-[64px] h-[64px] rounded-full bg-surface-2 flex items-center justify-center mb-[20px]">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-[14px] text-muted text-center max-w-[280px] leading-relaxed mb-[24px]">
+              {error}
+            </p>
+          </div>
+
+        ) : studentData ? (
+          /* ── Results ─────────────────────────────────── */
+          <div className="animate-fade-in">
+
+            {/* ── Hero: CGPA Gauge ─────────────────────── */}
+            <div className="flex flex-col items-center mb-[8px]">
+              <CGPAGauge value={studentData.gpa ?? 0} />
+              <div className="text-center -mt-[4px]">
+                <p className={`font-display text-[14px] font-bold ${classifyGPA(studentData.gpa ?? 0).color}`}>
+                  {classifyGPA(studentData.gpa ?? 0).label}
+                </p>
+                <p className="text-[12px] text-muted mt-[4px] font-mono tracking-wide">
+                  {matric}
+                </p>
               </div>
-              {/* Stats skeleton */}
-              <div className="flex justify-center gap-[32px] mb-[40px]">
-                <div className="skeleton w-[80px] h-[48px] rounded-[12px]" />
-                <div className="skeleton w-[80px] h-[48px] rounded-[12px]" />
-              </div>
-              {/* Card skeletons */}
-              {[1, 2].map(i => (
-                <div key={i} className="skeleton w-full h-[180px] rounded-[16px] mb-[16px]" />
-              ))}
             </div>
 
-          ) : error ? (
-            /* ── Error State ─────────────────────────────── */
-            <div className="flex flex-col items-center justify-center py-[80px] animate-fade-in">
-              <div className="w-[64px] h-[64px] rounded-full bg-surface-2 flex items-center justify-center mb-[20px]">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" strokeWidth="1.5" strokeLinecap="round">
-                  <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            {/* ── Quick Stats ──────────────────────────── */}
+            <div className="flex justify-center gap-[24px] md:gap-[40px] mb-[32px]">
+              <div className="text-center">
+                <p className="font-display text-[22px] font-bold text-ink">{totalCourses}</p>
+                <p className="text-[11px] text-muted font-semibold uppercase tracking-wider">Courses</p>
               </div>
-              <p className="text-[14px] text-muted text-center max-w-[280px] leading-relaxed mb-[24px]">
-                {error}
-              </p>
-              <Link
-                to="/app/student"
-                className="text-[13px] font-semibold text-brand hover:underline underline-offset-4 transition-colors"
-              >
-                ← Back to Dashboard
-              </Link>
+              <div className="w-px h-[36px] bg-border self-center" />
+              <div className="text-center">
+                <p className="font-display text-[22px] font-bold text-ink">{totalUnits}</p>
+                <p className="text-[11px] text-muted font-semibold uppercase tracking-wider">Units</p>
+              </div>
+              <div className="w-px h-[36px] bg-border self-center" />
+              <div className="text-center">
+                <p className="font-display text-[22px] font-bold text-ink">{sessions.length}</p>
+                <p className="text-[11px] text-muted font-semibold uppercase tracking-wider">{sessions.length === 1 ? 'Session' : 'Sessions'}</p>
+              </div>
             </div>
 
-          ) : studentData ? (
-            /* ── Results ─────────────────────────────────── */
-            <div className="animate-fade-in">
-
-              {/* ── Hero: CGPA Gauge ─────────────────────── */}
-              <div className="flex flex-col items-center mb-[8px]">
-                <CGPAGauge value={studentData.gpa ?? 0} />
-                <div className="text-center -mt-[4px]">
-                  <p className={`font-display text-[14px] font-bold ${classifyGPA(studentData.gpa ?? 0).color}`}>
-                    {classifyGPA(studentData.gpa ?? 0).label}
-                  </p>
-                  <p className="text-[12px] text-muted mt-[4px] font-mono tracking-wide">
-                    {matric}
+            {/* ── Outstanding Courses ──────────────────── */}
+            {hasOutstanding && (
+              <div className="mb-[24px] bg-surface rounded-[18px] border border-border/60 overflow-hidden">
+                <div className="px-[20px] py-[14px] border-b border-border/40 bg-surface">
+                  <p className="font-display text-[15px] font-bold text-ink">
+                    Outstanding Courses
                   </p>
                 </div>
-              </div>
-
-              {/* ── Quick Stats ──────────────────────────── */}
-              <div className="flex justify-center gap-[24px] md:gap-[40px] mb-[32px]">
-                <div className="text-center">
-                  <p className="font-display text-[22px] font-bold text-ink">{totalCourses}</p>
-                  <p className="text-[11px] text-muted font-semibold uppercase tracking-wider">Courses</p>
-                </div>
-                <div className="w-px h-[36px] bg-border self-center" />
-                <div className="text-center">
-                  <p className="font-display text-[22px] font-bold text-ink">{totalUnits}</p>
-                  <p className="text-[11px] text-muted font-semibold uppercase tracking-wider">Units</p>
-                </div>
-                <div className="w-px h-[36px] bg-border self-center" />
-                <div className="text-center">
-                  <p className="font-display text-[22px] font-bold text-ink">{sessions.length}</p>
-                  <p className="text-[11px] text-muted font-semibold uppercase tracking-wider">{sessions.length === 1 ? 'Session' : 'Sessions'}</p>
-                </div>
-              </div>
-
-              {/* ── Outstanding Courses Banner ───────────── */}
-              {hasOutstanding && (
-                <div className="mb-[24px] bg-amber-50 border border-amber-200/70 rounded-[14px] p-[16px]">
+                <div className="p-[20px]">
                   {studentData.previous_outstanding?.length > 0 && (
-                    <div className={studentData.current_outstanding?.length > 0 ? 'mb-[14px]' : ''}>
-                      <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-[8px]">
+                    <div className={studentData.current_outstanding?.length > 0 ? 'mb-[16px]' : ''}>
+                      <p className="text-[11px] font-bold text-muted uppercase tracking-[1px] mb-[12px]">
                         Previous Outstanding
                       </p>
-                      <div className="flex flex-wrap gap-[6px]">
+                      <div className="flex flex-wrap gap-[8px]">
                         {studentData.previous_outstanding.map((o, idx) => (
-                          <span key={`prev-${idx}`} className="font-geist text-[12px] font-semibold text-amber-800 bg-white border border-amber-200 px-[10px] py-[4px] rounded-[8px]">
+                          <span key={`prev-${idx}`} className="font-display text-[15px] font-bold text-ink bg-surface-2 px-[14px] py-[6px] rounded-[8px]">
                             {o.course_code}
                           </span>
                         ))}
@@ -398,12 +397,12 @@ export default function StudentResults() {
                   )}
                   {studentData.current_outstanding?.length > 0 && (
                     <div>
-                      <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-[8px]">
+                      <p className="text-[11px] font-bold text-muted uppercase tracking-[1px] mb-[12px]">
                         Current Carryovers
                       </p>
-                      <div className="flex flex-wrap gap-[6px]">
+                      <div className="flex flex-wrap gap-[8px]">
                         {studentData.current_outstanding.map((o, idx) => (
-                          <span key={`curr-${idx}`} className="font-geist text-[12px] font-semibold text-amber-800 bg-white border border-amber-200 px-[10px] py-[4px] rounded-[8px]">
+                          <span key={`curr-${idx}`} className="font-display text-[15px] font-bold text-ink bg-surface-2 px-[14px] py-[6px] rounded-[8px]">
                             {o.course_code}
                           </span>
                         ))}
@@ -411,119 +410,109 @@ export default function StudentResults() {
                     </div>
                   )}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* ── Session Filter Pills ─────────────────── */}
-              {sessions.length > 1 && (
-                <div className="mb-[24px] flex gap-[6px] overflow-x-auto pb-[4px] -mx-[4px] px-[4px] scrollbar-hide">
+            {/* ── Session Filter Pills ─────────────────── */}
+            {sessions.length > 1 && (
+              <div className="mb-[24px] flex gap-[6px] overflow-x-auto pb-[4px] -mx-[4px] px-[4px] scrollbar-hide">
+                <button
+                  onClick={() => setSelectedSession('All')}
+                  className={`shrink-0 px-[14px] py-[7px] rounded-full text-[12px] font-semibold transition-all duration-200 ${
+                    selectedSession === 'All'
+                      ? 'bg-brand text-white shadow-sm'
+                      : 'bg-surface text-muted hover:bg-surface-2 border border-border/60'
+                  }`}
+                >
+                  All Sessions
+                </button>
+                {sessions.map(s => (
                   <button
-                    onClick={() => setSelectedSession('All')}
+                    key={s}
+                    onClick={() => setSelectedSession(s)}
                     className={`shrink-0 px-[14px] py-[7px] rounded-full text-[12px] font-semibold transition-all duration-200 ${
-                      selectedSession === 'All'
+                      selectedSession === s
                         ? 'bg-brand text-white shadow-sm'
-                        : 'bg-surface text-muted hover:bg-surface-2'
+                        : 'bg-surface text-muted hover:bg-surface-2 border border-border/60'
                     }`}
                   >
-                    All Sessions
+                    {s}
                   </button>
-                  {sessions.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => setSelectedSession(s)}
-                      className={`shrink-0 px-[14px] py-[7px] rounded-full text-[12px] font-semibold transition-all duration-200 ${
-                        selectedSession === s
-                          ? 'bg-brand text-white shadow-sm'
-                          : 'bg-surface text-muted hover:bg-surface-2'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* ── Session Cards ────────────────────────── */}
-              {Object.keys(organizedData).length > 0 ? (
-                Object.entries(organizedData)
-                  .sort((a, b) => b[0].localeCompare(a[0]))
-                  .map(([sessionName, semesters], sessionIdx) => (
-                    <div
-                      key={sessionName}
-                      className="mb-[20px] bg-surface rounded-[18px] border border-border/60 overflow-hidden"
-                      style={{
-                        animationDelay: `${sessionIdx * 80}ms`,
-                        animationFillMode: 'both',
-                      }}
-                    >
-                      {/* Session header */}
-                      <div className="px-[20px] py-[14px] border-b border-border/40 bg-surface">
-                        <p className="font-display text-[15px] font-bold text-ink">
-                          {sessionName}
-                        </p>
-                      </div>
-
-                      {/* First Semester */}
-                      {semesters.first.length > 0 && (
-                        <div className="px-[20px]">
-                          <div className="flex items-center justify-between pt-[16px] pb-[8px]">
-                            <p className="text-[11px] font-bold text-muted uppercase tracking-[1px]">
-                              First Semester
-                            </p>
-                            <span className="font-mono text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
-                              GPA {calculateGPA(semesters.first) || '—'}
-                            </span>
-                          </div>
-                          {semesters.first.map((c, i) => (
-                            <CourseRow key={i} course={c} isLast={i === semesters.first.length - 1 && semesters.second.length === 0} />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Divider between semesters */}
-                      {semesters.first.length > 0 && semesters.second.length > 0 && (
-                        <div className="mx-[20px] border-t border-border/40" />
-                      )}
-
-                      {/* Second Semester */}
-                      {semesters.second.length > 0 && (
-                        <div className="px-[20px]">
-                          <div className="flex items-center justify-between pt-[16px] pb-[8px]">
-                            <p className="text-[11px] font-bold text-muted uppercase tracking-[1px]">
-                              Second Semester
-                            </p>
-                            <span className="font-mono text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
-                              GPA {calculateGPA(semesters.second) || '—'}
-                            </span>
-                          </div>
-                          {semesters.second.map((c, i) => (
-                            <CourseRow key={i} course={c} isLast={i === semesters.second.length - 1} />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Bottom padding */}
-                      <div className="h-[12px]" />
-                    </div>
-                  ))
-              ) : (
-                <div className="flex flex-col items-center justify-center py-[48px] bg-surface rounded-[18px] border border-border/60">
-                  <p className="text-[13px] text-muted">No courses recorded yet.</p>
-                </div>
-              )}
-
-              {/* ── Back link ────────────────────────────── */}
-              <div className="mt-[24px] text-center">
-                <Link
-                  to="/app/student"
-                  className="text-[13px] font-semibold text-muted hover:text-ink transition-colors"
-                >
-                  ← Back to Dashboard
-                </Link>
+                ))}
               </div>
-            </div>
-          ) : null}
-        </div>
+            )}
+
+            {/* ── Session Cards ────────────────────────── */}
+            {Object.keys(organizedData).length > 0 ? (
+              Object.entries(organizedData)
+                .sort((a, b) => b[0].localeCompare(a[0]))
+                .map(([sessionName, semesters], sessionIdx) => (
+                  <div
+                    key={sessionName}
+                    className="mb-[20px] bg-surface rounded-[18px] border border-border/60 overflow-hidden"
+                    style={{
+                      animationDelay: `${sessionIdx * 80}ms`,
+                      animationFillMode: 'both',
+                    }}
+                  >
+                    {/* Session header */}
+                    <div className="px-[20px] py-[14px] border-b border-border/40 bg-surface">
+                      <p className="font-display text-[15px] font-bold text-ink">
+                        {sessionName}
+                      </p>
+                    </div>
+
+                    {/* First Semester */}
+                    {semesters.first.length > 0 && (
+                      <div className="px-[20px]">
+                        <div className="flex items-center justify-between pt-[16px] pb-[8px]">
+                          <p className="text-[11px] font-bold text-muted uppercase tracking-[1px]">
+                            First Semester
+                          </p>
+                          <span className="font-mono text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
+                            GPA {calculateGPA(semesters.first) || '—'}
+                          </span>
+                        </div>
+                        {semesters.first.map((c, i) => (
+                          <CourseRow key={i} course={c} isLast={i === semesters.first.length - 1 && semesters.second.length === 0} />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Divider between semesters */}
+                    {semesters.first.length > 0 && semesters.second.length > 0 && (
+                      <div className="mx-[20px] border-t border-border/40" />
+                    )}
+
+                    {/* Second Semester */}
+                    {semesters.second.length > 0 && (
+                      <div className="px-[20px]">
+                        <div className="flex items-center justify-between pt-[16px] pb-[8px]">
+                          <p className="text-[11px] font-bold text-muted uppercase tracking-[1px]">
+                            Second Semester
+                          </p>
+                          <span className="font-mono text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
+                            GPA {calculateGPA(semesters.second) || '—'}
+                          </span>
+                        </div>
+                        {semesters.second.map((c, i) => (
+                          <CourseRow key={i} course={c} isLast={i === semesters.second.length - 1} />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Bottom padding */}
+                    <div className="h-[12px]" />
+                  </div>
+                ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-[48px] bg-surface rounded-[18px] border border-border/60">
+                <p className="text-[13px] text-muted">No courses recorded yet.</p>
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
-    </>
+    </div>
   );
 }

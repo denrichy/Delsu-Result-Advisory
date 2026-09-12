@@ -292,7 +292,7 @@ export default function StudentDashboard() {
                   fontFamily: fontDisplay, fontSize: '28px', fontWeight: 900,
                   color: '#0D1B3D', lineHeight: 1.15, margin: 0,
                 }}>
-                  Hey, {firstName || 'there'} ðŸ‘‹
+                  Hey, {firstName || 'there'} 👋
                 </h1>
               </>
             )}

@@ -148,7 +148,7 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F3F3' }}>
         <div className="flex flex-col items-center gap-[12px]">
           <div className="w-[32px] h-[32px] rounded-full border-[3px] border-[#1944F1] border-t-transparent animate-spin" />
-          <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#767676' }}>LoadingÃ¢â‚¬Â¦</p>
+          <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#767676' }}>Loading...</p>
         </div>
       </div>
     );
@@ -299,7 +299,7 @@ export default function Signup() {
               opacity: loading ? 0.6 : 1, marginTop: '8px',
             }}
           >
-            {loading ? 'Creating AccountÃ¢â‚¬Â¦' : `Create ${role === 'adviser' ? 'Adviser' : 'Student'} Account`}
+            {loading ? 'Creating Account...' : `Create ${role === 'adviser' ? 'Adviser' : 'Student'} Account`}
           </button>
 
         </form>
