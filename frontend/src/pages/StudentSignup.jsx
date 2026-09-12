@@ -6,6 +6,7 @@ export default function StudentSignup() {
   const [name, setName] = useState('');
   const [matricNumber, setMatricNumber] = useState('');
   const [email, setEmail] = useState('');
+  const [department, setDepartment] = useState('Computer Science');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
@@ -15,7 +16,7 @@ export default function StudentSignup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !matricNumber.trim() || !email.trim() || !password || !confirmPassword) return;
+    if (!name.trim() || !matricNumber.trim() || !email.trim() || !password || !confirmPassword || !department) return;
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
@@ -48,6 +49,7 @@ export default function StudentSignup() {
           name: name.trim(),
           matric_number: matricNumber,
           email: email,
+          department: department,
           auth_user_id: authData.user.id
         })
       });
@@ -155,6 +157,27 @@ export default function StudentSignup() {
               required
             />
           </div>
+
+          <div className="flex flex-col gap-[6px]">
+            <label htmlFor="department" className="text-step-xs text-graphite uppercase tracking-widest">
+              DEPARTMENT
+            </label>
+            <select
+              id="department"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              disabled={loading}
+              className="bg-mist rounded-[12px] px-[16px] py-[10px] text-step-sm-2 text-midnight-ink border-none focus:outline-none focus:ring-2 focus:ring-midnight-ink disabled:opacity-50 w-full"
+              required
+            >
+              <option value="Computer Science">Computer Science</option>
+              <option value="Physics">Physics</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Biology">Biology</option>
+            </select>
+          </div>
+
 
           <div className="flex flex-col gap-[6px]">
             <label htmlFor="password" className="text-step-xs text-graphite uppercase tracking-widest">

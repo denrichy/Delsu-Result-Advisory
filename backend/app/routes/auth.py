@@ -9,6 +9,7 @@ class StudentSignup(BaseModel):
     name: str
     matric_number: str
     email: str
+    department: str
     auth_user_id: str
 
 class AdviserSignup(BaseModel):
@@ -47,7 +48,8 @@ def student_signup(data: StudentSignup):
             # Update the existing record
             update_data = {
                 "email": data.email,
-                "auth_user_id": data.auth_user_id
+                "auth_user_id": data.auth_user_id,
+                "department": data.department
             }
             # Always update name to what they provided during signup (since they know their own name)
             update_data["name"] = data.name
@@ -64,6 +66,7 @@ def student_signup(data: StudentSignup):
                 "matric_number": matric,
                 "name": data.name,
                 "email": data.email,
+                "department": data.department,
                 "auth_user_id": data.auth_user_id
             }).execute()
             

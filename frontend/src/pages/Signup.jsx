@@ -83,8 +83,8 @@ export default function Signup() {
 
   // Student fields
   const [matricNumber, setMatricNumber] = useState('');
-  // Adviser fields
-  const [department, setDepartment] = useState('');
+  // Department field (shared)
+  const [department, setDepartment] = useState('Computer Science');
   const [level, setLevel] = useState('100');
   // Shared
   const [name, setName] = useState('');
@@ -113,7 +113,7 @@ export default function Signup() {
         const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name.trim(), matric_number: matricNumber, email, auth_user_id: userId }),
+          body: JSON.stringify({ name: name.trim(), matric_number: matricNumber, email, department, auth_user_id: userId }),
         });
         if (!res.ok) {
           const err = await res.json();
@@ -229,18 +229,32 @@ export default function Signup() {
             />
           </div>
 
-          {/* Adviser: Department */}
-          {role === 'adviser' && (
-            <div className="flex flex-col gap-[6px]">
-              <label htmlFor="department" style={labelStyle}>Department</label>
-              <FocusInput
-                id="department" value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                placeholder="e.g. Computer Science"
-                disabled={loading} required
-              />
-            </div>
-          )}
+          {/* Shared: Department */}
+          <div className="flex flex-col gap-[6px]">
+            <label htmlFor="department" style={labelStyle}>Department</label>
+            <select
+              id="department" value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              disabled={loading} required
+              style={{
+                fontFamily: fontBody,
+                fontSize: '15px',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                background: '#FFFFFF',
+                border: '1px solid #E5E7EB',
+                outline: 'none',
+                width: '100%',
+                color: '#111111'
+              }}
+            >
+              <option value="Computer Science">Computer Science</option>
+              <option value="Physics">Physics</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Biology">Biology</option>
+            </select>
+          </div>
 
           {/* Adviser: Level */}
           {role === 'adviser' && (

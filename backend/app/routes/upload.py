@@ -313,7 +313,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                     update_data = {}
                     if adviser_level is not None and existing.get("current_level") != adviser_level:
                         update_data["current_level"] = adviser_level
-                    if adviser_department is not None and existing.get("department") != adviser_department:
+                    if adviser_department is not None and not existing.get("department"):
                         update_data["department"] = adviser_department
                         
                     new_name = student_baselines[matric].get("name")
