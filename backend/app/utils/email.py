@@ -47,6 +47,7 @@ def send_result_notifications_async(student_emails: list[dict], semester: str, s
     """
     if not BREVO_API_KEY:
         print("BREVO_API_KEY is not set. Skipping email dispatch.")
+        with open("email_debug.log", "a") as f: f.write("NO API KEY\n")
         return
 
     url = "https://api.brevo.com/v3/smtp/email"
@@ -109,8 +110,11 @@ def render_carryover_email(matric_number: str, courses: list) -> str:
     return html
 
 def send_carryover_notifications_async(student_emails: list[dict]):
+    with open('email_debug.log', 'a') as f:
+        f.write(f'Running background task for {len(student_emails)} students\n')
     if not BREVO_API_KEY:
         print("BREVO_API_KEY is not set. Skipping email dispatch.")
+        with open("email_debug.log", "a") as f: f.write("NO API KEY\n")
         return
 
     url = "https://api.brevo.com/v3/smtp/email"
@@ -144,5 +148,7 @@ def send_carryover_notifications_async(student_emails: list[dict]):
             response = requests.post(url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             print(f"Sent carryover email to {email}: {response.json()}")
+            with open("email_debug.log", "a") as f: f.write(f"Success: {email}\n")
         except Exception as e:
             print(f"Failed to send carryover email to {email}: {e}")
+            with open("email_debug.log", "a") as f: f.write(f"Failed {email}: {e}\n")
