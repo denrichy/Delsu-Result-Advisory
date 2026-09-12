@@ -132,7 +132,7 @@ def get_dashboard_summary(auth_user_id: str = Header(None)):
     all_profiles = _get_bulk_student_data(level)
     
     # Filter out empty students (no results, no baselines)
-    profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0]
+    profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0 or p.get("auth_user_id")]
     total_students = len(profiles)
 
     all_gpas = []

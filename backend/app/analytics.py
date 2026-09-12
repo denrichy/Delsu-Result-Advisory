@@ -4,7 +4,7 @@ from collections import defaultdict
 
 def _get_bulk_student_data(level: int = None):
     # Fetch students
-    query = supabase.table('students').select('id, matric_number, current_level, baseline_units, baseline_gps')
+    query = supabase.table('students').select('id, matric_number, current_level, baseline_units, baseline_gps, auth_user_id')
     if level:
         query = query.eq('current_level', level)
     students_res = query.execute()
@@ -27,7 +27,7 @@ def _get_bulk_student_data(level: int = None):
             
     # Group by matric_number
     id_to_matric = {s['id']: s['matric_number'] for s in students_data}
-    matric_to_baseline = {s['matric_number']: {"units": s.get("baseline_units") or 0, "gps": s.get("baseline_gps") or 0.0} for s in students_data}
+    matric_to_baseline = {s['matric_number']: {"units": s.get("baseline_units") or 0, "gps": s.get("baseline_gps") or 0.0, "auth_user_id": s.get("auth_user_id")} for s in students_data}
     
     results_by_matric = defaultdict(list)
     for r in all_results:
@@ -48,14 +48,15 @@ def _get_bulk_student_data(level: int = None):
         })
         
     profiles = []
-    for matric, results in results_by_matric.items():
-        if results:
-            profiles.append({
-                "matric_number": matric,
-                "baseline_units": matric_to_baseline[matric]["units"],
-                "baseline_gps": matric_to_baseline[matric]["gps"],
-                "results": results
-            })
+    for matric, baseline_data in matric_to_baseline.items():
+        results = results_by_matric.get(matric, [])
+        profiles.append({
+            "matric_number": matric,
+            "baseline_units": baseline_data["units"],
+            "baseline_gps": baseline_data["gps"],
+            "auth_user_id": baseline_data["auth_user_id"],
+            "results": results
+        })
             
     return profiles
 
