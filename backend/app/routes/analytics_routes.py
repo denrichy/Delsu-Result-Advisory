@@ -117,7 +117,7 @@ def notify_carryovers_route(background_tasks: BackgroundTasks, auth_user_id: str
         supabase.table("notifications").insert(db_notifications).execute()
         
     if email_list:
-        background_tasks.add_task(send_carryover_notifications_async, email_list)
+        send_carryover_notifications_async(email_list)
         
     return {"message": f"Notified {len(students_data)} students"}
 
