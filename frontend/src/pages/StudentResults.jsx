@@ -98,7 +98,7 @@ function CGPAGauge({ value, max = 5.0 }) {
         x="60" y="76"
         textAnchor="middle"
         style={{
-          fontFamily: "'Public Sans', sans-serif",
+          fontFamily: "'Satoshi', sans-serif",
           fontSize: '9px',
           fontWeight: 600,
           fill: 'var(--color-muted)',
@@ -133,7 +133,7 @@ function CourseRow({ course, isLast }) {
         </span>
       </div>
       <div className="flex items-center gap-[12px] shrink-0">
-        <span className="font-mono text-[13px] text-ink-2 tabular-nums w-[28px] text-right">
+        <span className="font-display text-[13px] text-ink-2 tabular-nums w-[28px] text-right">
           {course.score ?? '—'}
         </span>
         <span className={`inline-flex items-center justify-center w-[32px] h-[28px] rounded-[8px] font-display text-[13px] font-bold ${gc.bg} ${gc.text}`}>
@@ -287,7 +287,7 @@ export default function StudentResults() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen bg-canvas font-display">
       <div className="max-w-[600px] mx-auto w-full px-[20px] md:px-[24px] pt-[24px] pb-[80px]">
         
         {/* ── Custom Header ───────────────────────────── */}
@@ -348,7 +348,7 @@ export default function StudentResults() {
                 <p className={`font-display text-[14px] font-bold ${classifyGPA(studentData.gpa ?? 0).color}`}>
                   {classifyGPA(studentData.gpa ?? 0).label}
                 </p>
-                <p className="text-[12px] text-muted mt-[4px] font-mono tracking-wide">
+                <p className="text-[12px] text-muted mt-[4px] font-display tracking-wide">
                   {matric}
                 </p>
               </div>
@@ -469,7 +469,7 @@ export default function StudentResults() {
                           <p className="text-[11px] font-bold text-muted uppercase tracking-[1px]">
                             First Semester
                           </p>
-                          <span className="font-mono text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
+                          <span className="font-display text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
                             GPA {calculateGPA(semesters.first) || '—'}
                           </span>
                         </div>
@@ -491,7 +491,7 @@ export default function StudentResults() {
                           <p className="text-[11px] font-bold text-muted uppercase tracking-[1px]">
                             Second Semester
                           </p>
-                          <span className="font-mono text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
+                          <span className="font-display text-[11px] font-semibold text-brand bg-brand/8 px-[8px] py-[3px] rounded-[6px]">
                             GPA {calculateGPA(semesters.second) || '—'}
                           </span>
                         </div>
