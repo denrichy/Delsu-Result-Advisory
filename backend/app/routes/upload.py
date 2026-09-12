@@ -311,6 +311,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
             
             new_students_to_insert = []
             
+            students_to_upsert = []
             for matric in unique_matrics:
                 if matric in existing_students:
                     existing = existing_students[matric]
@@ -318,29 +319,36 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                     student_id_map[matric] = student_id
                     student_email_map[matric] = existing.get("email")
                     
-                    update_data = {}
+                    update_data = {"id": student_id, "matric_number": matric}
+                    needs_update = False
+                    
                     if adviser_level is not None and existing.get("current_level") != adviser_level:
                         update_data["current_level"] = adviser_level
+                        needs_update = True
                     if adviser_department is not None and not existing.get("department"):
                         update_data["department"] = adviser_department
+                        needs_update = True
                         
                     new_name = student_baselines[matric].get("name")
                     if new_name and existing.get("name") != new_name:
                         update_data["name"] = new_name
+                        needs_update = True
                         
-                    # Always update baselines to the latest broadsheet values
                     new_baseline_units = student_baselines[matric].get("baseline_units")
                     new_baseline_gps = student_baselines[matric].get("baseline_gps")
                     new_outstanding = student_baselines[matric].get("outstanding_courses")
                     if new_baseline_units is not None and existing.get("baseline_units") != new_baseline_units:
                         update_data["baseline_units"] = new_baseline_units
+                        needs_update = True
                     if new_baseline_gps is not None and existing.get("baseline_gps") != new_baseline_gps:
                         update_data["baseline_gps"] = new_baseline_gps
+                        needs_update = True
                     if new_outstanding is not None and existing.get("outstanding_courses") != new_outstanding:
                         update_data["outstanding_courses"] = new_outstanding
+                        needs_update = True
                         
-                    if update_data:
-                        supabase.table("students").update(update_data).eq("id", student_id).execute()
+                    if needs_update:
+                        students_to_upsert.append(update_data)
                 else:
                     insert_data = {
                         "matric_number": matric,
@@ -352,13 +360,22 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                         "outstanding_courses": student_baselines[matric].get("outstanding_courses")
                     }
                     new_students_to_insert.append(insert_data)
+            
+            # 1. Update existing students in chunks (upsert)
+            chunk_size = 50
+            for i in range(0, len(students_to_upsert), chunk_size):
+                chunk = students_to_upsert[i:i + chunk_size]
+                supabase.table("students").upsert(chunk).execute()
                     
+            # 2. Insert new students
             if new_students_to_insert:
-                s_res = supabase.table("students").insert(new_students_to_insert).execute()
-                if s_res.data:
-                    for s in s_res.data:
-                        student_id_map[s["matric_number"]] = s["id"]
-                    students_created += len(s_res.data)
+                for i in range(0, len(new_students_to_insert), chunk_size):
+                    chunk = new_students_to_insert[i:i + chunk_size]
+                    s_res = supabase.table("students").insert(chunk).execute()
+                    if s_res.data:
+                        for s in s_res.data:
+                            student_id_map[s["matric_number"]] = s["id"]
+                        students_created += len(s_res.data)
 
         # 3. Create Upload Record
         upload_data = {
@@ -392,9 +409,12 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                 })
                 
         if results_data:
-            r_res = supabase.table("results").insert(results_data).execute()
-            if r_res.data:
-                results_inserted = len(r_res.data)
+            chunk_size = 500
+            for i in range(0, len(results_data), chunk_size):
+                chunk = results_data[i:i + chunk_size]
+                r_res = supabase.table("results").insert(chunk).execute()
+                if r_res.data:
+                    results_inserted += len(r_res.data)
                 
         # 5. Dispatch notifications to affected students
         notification_data = []
