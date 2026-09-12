@@ -133,7 +133,7 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
     all_profiles = _get_bulk_student_data(level, session, semester)
     
     # Filter out empty students (no results, no baselines)
-    profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0 or p.get("auth_user_id")]
+    profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0]
     total_students = len(profiles)
     evaluated_students = sum(1 for p in profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0)
 
