@@ -337,15 +337,24 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                     new_baseline_units = student_baselines[matric].get("baseline_units")
                     new_baseline_gps = student_baselines[matric].get("baseline_gps")
                     new_outstanding = student_baselines[matric].get("outstanding_courses")
-                    if new_baseline_units is not None and existing.get("baseline_units") != new_baseline_units:
-                        update_data["baseline_units"] = new_baseline_units
-                        needs_update = True
-                    if new_baseline_gps is not None and existing.get("baseline_gps") != new_baseline_gps:
-                        update_data["baseline_gps"] = new_baseline_gps
-                        needs_update = True
-                    if new_outstanding is not None and existing.get("outstanding_courses") != new_outstanding:
-                        update_data["outstanding_courses"] = new_outstanding
-                        needs_update = True
+                    
+                    # Prevent historical uploads from overwriting current baselines
+                    is_historical = False
+                    if new_baseline_units is not None and existing.get("baseline_units", 0) > 0:
+                        # If the new baseline is smaller than existing by more than 15 units, it's definitely a past session
+                        if new_baseline_units < existing.get("baseline_units") - 15:
+                            is_historical = True
+
+                    if not is_historical:
+                        if new_baseline_units is not None and existing.get("baseline_units") != new_baseline_units:
+                            update_data["baseline_units"] = new_baseline_units
+                            needs_update = True
+                        if new_baseline_gps is not None and existing.get("baseline_gps") != new_baseline_gps:
+                            update_data["baseline_gps"] = new_baseline_gps
+                            needs_update = True
+                        if new_outstanding is not None and existing.get("outstanding_courses") != new_outstanding:
+                            update_data["outstanding_courses"] = new_outstanding
+                            needs_update = True
                         
                     if needs_update:
                         students_to_upsert.append(update_data)
