@@ -42,7 +42,7 @@ export default function AdviserUpload() {
       setProfileLoading(false);
       return;
     }
-    fetch(`${import.meta.env.VITE_API_BASE}/adviser/${session.user.id}`)
+    fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`)
       .then((res) => res.json())
       .then((data) => setProfile(data.found === true ? data : null))
       .catch(() => setProfile(null))
