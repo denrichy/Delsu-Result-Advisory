@@ -309,6 +309,18 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
             res = supabase.table("students").select("id, email, matric_number, name, current_level, baseline_units, baseline_gps, outstanding_courses").in_("matric_number", unique_matrics).execute()
             existing_students = {s["matric_number"]: s for s in res.data} if res.data else {}
             
+            # Find the max session already in the database for this adviser's students
+            max_session = ""
+            if existing_students:
+                sample_student_id = list(existing_students.values())[0]["id"]
+                res_max = supabase.table("results").select("session").eq("student_id", sample_student_id).execute()
+                if res_max.data:
+                    sessions = [r["session"] for r in res_max.data if r.get("session")]
+                    if sessions:
+                        max_session = max(sessions)
+            
+            is_historical_upload = request.session < max_session if max_session else False
+            
             new_students_to_insert = []
             
             students_to_upsert = []
