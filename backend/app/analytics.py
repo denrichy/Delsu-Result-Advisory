@@ -16,7 +16,7 @@ def _get_bulk_student_data(level: int = None, session: str = None, semester: str
     
     # We chunk the student_ids in case there are many, to avoid URL length limits in 'in_'
     all_results = []
-    chunk_size = 100
+    chunk_size = 10
     student_ids = [s['id'] for s in students_data]
     
     for i in range(0, len(student_ids), chunk_size):
@@ -80,7 +80,7 @@ def get_class_average(course_code: str, level: int = None, session: str = None, 
         valid_student_ids = {s['id'] for s in (students_res.data or [])}
 
     scores = []
-    chunk_size = 50
+    chunk_size = 5
     for i in range(0, len(course_ids), chunk_size):
         chunk = course_ids[i:i + chunk_size]
         query = supabase.table('results').select('score, student_id, session, semester').in_('course_id', chunk)
@@ -116,7 +116,7 @@ def get_grade_distribution(course_code: str, level: int = None, session: str = N
         students_res = supabase.table('students').select('id').eq('current_level', level).execute()
         valid_student_ids = {s['id'] for s in (students_res.data or [])}
 
-    chunk_size = 50
+    chunk_size = 5
     for i in range(0, len(course_ids), chunk_size):
         chunk = course_ids[i:i + chunk_size]
         query = supabase.table('results').select('grade, student_id, session, semester').in_('course_id', chunk)
@@ -207,7 +207,7 @@ def get_all_carryovers(level: int = None):
     student_ids = [s['id'] for s in students_data]
     
     all_results = []
-    chunk_size = 100
+    chunk_size = 10
     for i in range(0, len(student_ids), chunk_size):
         chunk = student_ids[i:i + chunk_size]
         res = supabase.table("results").select("student_id, score, grade, semester, session, courses(course_code, course_title, units, course_type, level)").in_("student_id", chunk).execute()
