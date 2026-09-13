@@ -75,7 +75,7 @@ def get_courses(session: str = None, semester: str = None, auth_user_id: str = H
 @router.post("/notify-carryovers")
 def notify_carryovers_route(background_tasks: BackgroundTasks, auth_user_id: str = Header(None)):
     level = get_adviser_level(auth_user_id)
-    carryovers = get_all_carryovers(level=level)
+    carryovers = get_all_carryovers(level=level, session=session, semester=semester)
     
     if not carryovers:
         return {"message": "No carryovers found"}
@@ -180,7 +180,7 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
     at_risk_count = len(at_risk_students)
 
     # 4. Carryover count (unique students with carryovers)
-    carryovers = get_all_carryovers(level=level)
+    carryovers = get_all_carryovers(level=level, session=session, semester=semester)
     carryover_count = len(set(c["matric_number"] for c in carryovers if c.get("matric_number")))
 
     # 8. Recent uploads (last 5 uploads by this adviser)

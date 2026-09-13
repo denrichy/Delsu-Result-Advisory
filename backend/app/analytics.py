@@ -192,7 +192,7 @@ def parse_term(session: str, semester: str):
     sem = 1 if semester and semester.strip().lower() == 'first' else 2
     return (year, sem)
 
-def get_all_carryovers(level: int = None):
+def get_all_carryovers(level: int = None, session: str = None, semester: str = None):
     # Fetch students
     query = supabase.table('students').select('id, matric_number, current_level, outstanding_courses')
     if level:
@@ -232,14 +232,21 @@ def get_all_carryovers(level: int = None):
     for student in students_data:
         matric = student['matric_number']
         
-        # 1. Baseline carryovers
-        baseline_str = student.get("outstanding_courses") or ""
-        prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', baseline_str)
-        outstanding = [{"course_code": c.upper().replace(" ", ""), "session": "Previous", "semester": "N/A"} for c in prev_courses]
+        # 1. Baseline carryovers (ONLY if we are doing a cumulative lookup)
+        outstanding = []
+        if not session and not semester:
+            baseline_str = student.get("outstanding_courses") or ""
+            prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', baseline_str)
+            outstanding = [{"course_code": c.upper().replace(" ", ""), "session": "Previous", "semester": "N/A"} for c in prev_courses]
         
         # 2. Dynamic carryovers from results
         results = results_by_matric.get(matric, [])
         for r in results:
+            if session and r.get('session') != session:
+                continue
+            if semester and r.get('semester') != semester:
+                continue
+                
             if r.get('grade') == 'F':
                 course_code = r.get('course_code')
                 failed_term = parse_term(r.get('session', ''), r.get('semester', ''))
