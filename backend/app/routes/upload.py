@@ -440,7 +440,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
             supabase.table("notifications").insert(notification_data).execute()
             
         # Dispatch emails in background
-        if student_emails_for_brevo:
+        if False and student_emails_for_brevo:
             background_tasks.add_task(
                 send_result_notifications_async,
                 student_emails_for_brevo,
