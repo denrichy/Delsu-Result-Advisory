@@ -394,6 +394,32 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                             student_id_map[s["matric_number"]] = s["id"]
                         students_created += len(s_res.data)
 
+            # 2.5 Insert/Upsert into Temporal Baseline Table
+            temporal_baselines = []
+            for matric in unique_matrics:
+                student_id = student_id_map.get(matric)
+                if not student_id:
+                    continue
+                base_data = student_baselines.get(matric, {})
+                temporal_baselines.append({
+                    "student_id": student_id,
+                    "session": request.session,
+                    "semester": request.semester,
+                    "baseline_units": base_data.get("baseline_units", 0),
+                    "baseline_gps": base_data.get("baseline_gps", 0.0),
+                    "outstanding_courses": base_data.get("outstanding_courses", "")
+                })
+            
+            if temporal_baselines:
+                for i in range(0, len(temporal_baselines), chunk_size):
+                    chunk = temporal_baselines[i:i + chunk_size]
+                    try:
+                        supabase.table("student_session_baselines").upsert(
+                            chunk, on_conflict="student_id, session, semester"
+                        ).execute()
+                    except Exception as e:
+                        print("Warning: temporal baseline upsert failed", e)
+
         # 3. Create Upload Record
         upload_data = {
             "adviser_id": request.adviser_id,

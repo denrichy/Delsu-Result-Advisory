@@ -13,11 +13,45 @@ def _get_bulk_student_data(level: int = None, session: str = None, semester: str
         return []
         
     students_data = students_res.data
+    student_ids = [s['id'] for s in students_data]
     
+    # Fetch temporal baselines
+    all_baselines = []
+    chunk_size = 50
+    for i in range(0, len(student_ids), chunk_size):
+        chunk = student_ids[i:i + chunk_size]
+        try:
+            b_res = supabase.table("student_session_baselines").select("*").in_("student_id", chunk).execute()
+            if b_res.data:
+                all_baselines.extend(b_res.data)
+        except Exception:
+            pass
+
+    # Assign temporal baselines to students if a specific session is selected
+    if session:
+        for s in students_data:
+            s_baselines = [b for b in all_baselines if b['student_id'] == s['id'] and b['session'] == session]
+            if semester:
+                s_baselines = [b for b in s_baselines if b['semester'] == semester]
+            
+            if s_baselines:
+                b = s_baselines[0]
+                s['baseline_units'] = b.get('baseline_units', 0)
+                s['baseline_gps'] = b.get('baseline_gps', 0.0)
+            else:
+                s['baseline_units'] = 0
+                s['baseline_gps'] = 0.0
+    else:
+        for s in students_data:
+            s_baselines = [b for b in all_baselines if b['student_id'] == s['id']]
+            if s_baselines:
+                latest = max(s_baselines, key=lambda x: x['session'])
+                s['baseline_units'] = latest.get('baseline_units', 0)
+                s['baseline_gps'] = latest.get('baseline_gps', 0.0)
+
     # We chunk the student_ids in case there are many, to avoid URL length limits in 'in_'
     all_results = []
     chunk_size = 10
-    student_ids = [s['id'] for s in students_data]
     
     for i in range(0, len(student_ids), chunk_size):
         chunk = student_ids[i:i + chunk_size]
@@ -214,6 +248,36 @@ def get_all_carryovers(level: int = None, session: str = None, semester: str = N
         if res.data:
             all_results.extend(res.data)
             
+    # Fetch temporal baselines for carryovers
+    all_baselines = []
+    for i in range(0, len(student_ids), 50):
+        chunk = student_ids[i:i + 50]
+        try:
+            b_res = supabase.table("student_session_baselines").select("*").in_("student_id", chunk).execute()
+            if b_res.data:
+                all_baselines.extend(b_res.data)
+        except Exception:
+            pass
+
+    # Attach baseline string to student based on session/semester
+    if session:
+        for s in students_data:
+            s_baselines = [b for b in all_baselines if b['student_id'] == s['id'] and b['session'] == session]
+            if semester:
+                s_baselines = [b for b in s_baselines if b['semester'] == semester]
+            if s_baselines:
+                s['temporal_outstanding'] = s_baselines[0].get('outstanding_courses', '')
+            else:
+                s['temporal_outstanding'] = ''
+    else:
+        for s in students_data:
+            s_baselines = [b for b in all_baselines if b['student_id'] == s['id']]
+            if s_baselines:
+                latest = max(s_baselines, key=lambda x: x['session'])
+                s['temporal_outstanding'] = latest.get('outstanding_courses', '')
+            else:
+                s['temporal_outstanding'] = s.get('outstanding_courses', '')
+
     id_to_student = {s['id']: s for s in students_data}
     results_by_matric = defaultdict(list)
     for r in all_results:
@@ -232,12 +296,10 @@ def get_all_carryovers(level: int = None, session: str = None, semester: str = N
     for student in students_data:
         matric = student['matric_number']
         
-        # 1. Baseline carryovers (ONLY if we are doing a cumulative lookup)
-        outstanding = []
-        if not session and not semester:
-            baseline_str = student.get("outstanding_courses") or ""
-            prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', baseline_str)
-            outstanding = [{"course_code": c.upper().replace(" ", ""), "session": "Previous", "semester": "N/A"} for c in prev_courses]
+        # 1. Temporal Baseline carryovers
+        baseline_str = student.get("temporal_outstanding") or ""
+        prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', baseline_str)
+        outstanding = [{"course_code": c.upper().replace(" ", ""), "session": "Previous", "semester": "N/A"} for c in prev_courses]
         
         # 2. Dynamic carryovers from results
         results = results_by_matric.get(matric, [])
