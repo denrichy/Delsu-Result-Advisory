@@ -339,11 +339,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                     new_outstanding = student_baselines[matric].get("outstanding_courses")
                     
                     # Prevent historical uploads from overwriting current baselines
-                    is_historical = False
-                    if new_baseline_units is not None and existing.get("baseline_units", 0) > 0:
-                        # If the new baseline is smaller than existing by more than 15 units, it's definitely a past session
-                        if new_baseline_units < existing.get("baseline_units") - 15:
-                            is_historical = True
+                    is_historical = is_historical_upload
 
                     if not is_historical:
                         if new_baseline_units is not None and existing.get("baseline_units") != new_baseline_units:
