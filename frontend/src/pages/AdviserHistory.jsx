@@ -87,6 +87,39 @@ export default function AdviserHistory() {
     }
   };
 
+  if (!profileLoading && (!profile || profile.found === false)) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+        <div className="max-w-[440px] text-center p-10">
+          <h1 className="text-2xl font-display font-bold text-neutral-900 mb-3">Profile Not Found</h1>
+          <p className="text-sm text-neutral-500">No adviser profile found for this account. Please contact support or sign up again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileLoading && profile?.revoked === true) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+        <div className="max-w-[440px] text-center p-10">
+          <h1 className="text-2xl font-display font-bold text-neutral-900 mb-3 text-red-600">Access Revoked</h1>
+          <p className="text-sm text-neutral-500">Your access to the adviser dashboard has been revoked. Please reach out to the admin to resolve this.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileLoading && profile?.verified === false) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+        <div className="max-w-[440px] text-center p-10">
+          <h1 className="text-2xl font-display font-bold text-neutral-900 mb-3">Pending Verification</h1>
+          <p className="text-sm text-neutral-500">Your adviser account is awaiting admin approval. You'll be able to access the dashboard once verified.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAFA' }}>
       <AdviserSidebar profile={profile} />

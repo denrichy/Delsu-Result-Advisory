@@ -75,10 +75,10 @@ export default function Login() {
         }
       } else if (role === 'adviser') {
         const { data: adviserData, error: adviserError } = await supabase
-          .from('advisers').select('id, revoked').eq('auth_user_id', data.user.id).single();
-        if (adviserError || !adviserData || adviserData.revoked) {
-          await supabase.auth.signOut();
-          setError('No adviser account found, or your access has been revoked.');
+            .from('advisers').select('id').eq('auth_user_id', data.user.id).single();
+          if (adviserError || !adviserData) {
+            await supabase.auth.signOut();
+            setError('No adviser account found for this email.');
           setLoading(false);
           isSubmitting.current = false;
           setSheetState({ isOpen: true, status: 'error' });

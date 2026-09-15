@@ -202,7 +202,18 @@ export default function AdviserDashboard() {
     );
   }
 
-  if (!profileLoading && profile?.verified === false) {
+    if (!profileLoading && profile?.revoked === true) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+        <div className="max-w-[440px] text-center p-10">
+          <h1 className="text-2xl font-display font-bold text-neutral-900 mb-3 text-red-600">Access Revoked</h1>
+          <p className="text-sm text-neutral-500">Your access to the adviser dashboard has been revoked. Please reach out to the admin to resolve this.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileLoading && profile?.verified === false && profile?.revoked === false) {
     return (
       <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
         <div className="max-w-[440px] text-center p-10">
