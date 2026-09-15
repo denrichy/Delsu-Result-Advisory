@@ -53,7 +53,7 @@ export default function Signup() {
   const [role, setRole] = useState('student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading, refreshAuth } = useAuth();
   const [checkingRole, setCheckingRole] = useState(true);
   const [sheetState, setSheetState] = useState({ isOpen: false, status: 'processing' });
   const navigateTarget = useRef(null);
@@ -138,6 +138,7 @@ export default function Signup() {
       setError(err.message || 'An error occurred.');
       setSheetState({ isOpen: true, status: 'error' });
     } finally {
+      if (refreshAuth) await refreshAuth();
       setLoading(false);
       isSubmitting.current = false;
     }

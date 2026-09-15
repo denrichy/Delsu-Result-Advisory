@@ -70,8 +70,16 @@ export function AuthProvider({ children }) {
     setUserProfile(null);
   };
 
+  const refreshAuth = async () => {
+    if (session?.user?.id) {
+      const { role, profile } = await fetchUserContext(session.user.id);
+      setUserRole(role);
+      setUserProfile(profile);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ session, user, userRole, userProfile, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, userRole, userProfile, loading, signOut, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   );
