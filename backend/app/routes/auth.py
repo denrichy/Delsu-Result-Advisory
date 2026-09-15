@@ -78,7 +78,14 @@ def student_signup(data: StudentSignup):
         raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        if "duplicate key value violates unique constraint" in error_msg:
+            if "advisers_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another adviser.")
+            elif "students_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another student.")
+            raise HTTPException(status_code=400, detail="This record already exists. Please check your credentials.")
+        raise HTTPException(status_code=500, detail="An internal database error occurred. Please try again.")
 
 @router.post("/adviser-signup")
 def adviser_signup(data: AdviserSignup):
@@ -98,24 +105,46 @@ def adviser_signup(data: AdviserSignup):
             if res.data[0].get("auth_user_id"):
                 raise HTTPException(status_code=400, detail="Email already claimed by another adviser.")
             
-        insert_res = supabase.table("advisers").insert({
-            "name": data.name,
-            "email": data.email,
-            "department": data.department,
-            "level": data.level,
-            "auth_user_id": data.auth_user_id,
-            "verified": False
-        }).execute()
-        
-        if not insert_res.data:
-            raise HTTPException(status_code=500, detail="Failed to create adviser.")
-        return insert_res.data[0]
+            # Update pre-existing adviser record (likely added by admin without auth_user_id)
+            update_data = {
+                "name": data.name,
+                "department": data.department,
+                "level": data.level,
+                "auth_user_id": data.auth_user_id,
+                # keep verified as false to require admin approval again if they changed departments
+                "verified": False
+            }
+            update_res = supabase.table("advisers").update(update_data).eq("email", data.email).execute()
+            
+            if not update_res.data:
+                raise HTTPException(status_code=500, detail="Failed to claim adviser account.")
+            return update_res.data[0]
+        else:
+            insert_res = supabase.table("advisers").insert({
+                "name": data.name,
+                "email": data.email,
+                "department": data.department,
+                "level": data.level,
+                "auth_user_id": data.auth_user_id,
+                "verified": False
+            }).execute()
+            
+            if not insert_res.data:
+                raise HTTPException(status_code=500, detail="Failed to create adviser.")
+            return insert_res.data[0]
         
     except HTTPException:
         raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        if "duplicate key value violates unique constraint" in error_msg:
+            if "advisers_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another adviser.")
+            elif "students_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another student.")
+            raise HTTPException(status_code=400, detail="This record already exists. Please check your credentials.")
+        raise HTTPException(status_code=500, detail="An internal database error occurred. Please try again.")
 
 @router.get("/student-profile/{auth_user_id}")
 def get_student_profile(auth_user_id: str):
@@ -136,7 +165,14 @@ def get_student_profile(auth_user_id: str):
         raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        if "duplicate key value violates unique constraint" in error_msg:
+            if "advisers_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another adviser.")
+            elif "students_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another student.")
+            raise HTTPException(status_code=400, detail="This record already exists. Please check your credentials.")
+        raise HTTPException(status_code=500, detail="An internal database error occurred. Please try again.")
 
 @router.get("/adviser-profile/{auth_user_id}")
 def get_adviser_profile(auth_user_id: str):
@@ -157,5 +193,12 @@ def get_adviser_profile(auth_user_id: str):
         raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        if "duplicate key value violates unique constraint" in error_msg:
+            if "advisers_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another adviser.")
+            elif "students_email_key" in error_msg:
+                raise HTTPException(status_code=400, detail="This email is already registered to another student.")
+            raise HTTPException(status_code=400, detail="This record already exists. Please check your credentials.")
+        raise HTTPException(status_code=500, detail="An internal database error occurred. Please try again.")
 
