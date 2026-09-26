@@ -56,27 +56,19 @@ function ProfileSkeleton() {
 }
 
 export default function StudentSettings() {
-  const { user, loading, session, signOut } = useAuth();
+  const { user, userProfile, loading, session, signOut } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) navigate('/app/login');
   }, [loading, session, navigate]);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    setProfileLoading(true);
-    fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${user.id}`)
-      .then((response) => (response.ok ? response.json() : null))
-      .then(setProfile)
-      .catch(() => setProfile(null))
-      .finally(() => setProfileLoading(false));
-  }, [user?.id]);
-
   if (loading || !session) return null;
+
+  // Use the profile already loaded globally by AuthContext
+  const profile = userProfile;
+  const profileLoading = !profile && loading;
 
   const details = [
     { icon: Hash, label: 'Matric number', value: profile?.matric_number },
