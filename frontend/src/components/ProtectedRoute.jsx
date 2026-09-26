@@ -5,7 +5,8 @@ import { Loader2 } from 'lucide-react';
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { session, userRole, loading } = useAuth();
 
-  if (loading) {
+  // Show spinner while auth is loading OR while role hasn't been resolved yet
+  if (loading || (session && !userRole)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <Loader2 className="w-8 h-8 animate-spin text-[#1944F1]" />

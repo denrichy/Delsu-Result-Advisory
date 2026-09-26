@@ -20,10 +20,10 @@ async function fetchUserContext(userId) {
       return { role: 'student', profile: stuData };
     }
 
-    return { role: 'student', profile: null }; // Default fallback
+    return { role: null, profile: null }; // No profile found yet
   } catch (err) {
     console.error('Network or unexpected error during role detection:', err);
-    return { role: 'student', profile: null };
+    return { role: null, profile: null };
   }
 }
 
