@@ -528,9 +528,16 @@ def clean_all_phantoms():
 async def delete_upload(upload_id: str, background_tasks: BackgroundTasks, actor=Depends(require_verified_adviser)):
     try:
         _require_owned_upload(upload_id, actor["profile"]["id"])
-        # Get all student IDs associated with this upload before deleting
-        res_students = supabase.table("results").select("student_id").eq("upload_id", upload_id).execute()
+        # Get all student IDs and session/semester info before deleting
+        res_students = supabase.table("results").select("student_id, session, semester").eq("upload_id", upload_id).execute()
         student_ids = list(set([r["student_id"] for r in res_students.data])) if res_students.data else []
+        # Collect distinct session/semester combos from this upload's results
+        upload_terms = set()
+        if res_students.data:
+            for r in res_students.data:
+                s, sem = r.get("session"), r.get("semester")
+                if s and sem:
+                    upload_terms.add((s, sem))
 
         # First, check how many results are associated so we can report back
         res_count = supabase.table("results").select("*", count="exact").eq("upload_id", upload_id).execute()
@@ -545,12 +552,39 @@ async def delete_upload(upload_id: str, background_tasks: BackgroundTasks, actor
         for sid in student_ids:
             remain_res = supabase.table("results").select("id").eq("student_id", sid).limit(1).execute()
             if not remain_res.data:
-                # No more results for this student, wipe their baselines
+                # No more results for this student, wipe their master baselines
                 supabase.table("students").update({
                     "baseline_units": 0,
                     "baseline_gps": 0.0,
                     "outstanding_courses": ""
                 }).eq("id", sid).execute()
+                # Also wipe ALL temporal baselines for this student
+                try:
+                    supabase.table("student_session_baselines").delete().eq("student_id", sid).execute()
+                except Exception:
+                    pass
+            else:
+                # Student still has other results, only clean temporal baselines
+                # for session/semester combos that no longer have results
+                for (sess, sem) in upload_terms:
+                    remaining = (
+                        supabase.table("results")
+                        .select("id")
+                        .eq("student_id", sid)
+                        .eq("session", sess)
+                        .eq("semester", sem)
+                        .limit(1)
+                        .execute()
+                    )
+                    if not remaining.data:
+                        try:
+                            supabase.table("student_session_baselines").delete() \
+                                .eq("student_id", sid) \
+                                .eq("session", sess) \
+                                .eq("semester", sem) \
+                                .execute()
+                        except Exception:
+                            pass
                 
         # Trigger background sweeping of any straggler phantom students
         background_tasks.add_task(clean_all_phantoms)
