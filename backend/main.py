@@ -7,7 +7,14 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://delsu-result-advisory.vercel.app", "https://delsu-result-advisory.vercel.app/"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://delsu-result-advisory.vercel.app",
+        "https://t-advisory.vercel.app",
+        "http://localhost",
+        "https://localhost",
+        "capacitor://localhost"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
