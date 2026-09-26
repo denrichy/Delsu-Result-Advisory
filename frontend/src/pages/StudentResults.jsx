@@ -437,7 +437,7 @@ export default function StudentResults() {
                         {sessionName}
                       </p>
                       
-                      {sessions.length > 1 && (
+                      {sessions.length > 0 && (
                         <div className="flex items-center gap-[6px]">
                           <button
                             type="button"
