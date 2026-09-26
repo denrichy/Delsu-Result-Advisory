@@ -418,35 +418,6 @@ export default function StudentResults() {
               </div>
             )}
 
-            {/* ── One-session-at-a-time navigation ─────── */}
-            {sessions.length > 0 && (
-              <div className="mb-[24px] flex items-center justify-between gap-[12px] bg-surface rounded-[16px] border border-border/60 px-[12px] py-[10px]">
-                <button
-                  type="button"
-                  onClick={() => olderSession && setSelectedSession(olderSession)}
-                  disabled={!olderSession}
-                  aria-label="Show previous academic session"
-                  className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ChevronLeft size={19} />
-                </button>
-                <div className="min-w-0 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-[1px] text-muted">Academic Session</p>
-                  <p className="mt-[2px] font-display text-[15px] font-bold text-ink">{selectedSession}</p>
-                  {sessions.length > 1 && <p className="mt-[1px] text-[10px] text-muted">{selectedSessionIndex + 1} of {sessions.length}</p>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => newerSession && setSelectedSession(newerSession)}
-                  disabled={!newerSession}
-                  aria-label="Show next academic session"
-                  className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ChevronRight size={19} />
-                </button>
-              </div>
-            )}
-
             {/* ── Session Cards ────────────────────────── */}
             {Object.keys(organizedData).length > 0 ? (
               Object.entries(organizedData)
@@ -460,11 +431,34 @@ export default function StudentResults() {
                       animationFillMode: 'both',
                     }}
                   >
-                    {/* Session header */}
-                    <div className="px-[20px] py-[14px] border-b border-border/40 bg-surface">
+                    {/* Session header with navigation */}
+                    <div className="px-[20px] py-[12px] border-b border-border/40 bg-surface flex items-center justify-between">
                       <p className="font-display text-[15px] font-bold text-ink">
                         {sessionName}
                       </p>
+                      
+                      {sessions.length > 1 && (
+                        <div className="flex items-center gap-[6px]">
+                          <button
+                            type="button"
+                            onClick={() => olderSession && setSelectedSession(olderSession)}
+                            disabled={!olderSession}
+                            aria-label="Show previous academic session"
+                            className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            <ChevronLeft size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => newerSession && setSelectedSession(newerSession)}
+                            disabled={!newerSession}
+                            aria-label="Show next academic session"
+                            className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            <ChevronRight size={16} />
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* First Semester */}
