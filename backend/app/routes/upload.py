@@ -1,7 +1,8 @@
 import os
 import uuid
 import pandas as pd
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Depends
+from app.security import require_verified_adviser
 from typing import List, Optional
 from pydantic import BaseModel
 from app.ingestion import detect_sheet_format, melt_wide_format, detect_long_format_columns, parse_score_grade
@@ -9,7 +10,7 @@ from app.db import supabase
 from app.utils.email import send_result_notifications_async
 import re
 
-router = APIRouter(tags=["upload"])
+router = APIRouter(tags=["upload"], dependencies=[Depends(require_verified_adviser)])
 
 class ResultRow(BaseModel):
     matric_number: Optional[str] = None
@@ -219,13 +220,14 @@ async def upload_preview(file: UploadFile = File(...)):
             os.remove(temp_filepath)
 
 @router.post("/confirm")
-async def upload_confirm(request: UploadConfirmRequest, background_tasks: BackgroundTasks):
+async def upload_confirm(request: UploadConfirmRequest, background_tasks: BackgroundTasks, actor=Depends(require_verified_adviser)):
     try:
         courses_created = 0
         students_created = 0
         results_inserted = 0
         
-        adviser_res = supabase.table("advisers").select("level, department").eq("id", request.adviser_id).execute()
+        adviser_id = actor["profile"]["id"]
+        adviser_res = supabase.table("advisers").select("level, department").eq("id", adviser_id).execute()
         adviser_level = adviser_res.data[0].get("level") if adviser_res.data else None
         adviser_department = adviser_res.data[0].get("department") if adviser_res.data else None
         
@@ -422,7 +424,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
 
         # 3. Create Upload Record
         upload_data = {
-            "adviser_id": request.adviser_id,
+            "adviser_id": adviser_id,
             "filename": request.filename,
             "status": "published",
             "raw_row_count": len(request.rows)
@@ -447,7 +449,7 @@ async def upload_confirm(request: UploadConfirmRequest, background_tasks: Backgr
                     "grade": row.grade,
                     "semester": request.semester,
                     "session": request.session,
-                    "uploaded_by": request.adviser_id,
+                    "uploaded_by": adviser_id,
                     "upload_id": upload_id
                 })
                 
@@ -523,8 +525,9 @@ def clean_all_phantoms():
         print(f"Background phantom cleanup failed: {e}")
 
 @router.delete("/{upload_id}")
-async def delete_upload(upload_id: str, background_tasks: BackgroundTasks):
+async def delete_upload(upload_id: str, background_tasks: BackgroundTasks, actor=Depends(require_verified_adviser)):
     try:
+        _require_owned_upload(upload_id, actor["profile"]["id"])
         # Get all student IDs associated with this upload before deleting
         res_students = supabase.table("results").select("student_id").eq("upload_id", upload_id).execute()
         student_ids = list(set([r["student_id"] for r in res_students.data])) if res_students.data else []
@@ -563,8 +566,10 @@ async def delete_upload(upload_id: str, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=500, detail=f"Failed to delete upload: {str(e)}")
 
 @router.get("/history/{adviser_id}")
-async def get_upload_history(adviser_id: str):
+async def get_upload_history(adviser_id: str, actor=Depends(require_verified_adviser)):
     try:
+        if adviser_id != actor["profile"]["id"]:
+            raise HTTPException(status_code=403, detail="You can only access your own upload history")
         # Get all uploads for this adviser
         uploads_res = supabase.table("uploads").select("*").eq("adviser_id", adviser_id).order("created_at", desc=True).execute()
         
@@ -593,11 +598,14 @@ async def get_upload_history(adviser_id: str):
             })
             
         return history
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch upload history: {str(e)}")
 
 @router.get("/{upload_id}/results")
-async def get_upload_results(upload_id: str):
+async def get_upload_results(upload_id: str, actor=Depends(require_verified_adviser)):
+    _require_owned_upload(upload_id, actor["profile"]["id"])
     res = supabase.table("results").select("*, students(name)").eq("upload_id", upload_id).execute()
     if not res.data:
         return []
@@ -609,3 +617,16 @@ async def get_upload_results(upload_id: str):
         cleaned.append(r)
         
     return cleaned
+
+
+def _require_owned_upload(upload_id: str, adviser_id: str):
+    result = (
+        supabase.table("uploads")
+        .select("id")
+        .eq("id", upload_id)
+        .eq("adviser_id", adviser_id)
+        .limit(1)
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Upload not found")

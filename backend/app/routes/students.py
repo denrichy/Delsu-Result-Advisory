@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from app.db import supabase
+from app.security import require_student_or_adviser, require_verified_adviser
 from app.performance import get_semester_gpa, get_cumulative_gpa, get_course_breakdown, get_full_academic_record
 
 router = APIRouter(prefix="/students", tags=["students"])
@@ -12,7 +13,7 @@ class StudentCreate(BaseModel):
     department: Optional[str] = None
 
 @router.post("")
-def create_student(student: StudentCreate):
+def create_student(student: StudentCreate, actor=Depends(require_verified_adviser)):
     try:
         response = supabase.table("students").insert(student.model_dump()).execute()
         if not response.data:
@@ -22,7 +23,7 @@ def create_student(student: StudentCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("")
-def get_students():
+def get_students(actor=Depends(require_verified_adviser)):
     try:
         response = supabase.table("students").select("*").order("name", desc=False).execute()
         return response.data
@@ -30,8 +31,9 @@ def get_students():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{matric_number:path}/gpa/semester")
-def get_student_semester_gpa(matric_number: str, semester: str, session: str):
+def get_student_semester_gpa(matric_number: str, semester: str, session: str, actor=Depends(require_student_or_adviser)):
     try:
+        _authorize_student(matric_number, actor)
         response = supabase.table("students").select("id").eq("matric_number", matric_number).execute()
         if not response.data:
             raise HTTPException(status_code=404, detail="Student not found")
@@ -46,8 +48,9 @@ def get_student_semester_gpa(matric_number: str, semester: str, session: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{matric_number:path}/gpa/cumulative")
-def get_student_cumulative_gpa(matric_number: str):
+def get_student_cumulative_gpa(matric_number: str, actor=Depends(require_student_or_adviser)):
     try:
+        _authorize_student(matric_number, actor)
         response = supabase.table("students").select("id, baseline_units, baseline_gps").eq("matric_number", matric_number).execute()
         if not response.data:
             raise HTTPException(status_code=404, detail="Student not found")
@@ -67,8 +70,9 @@ def get_student_cumulative_gpa(matric_number: str):
 
 
 @router.get("/{matric_number:path}/courses")
-def get_student_courses(matric_number: str):
+def get_student_courses(matric_number: str, actor=Depends(require_student_or_adviser)):
     try:
+        _authorize_student(matric_number, actor)
         record = get_full_academic_record(matric_number)
         if "error" in record:
             raise HTTPException(status_code=404, detail=record["error"])
@@ -85,8 +89,9 @@ def get_student_courses(matric_number: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{matric_number:path}")
-def get_student(matric_number: str):
+def get_student(matric_number: str, actor=Depends(require_student_or_adviser)):
     try:
+        _authorize_student(matric_number, actor)
         response = supabase.table("students").select("*").eq("matric_number", matric_number).execute()
         if not response.data:
             raise HTTPException(status_code=404, detail="Student not found")
@@ -95,3 +100,23 @@ def get_student(matric_number: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _authorize_student(matric_number: str, actor):
+    if actor["role"] == "student":
+        if actor["profile"]["matric_number"] != matric_number:
+            raise HTTPException(status_code=403, detail="You can only access your own academic record")
+        return
+
+    adviser = actor["profile"]
+    result = (
+        supabase.table("students")
+        .select("id")
+        .eq("matric_number", matric_number)
+        .eq("department", adviser.get("department"))
+        .eq("current_level", adviser.get("level"))
+        .limit(1)
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=403, detail="Student is outside your assigned cohort")

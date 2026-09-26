@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Header, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Header, HTTPException, BackgroundTasks, Depends
+from app.security import require_matching_adviser_header
 from app.db import supabase
 from app.analytics import (
     get_class_average,
@@ -12,7 +13,7 @@ from app.analytics import (
 from app.performance import calculate_gpa
 from app.utils.email import send_carryover_notifications_async
 
-router = APIRouter(prefix="/analytics", tags=["Analytics"])
+router = APIRouter(prefix="/analytics", tags=["Analytics"], dependencies=[Depends(require_matching_adviser_header)])
 
 def get_adviser_info(auth_user_id: str):
     if not auth_user_id:
@@ -73,7 +74,12 @@ def get_courses(session: str = None, semester: str = None, auth_user_id: str = H
     return sorted(list(active_courses))
 
 @router.post("/notify-carryovers")
-def notify_carryovers_route(background_tasks: BackgroundTasks, auth_user_id: str = Header(None)):
+def notify_carryovers_route(
+    background_tasks: BackgroundTasks,
+    session: str = None,
+    semester: str = None,
+    auth_user_id: str = Header(None),
+):
     level = get_adviser_level(auth_user_id)
     carryovers = get_all_carryovers(level=level, session=session, semester=semester)
     

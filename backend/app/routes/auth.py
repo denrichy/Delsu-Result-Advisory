@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.db import supabase
+from app.security import CurrentUser, get_current_user
 import traceback
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -10,14 +11,12 @@ class StudentSignup(BaseModel):
     matric_number: str
     email: str
     department: str
-    auth_user_id: str
 
 class AdviserSignup(BaseModel):
     name: str
     email: str
     department: str
     level: int
-    auth_user_id: str
 
 def check_role_conflict(auth_user_id: str):
     tables = [("student", "students"), ("adviser", "advisers"), ("admin", "admins")]
@@ -28,14 +27,16 @@ def check_role_conflict(auth_user_id: str):
     return None
 
 @router.post("/student-signup")
-def student_signup(data: StudentSignup):
+def student_signup(data: StudentSignup, user: CurrentUser = Depends(get_current_user)):
     try:
         # Cross-role conflict check
-        existing_role = check_role_conflict(data.auth_user_id)
+        existing_role = check_role_conflict(user.id)
         if existing_role:
             raise HTTPException(status_code=400, detail=f"This account is already registered as a {existing_role}. One account can only have one role.")
 
         matric = data.matric_number.strip().upper()
+        if not user.email or data.email.strip().lower() != user.email.lower():
+            raise HTTPException(status_code=403, detail="Signup email must match the authenticated account.")
         
         # Check if student exists
         res = supabase.table("students").select("*").eq("matric_number", matric).execute()
@@ -44,11 +45,13 @@ def student_signup(data: StudentSignup):
             existing = res.data[0]
             if existing.get("auth_user_id"):
                 raise HTTPException(status_code=400, detail="Account already claimed by another user.")
+            if not existing.get("email") or existing["email"].strip().lower() != user.email.lower():
+                raise HTTPException(status_code=403, detail="The verified account email does not match this student record. Contact an administrator.")
             
             # Update the existing record
             update_data = {
                 "email": data.email,
-                "auth_user_id": data.auth_user_id,
+                "auth_user_id": user.id,
                 "department": data.department
             }
             # Always update name to what they provided during signup (since they know their own name)
@@ -61,18 +64,7 @@ def student_signup(data: StudentSignup):
             return update_res.data[0]
             
         else:
-            # Insert new record
-            insert_res = supabase.table("students").insert({
-                "matric_number": matric,
-                "name": data.name,
-                "email": data.email,
-                "department": data.department,
-                "auth_user_id": data.auth_user_id
-            }).execute()
-            
-            if not insert_res.data:
-                raise HTTPException(status_code=500, detail="Failed to create student.")
-            return insert_res.data[0]
+            raise HTTPException(status_code=403, detail="No imported student record matches this matric number. Contact an administrator.")
             
     except HTTPException:
         raise
@@ -88,12 +80,15 @@ def student_signup(data: StudentSignup):
         raise HTTPException(status_code=500, detail="An internal database error occurred. Please try again.")
 
 @router.post("/adviser-signup")
-def adviser_signup(data: AdviserSignup):
+def adviser_signup(data: AdviserSignup, user: CurrentUser = Depends(get_current_user)):
     try:
         # Cross-role conflict check
-        existing_role = check_role_conflict(data.auth_user_id)
+        existing_role = check_role_conflict(user.id)
         if existing_role:
             raise HTTPException(status_code=400, detail=f"This account is already registered as a {existing_role}. One account can only have one role.")
+
+        if not user.email or data.email.strip().lower() != user.email.lower():
+            raise HTTPException(status_code=403, detail="Signup email must match the authenticated account.")
 
         # Check for conflict: same department and same level, verified=true, revoked=false
         conflict_res = supabase.table("advisers").select("*").eq("department", data.department).eq("level", data.level).eq("verified", True).eq("revoked", False).execute()
@@ -110,7 +105,7 @@ def adviser_signup(data: AdviserSignup):
                 "name": data.name,
                 "department": data.department,
                 "level": data.level,
-                "auth_user_id": data.auth_user_id,
+                "auth_user_id": user.id,
                 # keep verified as false to require admin approval again if they changed departments
                 "verified": False
             }
@@ -125,7 +120,7 @@ def adviser_signup(data: AdviserSignup):
                 "email": data.email,
                 "department": data.department,
                 "level": data.level,
-                "auth_user_id": data.auth_user_id,
+                "auth_user_id": user.id,
                 "verified": False
             }).execute()
             
@@ -147,8 +142,10 @@ def adviser_signup(data: AdviserSignup):
         raise HTTPException(status_code=500, detail="An internal database error occurred. Please try again.")
 
 @router.get("/student-profile/{auth_user_id}")
-def get_student_profile(auth_user_id: str):
+def get_student_profile(auth_user_id: str, user: CurrentUser = Depends(get_current_user)):
     try:
+        if auth_user_id != user.id:
+            raise HTTPException(status_code=403, detail="You can only access your own profile.")
         res = supabase.table("students") \
             .select("id, matric_number, name, email, auth_user_id, department") \
             .eq("auth_user_id", auth_user_id) \
@@ -175,8 +172,10 @@ def get_student_profile(auth_user_id: str):
         raise HTTPException(status_code=500, detail="An internal database error occurred. Please try again.")
 
 @router.get("/adviser-profile/{auth_user_id}")
-def get_adviser_profile(auth_user_id: str):
+def get_adviser_profile(auth_user_id: str, user: CurrentUser = Depends(get_current_user)):
     try:
+        if auth_user_id != user.id:
+            raise HTTPException(status_code=403, detail="You can only access your own profile.")
         res = supabase.table("advisers") \
             .select("id, name, email, department, verified, revoked, auth_user_id") \
             .eq("auth_user_id", auth_user_id) \

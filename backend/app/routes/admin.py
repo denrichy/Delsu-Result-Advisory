@@ -1,15 +1,8 @@
-from fastapi import APIRouter, HTTPException, Header, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from app.db import supabase, supabase_admin
+from app.security import require_admin
 
-def verify_admin(auth_user_id: str = Header(None)):
-    if not auth_user_id:
-        raise HTTPException(status_code=401, detail="Missing auth-user-id header")
-    res = supabase.table("admins").select("id").eq("auth_user_id", auth_user_id).execute()
-    if not res.data:
-        raise HTTPException(status_code=403, detail="Admin access required.")
-    return auth_user_id
-
-router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(verify_admin)])
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
 
 @router.get("/advisers/pending")

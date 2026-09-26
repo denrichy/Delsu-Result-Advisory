@@ -2,8 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from app.db import supabase
+from app.security import require_verified_adviser
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_verified_adviser)])
 
 class ResultUpdate(BaseModel):
     score: Optional[float] = None
@@ -12,9 +13,10 @@ class ResultUpdate(BaseModel):
     course_type: Optional[str] = None
 
 @router.put("/{result_id}")
-def update_result(result_id: str, data: ResultUpdate):
+def update_result(result_id: str, data: ResultUpdate, actor=Depends(require_verified_adviser)):
     # 1. Fetch current result
-    res = supabase.table("results").select("*").eq("id", result_id).execute()
+    adviser_id = actor["profile"]["id"]
+    res = supabase.table("results").select("*").eq("id", result_id).eq("uploaded_by", adviser_id).execute()
     if not res.data:
         raise HTTPException(status_code=404, detail="Result not found")
         
@@ -29,7 +31,7 @@ def update_result(result_id: str, data: ResultUpdate):
     if data.course_type is not None: update_data["course_type"] = data.course_type
     
     if update_data:
-        upd = supabase.table("results").update(update_data).eq("id", result_id).execute()
+        upd = supabase.table("results").update(update_data).eq("id", result_id).eq("uploaded_by", adviser_id).execute()
         if not upd.data:
             raise HTTPException(status_code=500, detail="Failed to update result")
             

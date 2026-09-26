@@ -16,9 +16,11 @@ if not url or not key:
 custom_http_client = httpx.Client(http2=False)
 options = ClientOptions(httpx_client=custom_http_client)
 
-supabase: Client = create_client(url, key, options=options)
+# The backend is a trusted boundary. It uses the service-role client only after
+# route dependencies have authenticated and authorized the caller. Browser code
+# must continue to use the publishable/anon key and is protected by RLS.
+if not service_key:
+    raise ValueError("SUPABASE_SERVICE_ROLE_KEY must be set for the backend.")
 
-# Admin client using service role key (for bypassing RLS / deleting auth users)
-supabase_admin: Client | None = None
-if service_key:
-    supabase_admin = create_client(url, service_key, options=options)
+supabase_admin: Client = create_client(url, service_key, options=options)
+supabase: Client = supabase_admin

@@ -20,3 +20,22 @@ build/
 
 # App
 /backend/tmp/
+
+# Temporary Scratch Files & Documents
+/*.docx
+~$*.docx
+/*.txt
+/*.json
+/*.png
+/*.js
+/*.cjs
+/*.py
+/backend/scratch_*.py
+/backend/test_*.py
+/backend/scripts/test_*.py
+/backend/clean_baselines.py
+/backend/delete_stuck_user.py
+/backend/sweep.py
+/backend/generate_docs.py
+/frontend/*.cjs
+/frontend/*.py
