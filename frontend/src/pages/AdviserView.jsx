@@ -285,10 +285,10 @@ export default function AdviserDashboard() {
           </div>
 
           {/* UI Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 mb-4">
 
             {/* UI Section */}
-            <BentoCard className="lg:col-span-5 lg:row-span-2" delay={0.05}>
+            <BentoCard className="md:col-span-1 md:row-span-2 lg:col-span-5 lg:row-span-2" delay={0.05}>
               <div className="flex flex-col h-full justify-between">
                 {/* Title area */}
                 <div>
@@ -319,7 +319,7 @@ export default function AdviserDashboard() {
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-neutral-900" />
                         <div className="flex items-center gap-1">
-                          <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Cleared</p>
+                          <p className="text-[8px] md:text-[11px] font-medium text-neutral-500 uppercase tracking-wider whitespace-nowrap">Cleared</p>
                           <Tooltip content="Number of students in good standing without any carryovers">
                             <Info size={12} className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" />
                           </Tooltip>
@@ -331,7 +331,7 @@ export default function AdviserDashboard() {
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-amber-400" />
                         <div className="flex items-center gap-1">
-                          <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">At-Risk</p>
+                          <p className="text-[8px] md:text-[11px] font-medium text-neutral-500 uppercase tracking-wider whitespace-nowrap">At-Risk</p>
                           <Tooltip content={`Students with ${isPeriodFiltered ? 'an SGPA' : 'a CGPA'} below the safe threshold (2.0)`}>
                             <Info size={12} className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" />
                           </Tooltip>
@@ -343,7 +343,7 @@ export default function AdviserDashboard() {
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="w-2 h-2 rounded-full bg-red-400" />
                         <div className="flex items-center gap-1">
-                          <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Carryovers</p>
+                          <p className="text-[8px] md:text-[11px] font-medium text-neutral-500 uppercase tracking-wider whitespace-nowrap">Carryovers</p>
                           <Tooltip content="Students with one or more outstanding failed courses">
                             <Info size={12} className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" />
                           </Tooltip>
@@ -375,11 +375,11 @@ export default function AdviserDashboard() {
             </BentoCard>
 
             {/* UI Section */}
-              <BentoCard className="lg:col-span-7 flex flex-col justify-center" delay={0.1}>
+              <BentoCard className="md:col-span-1 lg:col-span-7 flex flex-col justify-center" delay={0.1}>
                 <div className="flex items-center justify-between w-full divide-x divide-neutral-100">
                   {/* Total Students */}
                   <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
-                    <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                    <p className="text-[9px] md:text-xs font-medium text-neutral-400 uppercase tracking-wider whitespace-nowrap">
                       <span className="hidden sm:inline">Total Students</span>
                       <span className="sm:hidden">All Students</span>
                     </p>
@@ -388,14 +388,14 @@ export default function AdviserDashboard() {
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-2">
                       <Users size={12} className="text-neutral-400" />
-                      <span className="text-[11px] text-neutral-400">Level {dashData?.adviser?.level || '-'} </span>
+                      <span className="text-[10px] md:text-[11px] text-neutral-400 whitespace-nowrap">Level {dashData?.adviser?.level || '-'} </span>
                     </div>
                   </div>
   
                   {/* Avg CGPA */}
                   <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
                     <div className="flex items-center justify-center gap-1">
-                        <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{isPeriodFiltered ? 'Avg SGPA' : 'Avg CGPA'}</p>
+                        <p className="text-[9px] md:text-xs font-medium text-neutral-400 uppercase tracking-wider whitespace-nowrap">{isPeriodFiltered ? 'Avg SGPA' : 'Avg CGPA'}</p>
                         <Tooltip content={isPeriodFiltered ? 'The average GPA for the selected academic period' : 'The cumulative average GPA across all students in your department and level'}>
                           <Info size={12} className="text-neutral-300 hover:text-neutral-500 transition-colors cursor-pointer" />
                         </Tooltip>
@@ -405,13 +405,13 @@ export default function AdviserDashboard() {
                       </div>
                     <div className="flex items-center justify-center gap-1 mt-2">
                       <TrendingUp size={12} className="text-emerald-500" />
-                      <span className="text-[11px] text-emerald-600 font-medium">of 5.0</span>
+                      <span className="text-[10px] md:text-[11px] text-emerald-600 font-medium whitespace-nowrap">of 5.0</span>
                     </div>
                   </div>
   
                   {/* Carryovers */}
                   <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
-                    <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Carryovers</p>
+                    <p className="text-[9px] md:text-xs font-medium text-neutral-400 uppercase tracking-wider whitespace-nowrap">Carryovers</p>
                     <div className="text-3xl font-display font-bold text-neutral-900 mt-2 tabular-nums leading-none">
                       {dataLoading ? <Skeleton h="h-8" w="w-16" /> : (dashData?.carryover_count ?? 0)}
                     </div>
@@ -419,14 +419,14 @@ export default function AdviserDashboard() {
                       <div className="flex items-center justify-center w-3 h-3 rounded bg-red-100">
                         <X className="text-red-600" size={8} strokeWidth={3} />
                       </div>
-                      <span className="text-[11px] text-neutral-400">students</span>
+                      <span className="text-[10px] md:text-[11px] text-neutral-400 whitespace-nowrap">students</span>
                     </div>
                   </div>
                 </div>
               </BentoCard>
 
             {/* UI Section */}
-            <BentoCard className="lg:col-span-7" delay={0.15}>
+            <BentoCard className="md:col-span-1 lg:col-span-7" delay={0.15}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">{isPeriodFiltered ? 'SGPA Distribution' : 'CGPA Distribution'}</p>
@@ -456,10 +456,10 @@ export default function AdviserDashboard() {
           </div>
 
           {/* UI Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 mb-4">
 
             {/* UI Section */}
-            <BentoCard className="lg:col-span-7" delay={0.2}>
+            <BentoCard className="md:col-span-1 lg:col-span-7" delay={0.2}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">Course Performance</p><p className="text-xs text-neutral-400 mt-0.5">Select a course to view grade breakdown</p>
@@ -515,7 +515,7 @@ export default function AdviserDashboard() {
             </BentoCard>
 
             {/* UI Section */}
-            <BentoCard className="lg:col-span-5" delay={0.25}>
+            <BentoCard className="md:col-span-1 lg:col-span-5" delay={0.25}>
               <div className="mb-4">
                 <p className="text-sm font-semibold text-neutral-900">Class of Degree</p>
                 <p className="text-xs text-neutral-400 mt-0.5">{isPeriodFiltered ? 'Selected-period GPA classification split' : 'CGPA classification split'}</p>
@@ -542,7 +542,7 @@ export default function AdviserDashboard() {
           </div>
 
           {/* UI Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-4">
 
             {/* UI Section */}
             <BentoCard delay={0.3}>
@@ -625,10 +625,10 @@ export default function AdviserDashboard() {
           </div>
 
           {/* UI Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
 
             {/* UI Section */}
-            <BentoCard className="lg:col-span-8" delay={0.4}>
+            <BentoCard className="md:col-span-2 lg:col-span-8" delay={0.4}>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-neutral-900">Recent Uploads</p>
                 <button
@@ -677,7 +677,7 @@ export default function AdviserDashboard() {
             </BentoCard>
 
             {/* UI Section */}
-            <BentoCard className="lg:col-span-4" delay={0.45}>
+            <BentoCard className="md:col-span-2 lg:col-span-4" delay={0.45}>
               <div className="flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-4">

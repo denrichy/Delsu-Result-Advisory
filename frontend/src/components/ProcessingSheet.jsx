@@ -74,7 +74,7 @@ export default function ProcessingSheet({ isOpen, status, title, subtitle, succe
       
       {/* Sheet */}
       <div 
-        className={`relative bg-white w-full md:max-w-[400px] rounded-t-[32px] md:rounded-[32px] px-[24px] pt-[16px] md:pt-[32px] pb-safe md:pb-[32px] flex flex-col items-center transition-all duration-300 ease-out shadow-[0_-4px_24px_rgba(0,0,0,0.08)] md:shadow-xl ${show ? 'translate-y-0 opacity-100' : 'translate-y-full md:translate-y-[20px] opacity-100 md:opacity-0'}`}
+        className={`relative bg-white w-full md:max-w-sm rounded-t-[32px] md:rounded-[32px] px-[24px] pt-[16px] md:pt-[32px] pb-safe md:pb-[32px] flex flex-col items-center transition-all duration-300 ease-out shadow-[0_-4px_24px_rgba(0,0,0,0.08)] md:shadow-xl ${show ? 'translate-y-0 opacity-100' : 'translate-y-full md:translate-y-[20px] opacity-100 md:opacity-0'}`}
       >
         {/* Drag handle */}
         <div className="w-[40px] h-[4px] rounded-full bg-[#EBE9E9] mb-[32px] md:hidden" />

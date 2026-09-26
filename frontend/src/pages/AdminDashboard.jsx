@@ -147,7 +147,7 @@ export default function AdminDashboard() {
       <AdminSidebar />
       
       <div className="lg:ml-[260px] min-h-screen">
-        <div className="max-w-[1000px] mx-auto px-5 pb-12 pt-20 lg:!pt-10">
+        <div className="max-w-5xl mx-auto px-5 pb-12 pt-20 lg:!pt-10">
           
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-neutral-900" style={{ fontFamily: "'Satoshi', sans-serif" }}>Manage Advisers</h1>

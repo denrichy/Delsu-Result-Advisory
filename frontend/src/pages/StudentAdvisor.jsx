@@ -118,7 +118,7 @@ function ChatSidebar({ isOpen, onClose, sessions, activeSessionId, onSelectSessi
 
       {/* Sidebar Panel - Full Width on Mobile */}
       <div
-        className="fixed top-0 left-0 bottom-0 z-[70] flex flex-col pt-safe w-full md:w-[350px] md:max-w-[400px]"
+        className="fixed top-0 left-0 bottom-0 z-[70] flex flex-col pt-safe w-full md:w-[350px] md:max-w-sm"
         style={{
           background: '#F5F5F5',
           boxShadow: '4px 0 24px rgba(0,0,0,0.1)',
@@ -701,7 +701,7 @@ export default function StudentAdvisor() {
           </div>
         ) : !matric ? (
           <div className="flex-1 flex justify-center items-center px-[20px]">
-            <div className="py-[32px] px-[24px] text-center rounded-[20px] w-full max-w-[400px]" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
+            <div className="py-[32px] px-[24px] text-center rounded-[20px] w-full max-w-sm" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
               <p style={{ fontFamily: fontBody, fontSize: '14px', color: '#6B7280' }}>
                 Could not load your student profile. Please try again later.
               </p>

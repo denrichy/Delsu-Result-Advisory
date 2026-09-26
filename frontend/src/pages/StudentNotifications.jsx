@@ -99,7 +99,7 @@ export default function StudentNotifications() {
 
   return (
     <div className="min-h-screen bg-canvas font-display">
-      <div className="max-w-[600px] mx-auto w-full px-[20px] md:px-[24px] pt-[24px] pb-[80px]">
+      <div className="max-w-2xl mx-auto w-full px-[20px] md:px-[24px] pt-[24px] pb-[80px]">
         
         {/* ── Custom Header ───────────────────────────── */}
         <div className="flex items-center mb-[32px] animate-fade-in">
@@ -143,10 +143,10 @@ export default function StudentNotifications() {
                     <div className={`w-[10px] h-[10px] rounded-full ${!notif.read ? 'bg-brand shadow-[0_0_8px_rgba(25,68,241,0.4)]' : 'bg-muted/30'}`}></div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-[15px] font-bold text-ink mb-[4px]">
+                    <h3 className="text-[15px] font-bold text-ink mb-[4px] break-words">
                       {notif.title}
                     </h3>
-                    <p className="text-[14px] text-ink-2 leading-relaxed mb-[8px]">
+                    <p className="text-[14px] text-ink-2 leading-relaxed mb-[8px] break-words">
                       {notif.message}
                     </p>
                     <span className="text-[11px] font-semibold text-muted tracking-wide uppercase">

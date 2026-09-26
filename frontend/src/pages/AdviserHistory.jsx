@@ -1,23 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/useAuth';
 import AdviserSidebar from '../components/AdviserSidebar';
 import Modal from '../components/ui/Modal';
 import { AlertTriangle, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 
 export default function AdviserHistory() {
-  const { user, session } = useAuth();
+  const { user, session, userProfile } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
+  const [profile, setProfile] = useState(userProfile || null);
+  const [profileLoading, setProfileLoading] = useState(!userProfile);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, status: 'idle', uploadId: null, rowCount: 0, errorMessage: '' });
+
+  const { data: history = [], isLoading: loading, error } = useQuery({
+    queryKey: ['uploadHistory', profile?.id],
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/upload/history/${profile.id}`);
+      if (!res.ok) throw new Error('Failed to fetch history');
+      return res.json();
+    },
+    enabled: !!profile?.id,
+    staleTime: 30000,
+  });
 
   useEffect(() => {
     if (!session?.user?.id) return;
-    setProfileLoading(true);
+    if (!profile) setProfileLoading(true);
     fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`)
       .then((r) => r.json())
       .then((data) => {
@@ -27,39 +37,6 @@ export default function AdviserHistory() {
       .finally(() => setProfileLoading(false));
   }, [session?.user?.id]);
 
-  useEffect(() => {
-    if (!session) {
-      navigate('/app/login');
-      return;
-    }
-
-    async function fetchHistory() {
-      try {
-        // 1. Get the adviser profile ID (since user.id is the auth_user_id)
-        const profileRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${user.id}`);
-        const profileData = await profileRes.json();
-        
-        if (!profileData.found) {
-          throw new Error('Adviser profile not found');
-        }
-
-        // 2. Fetch history using the actual adviser table ID
-        const res = await fetch(`${import.meta.env.VITE_API_BASE}/upload/history/${profileData.id}`);
-        if (!res.ok) {
-          throw new Error('Failed to fetch history');
-        }
-        const data = await res.json();
-        setHistory(data);
-      } catch (err) {
-        console.error(err);
-        setError('Could not load upload history.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchHistory();
-  }, [user?.id, session, navigate]);
 
   const handleDeleteClick = (uploadId, rowCount) => {
     setDeleteModal({ isOpen: true, status: 'confirm', uploadId, rowCount, errorMessage: '' });
@@ -79,7 +56,7 @@ export default function AdviserHistory() {
         throw new Error(errData.detail || 'Failed to delete upload');
       }
 
-      setHistory((prev) => prev.filter((item) => item.id !== uploadId));
+      queryClient.setQueryData(['uploadHistory', profile?.id], (oldData) => oldData ? oldData.filter(item => item.id !== uploadId) : []);
       setDeleteModal(prev => ({ ...prev, status: 'success' }));
     } catch (err) {
       console.error(err);
@@ -127,7 +104,7 @@ export default function AdviserHistory() {
       {/* Main content area */}
       <div className="lg:ml-[260px]" style={{ minHeight: '100vh' }}>
         <main
-          className="max-w-[800px] w-full mx-auto px-[24px] pb-[64px] lg:!pt-[40px]"
+          className="max-w-4xl w-full mx-auto px-[24px] pb-[64px] lg:!pt-[40px]"
           style={{ paddingTop: '80px' }}
         >
           <div className="mb-[32px]">
@@ -136,7 +113,7 @@ export default function AdviserHistory() {
 
           {error && (
             <div className="mb-[24px] p-[16px] bg-red-50 border border-red-200 rounded-[8px] text-red-700 text-step-sm">
-              {error}
+              {error.message || 'Could not load upload history.'}
             </div>
           )}
 

@@ -83,49 +83,59 @@ export default function Navbar() {
             className="fixed top-0 left-0 right-0 z-50 pt-safe"
             style={{ background: '#F5F3F3' }}
           >
-            <div className="flex items-center justify-between h-[56px] px-[20px] max-w-md mx-auto w-full">
+            <div className="flex items-center justify-between h-[56px] px-[20px] max-w-2xl mx-auto w-full">
             {/* Profile Avatar */}
             <Link
               to="/app/student/settings"
-              className="flex items-center justify-center w-[36px] h-[36px] rounded-full transition-transform active:scale-95"
-              style={{
-                background: '#0D1B3D',
-                fontFamily: fontBody,
-                fontSize: '14px',
-                fontWeight: 700,
-                color: '#FAFAFA',
-                textDecoration: 'none',
-              }}
+              className="flex items-center justify-center w-[44px] h-[44px] rounded-full transition-transform active:scale-95 -ml-1"
+              style={{ textDecoration: 'none' }}
+              aria-label="Profile Settings"
             >
-              {profileInitial || session?.user?.email?.charAt(0).toUpperCase() || 'U'}
+              <div 
+                className="flex items-center justify-center w-[36px] h-[36px] rounded-full"
+                style={{
+                  background: '#0D1B3D',
+                  fontFamily: fontBody,
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: '#FAFAFA',
+                }}
+              >
+                {profileInitial || session?.user?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
             </Link>
 
             {/* Notification Bell */}
             <Link
               to="/app/student/notifications"
-              className="relative flex items-center justify-center w-[40px] h-[40px] rounded-full transition-transform active:scale-95"
-              style={{ background: 'rgba(13,27,61,0.06)' }}
+              className="flex items-center justify-center w-[44px] h-[44px] rounded-full transition-transform active:scale-95 -mr-1"
+              aria-label="Notifications"
             >
-              <Bell size={20} strokeWidth={1.8} style={{ color: '#0D1B3D' }} />
-              {unreadCount > 0 && (
-                <span
-                  className="absolute top-[4px] right-[4px] flex items-center justify-center"
-                  style={{
-                    background: '#FF7A66',
-                    color: '#ffffff',
-                    fontSize: '9px',
-                    fontWeight: 700,
-                    fontFamily: fontBody,
-                    minWidth: '16px',
-                    height: '16px',
-                    borderRadius: '9999px',
-                    padding: '0 4px',
-                    lineHeight: 1,
-                  }}
-                >
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
+              <div
+                className="relative flex items-center justify-center w-[40px] h-[40px] rounded-full"
+                style={{ background: 'rgba(13,27,61,0.06)' }}
+              >
+                <Bell size={20} strokeWidth={1.8} style={{ color: '#0D1B3D' }} />
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute top-[0px] right-[0px] flex items-center justify-center"
+                    style={{
+                      background: '#FF7A66',
+                      color: '#ffffff',
+                      fontSize: '9px',
+                      fontWeight: 700,
+                      fontFamily: fontBody,
+                      minWidth: '16px',
+                      height: '16px',
+                      borderRadius: '9999px',
+                      padding: '0 4px',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
             </Link>
           </div>
         </header>
@@ -204,10 +214,10 @@ export default function Navbar() {
               </div>
               <button
                 onClick={handleSignOutClick}
-                className="flex items-center gap-[6px] transition-opacity active:opacity-60"
+                className="flex items-center justify-center gap-[6px] transition-opacity active:opacity-60 min-h-[44px] px-2 -mr-2"
                 style={{
                   fontFamily: fontBody, fontSize: '13px', fontWeight: 600, color: '#E03B3B',
-                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
+                  background: 'none', border: 'none', cursor: 'pointer',
                 }}
               >
                 <LogOut size={16} />

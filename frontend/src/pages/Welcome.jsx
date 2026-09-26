@@ -30,7 +30,7 @@ export default function Welcome() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-0" />
 
       {/* Content Container (z-10 so it's above the gradient) */}
-      <div className="relative z-10 flex flex-col items-start w-full max-w-[400px] mx-auto mb-[48px] md:mb-[64px]">
+      <div className="relative z-10 flex flex-col items-start w-full max-w-sm mx-auto mb-[48px] md:mb-[64px]">
         
         {/* Logo */}
         <div className="flex items-center gap-[8px] mb-[24px]">

@@ -179,7 +179,7 @@ export default function AdviserAnalytics() {
         </button>
       </header>
 
-      <main className="max-w-[1000px] mx-auto px-[24px] py-[64px]">
+      <main className="max-w-5xl mx-auto px-[24px] py-[64px]">
         <div className="mb-[64px] flex items-start justify-between">
           <div>
             <p className="text-step-xs text-ash uppercase tracking-widest mb-[8px]">ADVISER PORTAL</p>

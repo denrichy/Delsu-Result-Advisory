@@ -4,11 +4,12 @@ import AdviserSidebar from '../components/AdviserSidebar';
 import Modal from '../components/ui/Modal';
 import { CheckCircle2, Loader2, XCircle, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AdviserUpload() {
-  const { session, loading } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
+  const { session, loading, userProfile } = useAuth();
+  const [profile, setProfile] = useState(userProfile || null);
+  const [profileLoading, setProfileLoading] = useState(!userProfile);
 
   // Form State
   const [semester, setSemester] = useState('');
@@ -28,6 +29,7 @@ export default function AdviserUpload() {
   // Modal State
   const [modalState, setModalState] = useState({ isOpen: false, status: 'idle', title: '', subtitle: '', type: '' });
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const currentYear = new Date().getFullYear();
   const sessionOptions = [
@@ -112,6 +114,7 @@ export default function AdviserUpload() {
       const data = await res.json();
       if (res.ok) {
         setUploadResult(data);
+        queryClient.invalidateQueries({ queryKey: ['uploadHistory'] });
         setModalState({ isOpen: true, status: 'success', type: 'upload_success', title: 'Upload Successful', subtitle: 'All results have been published successfully.' });
       } else {
         setModalState({ isOpen: true, status: 'error', title: 'Confirmation Failed', subtitle: data.detail || 'Confirmation failed' });

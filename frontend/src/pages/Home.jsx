@@ -20,7 +20,7 @@ export default function Home() {
           <span className="text-midnight-ink" style={{fontWeight: 500}}>finally makes sense.</span>
         </h1>
         
-        <div className="max-w-[600px] mb-[40px] flex flex-col gap-[8px]">
+        <div className="max-w-2xl mb-[40px] flex flex-col gap-[8px]">
           <p className="text-step-base-3 text-graphite">
             Check your results, track your GPA, and ask questions about your own academic standing — all in one place.
           </p>
@@ -83,7 +83,7 @@ export default function Home() {
         <div className="max-w-[1280px] mx-auto">
           <div className="mb-[48px] text-center">
             <h2 className="text-step-lg text-midnight-ink font-bold mb-[16px]">How it works</h2>
-            <p className="text-step-base text-graphite max-w-[600px] mx-auto">
+            <p className="text-step-base text-graphite max-w-2xl mx-auto">
               A seamless flow from the adviser's desk directly to your dashboard.
             </p>
           </div>
@@ -266,7 +266,7 @@ export default function Home() {
 
       {/* Final CTA Section */}
       <section className="py-[80px] md:py-[120px] px-[16px] md:px-[24px] bg-pure-canvas text-center">
-        <div className="max-w-[800px] mx-auto flex flex-col items-center">
+        <div className="max-w-4xl mx-auto flex flex-col items-center">
           <h2 className="text-step-xl text-midnight-ink font-bold mb-[32px]">
             Ready to see where you stand?
           </h2>

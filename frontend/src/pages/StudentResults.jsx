@@ -120,7 +120,7 @@ function CourseRow({ course, isLast }) {
     <div className={`flex items-center justify-between py-[14px] ${!isLast ? 'border-b border-border/50' : ''}`}>
       <div className="flex-1 min-w-0 mr-4">
         <div className="flex items-baseline gap-[8px]">
-          <span className="font-display text-[15px] font-bold text-ink">
+          <span className="font-display text-[15px] font-bold text-ink break-words min-w-0">
             {course.course_code}
           </span>
           {course.title && (
@@ -273,7 +273,7 @@ export default function StudentResults() {
 
   return (
     <div className="min-h-screen bg-canvas font-display">
-      <div className="max-w-[600px] mx-auto w-full px-[20px] md:px-[24px] pt-[24px] pb-[80px]">
+      <div className="max-w-2xl mx-auto w-full px-[20px] md:px-[24px] pt-[24px] pb-[80px]">
         
         {/* ── Custom Header ───────────────────────────── */}
         <div className="flex items-center justify-between mb-[32px] animate-fade-in">
@@ -333,7 +333,7 @@ export default function StudentResults() {
                 <p className={`font-display text-[14px] font-bold ${classifyGPA(studentData.gpa ?? 0).color}`}>
                   {classifyGPA(studentData.gpa ?? 0).label}
                 </p>
-                <p className="text-[12px] text-muted mt-[4px] font-display tracking-wide">
+                <p className="text-[12px] text-muted mt-[4px] font-display tracking-wide break-all break-words">
                   {matric}
                 </p>
               </div>
@@ -413,7 +413,7 @@ export default function StudentResults() {
                   >
                     {/* Session header with navigation */}
                     <div className="px-[20px] py-[12px] border-b border-border/40 bg-surface flex items-center justify-between">
-                      <p className="font-display text-[15px] font-bold text-ink">
+                      <p className="font-display text-[15px] font-bold text-ink break-words">
                         {sessionName}
                       </p>
                       
@@ -424,18 +424,22 @@ export default function StudentResults() {
                             onClick={() => olderSession && setSelectedSession(olderSession)}
                             disabled={!olderSession}
                             aria-label="Show previous academic session"
-                            className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
+                            className="flex h-[44px] w-[44px] shrink-0 items-center justify-center group -ml-1.5 focus:outline-none disabled:cursor-not-allowed disabled:opacity-30"
                           >
-                            <ChevronLeft size={16} />
+                            <div className="flex h-[32px] w-[32px] items-center justify-center rounded-full border border-border/60 text-ink transition-colors group-hover:bg-surface-2">
+                              <ChevronLeft size={16} />
+                            </div>
                           </button>
                           <button
                             type="button"
                             onClick={() => newerSession && setSelectedSession(newerSession)}
                             disabled={!newerSession}
                             aria-label="Show next academic session"
-                            className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
+                            className="flex h-[44px] w-[44px] shrink-0 items-center justify-center group -mr-1.5 focus:outline-none disabled:cursor-not-allowed disabled:opacity-30"
                           >
-                            <ChevronRight size={16} />
+                            <div className="flex h-[32px] w-[32px] items-center justify-center rounded-full border border-border/60 text-ink transition-colors group-hover:bg-surface-2">
+                              <ChevronRight size={16} />
+                            </div>
                           </button>
                         </div>
                       )}
