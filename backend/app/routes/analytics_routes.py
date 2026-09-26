@@ -147,6 +147,7 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
     evaluated_students = sum(1 for p in profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0)
 
     all_gpas = []
+    student_gpas = []
     cgpa_distribution = {
         "first_class": 0,
         "second_upper": 0,
@@ -163,6 +164,7 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
             gpa = calculate_gpa(p["results"], p.get("baseline_units", 0), p.get("baseline_gps", 0.0))
         if gpa is not None:
             all_gpas.append(gpa)
+            student_gpas.append({"matric_number": p["matric_number"], "gpa": gpa})
             if gpa >= 4.5:
                 cgpa_distribution["first_class"] += 1
             elif gpa >= 3.5:
@@ -179,11 +181,12 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
     # 2. Average CGPA
     average_cgpa = round(sum(all_gpas) / len(all_gpas), 2) if all_gpas else 0.0
 
-    # 6. Top 5 students by GPA (reuse existing get_top_students)
-    top_students = get_top_students(limit=5, level=level, session=session, semester=semester, department=department)
-
-    # 7. At-risk students with GPA < 2.0 (reuse existing get_at_risk_students)
-    at_risk_students = get_at_risk_students(gpa_threshold=2.0, level=level, session=session, semester=semester, department=department)
+    # Reuse the GPAs already calculated above instead of fetching the cohort twice again.
+    top_students = sorted(student_gpas, key=lambda item: item["gpa"], reverse=True)[:5]
+    at_risk_students = sorted(
+        (item for item in student_gpas if item["gpa"] < 2.0),
+        key=lambda item: item["gpa"],
+    )
 
     # 3. At-risk count
     at_risk_count = len(at_risk_students)
@@ -206,6 +209,12 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
         recent_uploads = uploads_res.data if uploads_res.data else []
 
     cleared_count = max(0, evaluated_students - carryover_count) if evaluated_students > 0 else 0
+    active_courses = sorted({
+        result.get("course_code")
+        for profile in profiles
+        for result in profile.get("results", [])
+        if result.get("course_code")
+    })
 
     return {
         "adviser": adviser_info,
@@ -219,7 +228,8 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
         "top_students": top_students,
         "at_risk_students": at_risk_students,
         "recent_uploads": recent_uploads,
-        "carryovers": carryovers
+        "carryovers": carryovers,
+        "courses": active_courses
     }
 
 @router.get("/filters")

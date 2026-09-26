@@ -89,23 +89,9 @@ export default function AdviserDashboard() {
 
   const dataLoading = isLoading || isManualRefresh;
 
-  const { data: courses = [] } = useQuery({
-    queryKey: ['adviserCourses', session?.user?.id, selectedSession, selectedSemester],
-    queryFn: async () => {
-      const headers = { 'auth-user-id': session.user.id };
-      const params = new URLSearchParams();
-      if (selectedSession) params.append('session', selectedSession);
-      if (selectedSemester) params.append('semester', selectedSemester);
-      const res = await fetch(`${API}/analytics/courses?${params.toString()}`, { headers });
-      if (!res.ok) throw new Error('Failed to fetch courses');
-      const raw = await res.json();
-      const normalized = raw
-        .map(c => c.replace(/\s+/g, '').toUpperCase())
-        .filter(c => c && c !== 'CHOOSECOURSE');
-      return [...new Set(normalized)].sort();
-    },
-    enabled: !!session?.user?.id && !!profile?.verified,
-  });
+  const courses = [...new Set((dashData?.courses || [])
+    .map(c => c.replace(/\s+/g, '').toUpperCase())
+    .filter(c => c && c !== 'CHOOSECOURSE'))].sort();
   const [notifying, setNotifying] = useState(false);
 
   // Modal states

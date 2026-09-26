@@ -135,8 +135,9 @@ def parse_term(session: str, semester: str):
     sem = 1 if normalized_semester.startswith('first') else 2
     return (year, sem)
 
-def get_student_carryovers(matric_number: str):
-    results = get_student_results(matric_number)
+def get_student_carryovers(matric_number: str, results=None):
+    if results is None:
+        results = get_student_results(matric_number)
     outstanding = []
     
     for r in results:
@@ -190,7 +191,7 @@ def get_full_academic_record(matric_number: str):
     
     current_outstanding = []
     if courses:
-        dynamic_carryovers = get_student_carryovers(matric_number)
+        dynamic_carryovers = get_student_carryovers(matric_number, courses)
         for dc in dynamic_carryovers:
             # Normalize the dynamic course code (remove spaces) for comparison
             normalized_dc = str(dc.get("course_code", "")).upper().replace(" ", "")

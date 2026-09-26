@@ -18,6 +18,47 @@ class AdviserSignup(BaseModel):
     department: str
     level: int
 
+@router.get("/me")
+def get_my_profile(user: CurrentUser = Depends(get_current_user)):
+    """Resolve the signed-in user's role and profile in one client request."""
+    student_res = (
+        supabase.table("students")
+        .select("id, matric_number, name, email, auth_user_id, department, current_level")
+        .eq("auth_user_id", user.id)
+        .limit(1)
+        .execute()
+    )
+    if student_res.data:
+        profile = student_res.data[0]
+        profile["found"] = True
+        return {"role": "student", "profile": profile}
+
+    adviser_res = (
+        supabase.table("advisers")
+        .select("id, name, email, department, level, verified, revoked, auth_user_id")
+        .eq("auth_user_id", user.id)
+        .limit(1)
+        .execute()
+    )
+    if adviser_res.data:
+        profile = adviser_res.data[0]
+        profile["found"] = True
+        return {"role": "adviser", "profile": profile}
+
+    admin_res = (
+        supabase.table("admins")
+        .select("id, email, auth_user_id")
+        .eq("auth_user_id", user.id)
+        .limit(1)
+        .execute()
+    )
+    if admin_res.data:
+        profile = admin_res.data[0]
+        profile["found"] = True
+        return {"role": "admin", "profile": profile}
+
+    return {"role": None, "profile": None}
+
 def check_role_conflict(auth_user_id: str):
     tables = [("student", "students"), ("adviser", "advisers"), ("admin", "admins")]
     for role, table in tables:

@@ -2,6 +2,18 @@ import { supabase } from './supabaseClient';
 
 const nativeFetch = window.fetch.bind(window);
 const apiBase = import.meta.env.VITE_API_BASE;
+let accessToken = null;
+let sessionInitialized = false;
+
+const initialSession = supabase.auth.getSession().then(({ data: { session } }) => {
+  accessToken = session?.access_token || null;
+  sessionInitialized = true;
+});
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  accessToken = session?.access_token || null;
+  sessionInitialized = true;
+});
 
 window.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : input?.url;
@@ -9,10 +21,14 @@ window.fetch = async (input, init = {}) => {
     return nativeFetch(input, init);
   }
 
-  const { data: { session } } = await supabase.auth.getSession();
+  if (!sessionInitialized) await initialSession;
+  if (!accessToken) {
+    const { data: { session } } = await supabase.auth.getSession();
+    accessToken = session?.access_token || null;
+  }
   const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined));
-  if (session?.access_token) {
-    headers.set('Authorization', `Bearer ${session.access_token}`);
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
   return nativeFetch(input, { ...init, headers });

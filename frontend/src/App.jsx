@@ -1,23 +1,32 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Welcome from './pages/Welcome';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import StudentDashboard from './pages/StudentDashboard';
-import StudentResults from './pages/StudentResults';
-import StudentAdvisor from './pages/StudentAdvisor';
-import StudentNotifications from './pages/StudentNotifications';
-import StudentSettings from './pages/StudentSettings';
-import AdviserView from './pages/AdviserView';
-import AdviserUpload from './pages/AdviserUpload';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import AdviserHistory from './pages/AdviserHistory';
-import AdviserUploadDetails from './pages/AdviserUploadDetails';
-import ProtectedRoute from './components/ProtectedRoute';
 import { App as CapacitorApp } from '@capacitor/app';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const Welcome = lazy(() => import('./pages/Welcome'));
+const Home = lazy(() => import('./pages/Home'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
+const StudentResults = lazy(() => import('./pages/StudentResults'));
+const StudentAdvisor = lazy(() => import('./pages/StudentAdvisor'));
+const StudentNotifications = lazy(() => import('./pages/StudentNotifications'));
+const StudentSettings = lazy(() => import('./pages/StudentSettings'));
+const AdviserView = lazy(() => import('./pages/AdviserView'));
+const AdviserUpload = lazy(() => import('./pages/AdviserUpload'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdviserHistory = lazy(() => import('./pages/AdviserHistory'));
+const AdviserUploadDetails = lazy(() => import('./pages/AdviserUploadDetails'));
+const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+      <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#1944F1] border-t-transparent" />
+    </div>
+  );
+}
 
 function HardwareBackButtonHandler({ children }) {
   const navigate = useNavigate();
@@ -50,7 +59,8 @@ function App() {
   return (
     <Router>
       <HardwareBackButtonHandler>
-        <Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
         {/* Mobile Welcome Screen */}
         <Route path="/" element={<Welcome />} />
 
@@ -84,7 +94,8 @@ function App() {
         {/* Admin */}
         <Route path="/app/admin-login" element={<AdminLogin />} />
         <Route path="/app/admin" element={<AdminDashboard />} />
-      </Routes>
+          </Routes>
+        </Suspense>
       </HardwareBackButtonHandler>
     </Router>
   );

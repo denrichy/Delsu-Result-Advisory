@@ -169,22 +169,14 @@ export default function StudentResults() {
     queryFn: async () => {
       if (!matric) return null;
       
-      const gpaRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matric}/gpa/cumulative`);
-      
-      if (gpaRes.status === 404) {
-        return null;
-      }
-      
-      if (!gpaRes.ok) throw new Error('Failed to fetch GPA data');
-
       const coursesRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matric}/courses`);
+      if (coursesRes.status === 404) return null;
       if (!coursesRes.ok) throw new Error('Failed to fetch courses data');
 
-      const gpaData = await gpaRes.json();
       const coursesData = await coursesRes.json();
 
       return {
-        gpa: gpaData.gpa,
+        gpa: coursesData.gpa,
         courses: coursesData.courses || [],
         outstanding: coursesData.outstanding || [],
         previous_outstanding: coursesData.previous_outstanding || [],

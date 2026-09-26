@@ -78,6 +78,7 @@ def get_student_courses(matric_number: str, actor=Depends(require_student_or_adv
             raise HTTPException(status_code=404, detail=record["error"])
             
         return {
+            "gpa": record.get("student_info", {}).get("cgpa"),
             "courses": record.get("courses", []),
             "outstanding": record.get("outstanding_courses", []),
             "previous_outstanding": record.get("previous_outstanding", []),

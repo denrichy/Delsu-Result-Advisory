@@ -13,7 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { session, loading: authLoading } = useAuth();
+  const { session, userRole, loading: authLoading, refreshAuth } = useAuth();
   const [checkingRole, setCheckingRole] = useState(true);
   const isSubmitting = useRef(false);
   const navigateTarget = useRef(null);
@@ -25,22 +25,10 @@ export default function Login() {
     if (!session?.user?.id) { setCheckingRole(false); return; }
     if (isSubmitting.current) { setCheckingRole(false); return; }
 
-    const checkRoleAndRedirect = async () => {
-      try {
-        const adviserRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/adviser-profile/${session.user.id}`);
-        const adviserData = await adviserRes.json();
-        if (adviserData.found === true) { navigate('/app/adviser'); return; }
-
-        const studentRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
-        const studentData = await studentRes.json();
-        if (studentData.found === true) { navigate('/app/student'); return; }
-
-        setCheckingRole(false);
-      } catch { setCheckingRole(false); }
-    };
-
-    checkRoleAndRedirect();
-  }, [authLoading, session, navigate]);
+    if (userRole === 'adviser') { navigate('/app/adviser'); return; }
+    if (userRole === 'student') { navigate('/app/student'); return; }
+    setCheckingRole(false);
+  }, [authLoading, session, userRole, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,29 +49,15 @@ export default function Login() {
       return;
     }
 
-    if (data?.user?.id) {
-      if (role === 'student') {
-        const { data: studentData, error: studentError } = await supabase
-          .from('students').select('id').eq('auth_user_id', data.user.id).single();
-        if (studentError || !studentData) {
-          await supabase.auth.signOut();
-          setError('No student account found for this email.');
-          setLoading(false);
-          isSubmitting.current = false;
-          setSheetState({ isOpen: true, status: 'error' });
-          return;
-        }
-      } else if (role === 'adviser') {
-        const { data: adviserData, error: adviserError } = await supabase
-            .from('advisers').select('id').eq('auth_user_id', data.user.id).single();
-          if (adviserError || !adviserData) {
-            await supabase.auth.signOut();
-            setError('No adviser account found for this email.');
-          setLoading(false);
-          isSubmitting.current = false;
-          setSheetState({ isOpen: true, status: 'error' });
-          return;
-        }
+    if (data?.session) {
+      const context = await refreshAuth(data.session);
+      if (context.role !== role) {
+        await supabase.auth.signOut();
+        setError(`No ${role} account found for this email.`);
+        setLoading(false);
+        isSubmitting.current = false;
+        setSheetState({ isOpen: true, status: 'error' });
+        return;
       }
     }
 
