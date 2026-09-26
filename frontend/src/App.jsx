@@ -15,11 +15,42 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdviserHistory from './pages/AdviserHistory';
 import AdviserUploadDetails from './pages/AdviserUploadDetails';
 import ProtectedRoute from './components/ProtectedRoute';
+import { App as CapacitorApp } from '@capacitor/app';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+function HardwareBackButtonHandler({ children }) {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let listener;
+    
+    // Register Capacitor back button listener for Android hardware back button
+    const registerListener = async () => {
+      listener = await CapacitorApp.addListener('backButton', () => {
+        if (window.history.length > 1) {
+          navigate(-1);
+        } else {
+          CapacitorApp.exitApp();
+        }
+      });
+    };
+    
+    registerListener();
+    
+    return () => {
+      if (listener) listener.remove();
+    };
+  }, [navigate]);
+
+  return children;
+}
 
 function App() {
   return (
     <Router>
-      <Routes>
+      <HardwareBackButtonHandler>
+        <Routes>
         {/* Mobile Welcome Screen */}
         <Route path="/" element={<Welcome />} />
 
@@ -54,6 +85,7 @@ function App() {
         <Route path="/app/admin-login" element={<AdminLogin />} />
         <Route path="/app/admin" element={<AdminDashboard />} />
       </Routes>
+      </HardwareBackButtonHandler>
     </Router>
   );
 }
