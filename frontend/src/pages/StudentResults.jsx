@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 
 /* ── GPA Calculation ─────────────────────────────────── */
@@ -146,15 +147,14 @@ function CourseRow({ course, isLast }) {
 
 /* ── Main Component ──────────────────────────────────── */
 export default function StudentResults() {
-  const { session, loading: authLoading } = useAuth();
+  const { session, userProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [studentData, setStudentData] = useState(null);
-  const [matric, setMatric] = useState('');
   const [selectedSession, setSelectedSession] = useState('All');
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // Extract matric directly from cached profile so we don't need a separate fetch
+  const matric = userProfile?.matric_number || '';
 
   // Redirect if no session
   useEffect(() => {
@@ -163,71 +163,48 @@ export default function StudentResults() {
     }
   }, [authLoading, session, navigate]);
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
-
-    const fetchResults = async () => {
-      try {
-        if (refreshTrigger === 0) setLoading(true);
-        const profileRes = await fetch(`${import.meta.env.VITE_API_BASE}/auth/student-profile/${session.user.id}`);
-        if (!profileRes.ok) throw new Error('Failed to fetch profile');
-
-        const profileData = await profileRes.json();
-        const matricNumber = profileData.matric_number;
-        setMatric(matricNumber);
-
-        if (!matricNumber) {
-          setError('No matriculation number found for this profile.');
-          if (refreshTrigger === 0) setLoading(false);
-          return;
-        }
-
-        const gpaRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matricNumber}/gpa/cumulative`);
-
-        if (gpaRes.status === 404) {
-          setError('No results found yet. Check back once your adviser publishes your semester results.');
-          setStudentData(null);
-          if (refreshTrigger === 0) setLoading(false);
-          return;
-        }
-
-        if (!gpaRes.ok) throw new Error('Failed to fetch GPA data');
-
-        const coursesRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matricNumber}/courses`);
-        if (!coursesRes.ok) throw new Error('Failed to fetch courses data');
-
-        const gpaData = await gpaRes.json();
-        const coursesData = await coursesRes.json();
-
-        setStudentData({
-          gpa: gpaData.gpa,
-          courses: coursesData.courses || [],
-          outstanding: coursesData.outstanding || [],
-          previous_outstanding: coursesData.previous_outstanding || [],
-          current_outstanding: coursesData.current_outstanding || []
-        });
-        setError('');
-      } catch (err) {
-        console.error(err);
-        setError('An error occurred while fetching results. Please try again.');
-      } finally {
-        if (refreshTrigger === 0) setLoading(false);
+  // Use React Query for instant cached loading and background updates
+  const { data: studentData, isLoading: resultsLoading, error: queryError } = useQuery({
+    queryKey: ['studentResults', matric],
+    queryFn: async () => {
+      if (!matric) return null;
+      
+      const gpaRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matric}/gpa/cumulative`);
+      
+      if (gpaRes.status === 404) {
+        return null;
       }
-    };
+      
+      if (!gpaRes.ok) throw new Error('Failed to fetch GPA data');
 
-    fetchResults();
-  }, [session?.user?.id, refreshTrigger]);
+      const coursesRes = await fetch(`${import.meta.env.VITE_API_BASE}/students/${matric}/courses`);
+      if (!coursesRes.ok) throw new Error('Failed to fetch courses data');
 
-  // Supabase Realtime Subscription
+      const gpaData = await gpaRes.json();
+      const coursesData = await coursesRes.json();
+
+      return {
+        gpa: gpaData.gpa,
+        courses: coursesData.courses || [],
+        outstanding: coursesData.outstanding || [],
+        previous_outstanding: coursesData.previous_outstanding || [],
+        current_outstanding: coursesData.current_outstanding || []
+      };
+    },
+    enabled: !!matric,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+
+  // Supabase Realtime Subscription - Invalidates cache to instantly trigger refetch in background
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!matric) return;
 
     let timeoutId;
     const handleUpdate = (payload) => {
       console.log('Realtime update detected! Refetching...', payload);
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        setRefreshTrigger(prev => prev + 1);
+        queryClient.invalidateQueries({ queryKey: ['studentResults', matric] });
       }, 2000);
     };
 
@@ -241,7 +218,18 @@ export default function StudentResults() {
       clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id]);
+  }, [matric, queryClient]);
+
+  // Map react-query state to original variables used by the component
+  const loading = resultsLoading;
+  let error = '';
+  if (!matric && !authLoading) {
+    error = 'No matriculation number found for this profile.';
+  } else if (queryError) {
+    error = 'An error occurred while fetching results. Please try again.';
+  } else if (!resultsLoading && !studentData && matric) {
+    error = 'No results found yet. Check back once your adviser publishes your semester results.';
+  }
 
   const organizedData = useMemo(() => {
     if (!studentData?.courses?.length) return {};
