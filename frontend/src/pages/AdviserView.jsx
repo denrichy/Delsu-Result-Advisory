@@ -174,7 +174,10 @@ export default function AdviserDashboard() {
     setProcessState({ isOpen: true, status: 'processing', errorTitle: '', errorSubtitle: '' });
     try {
       const headers = { 'auth-user-id': session.user.id };
-      const res = await fetch(`${API}/analytics/notify-carryovers`, { method: 'POST', headers });
+      const params = new URLSearchParams();
+      if (selectedSession) params.append('session', selectedSession);
+      if (selectedSemester) params.append('semester', selectedSemester);
+      const res = await fetch(`${API}/analytics/notify-carryovers?${params.toString()}`, { method: 'POST', headers });
       if (res.ok) {
         setProcessState({ isOpen: true, status: 'success', errorTitle: '', errorSubtitle: '' });
       } else {
@@ -250,6 +253,7 @@ export default function AdviserDashboard() {
   const atRiskCount = dashData?.at_risk_count || 0;
   const carryoverCount = dashData?.carryover_count || 0;
   const passingCount = dashData?.cleared_count || 0;
+  const isPeriodFiltered = Boolean(selectedSession || selectedSemester);
   const passRate = evaluatedStudents > 0 ? Math.round((passingCount / evaluatedStudents) * 100) : 0;
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -305,7 +309,7 @@ export default function AdviserDashboard() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h1 className="text-xl font-display font-bold text-neutral-900 leading-tight">
-                        {selectedSession || selectedSemester ? 'Semester' : 'Cumulative'}{' '}
+                        {selectedSemester ? 'Semester' : selectedSession ? 'Session' : 'Cumulative'}{' '}
                         <span className="font-light text-neutral-400">Overview</span>
                       </h1>
                       <p className="text-xs text-neutral-400 mt-1">{today}</p>
@@ -342,7 +346,7 @@ export default function AdviserDashboard() {
                         <div className="w-2 h-2 rounded-full bg-amber-400" />
                         <div className="flex items-center gap-1">
                           <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">At-Risk</p>
-                          <Tooltip content="Students with a CGPA below the safe threshold (2.0)">
+                          <Tooltip content={`Students with ${isPeriodFiltered ? 'an SGPA' : 'a CGPA'} below the safe threshold (2.0)`}>
                             <Info size={12} className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" />
                           </Tooltip>
                         </div>
@@ -405,8 +409,8 @@ export default function AdviserDashboard() {
                   {/* Avg CGPA */}
                   <div className="flex flex-col items-center justify-center text-center flex-1 px-2">
                     <div className="flex items-center justify-center gap-1">
-                        <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg CGPA</p>
-                        <Tooltip content="The overall average CGPA across all students in your level">
+                        <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{isPeriodFiltered ? 'Avg SGPA' : 'Avg CGPA'}</p>
+                        <Tooltip content={isPeriodFiltered ? 'The average GPA for the selected academic period' : 'The cumulative average GPA across all students in your department and level'}>
                           <Info size={12} className="text-neutral-300 hover:text-neutral-500 transition-colors cursor-pointer" />
                         </Tooltip>
                       </div>
@@ -439,7 +443,7 @@ export default function AdviserDashboard() {
             <BentoCard className="lg:col-span-7" delay={0.15}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm font-semibold text-neutral-900">CGPA Distribution</p>
+                  <p className="text-sm font-semibold text-neutral-900">{isPeriodFiltered ? 'SGPA Distribution' : 'CGPA Distribution'}</p>
                   <p className="text-xs text-neutral-400 mt-0.5">Class of degree breakdown</p>
                 </div>
                 <span className="text-xs font-mono text-neutral-400 bg-neutral-50 px-2 py-1 rounded-md">
@@ -528,7 +532,7 @@ export default function AdviserDashboard() {
             <BentoCard className="lg:col-span-5" delay={0.25}>
               <div className="mb-4">
                 <p className="text-sm font-semibold text-neutral-900">Class of Degree</p>
-                <p className="text-xs text-neutral-400 mt-0.5">CGPA classification split</p>
+                <p className="text-xs text-neutral-400 mt-0.5">{isPeriodFiltered ? 'Selected-period GPA classification split' : 'CGPA classification split'}</p>
               </div>
               {dataLoading ? (
                 <div className="h-[260px] flex items-center justify-center">
@@ -559,7 +563,7 @@ export default function AdviserDashboard() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">Top Performers</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">Highest CGPA in your level</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">Highest {isPeriodFiltered ? 'SGPA for this period' : 'CGPA'} in your department and level</p>
                 </div>
                 <Award size={16} className="text-amber-400" />
               </div>
@@ -600,7 +604,7 @@ export default function AdviserDashboard() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">At-Risk Students</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">CGPA below 2.0</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">{isPeriodFiltered ? 'SGPA' : 'CGPA'} below 2.0</p>
                 </div>
                 <AlertTriangle size={16} className="text-red-400" />
               </div>

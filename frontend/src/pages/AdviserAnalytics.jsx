@@ -90,7 +90,8 @@ export default function AdviserAnalytics() {
     async function fetchCourseStats() {
       setCourseStatsLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/analytics/class-stats/${selectedCourse}`);
+        const headers = { 'auth-user-id': session.user.id };
+        const res = await fetch(`${API_BASE}/analytics/class-stats/${selectedCourse}`, { headers });
         if (res.ok) {
           const data = await res.json();
           let total = 0;
@@ -114,7 +115,7 @@ export default function AdviserAnalytics() {
     }
 
     fetchCourseStats();
-  }, [selectedCourse]);
+  }, [selectedCourse, session]);
 
   const handleBulkNotify = async () => {
     if (!window.confirm("This will send an in-app notification and email to ALL students with carryovers. Continue?")) return;

@@ -39,32 +39,34 @@ def get_adviser_level(auth_user_id: str):
 
 @router.get("/class-stats/{course_code}")
 def get_class_stats(course_code: str, session: str = None, semester: str = None, auth_user_id: str = Header(None)):
-    level = get_adviser_level(auth_user_id)
+    adviser = get_adviser_info(auth_user_id) or {}
+    level = adviser.get("level")
+    department = adviser.get("department")
     return {
-        "class_average": get_class_average(course_code, level, session, semester),
-        "grade_distribution": get_grade_distribution(course_code, level, session, semester),
-        "pass_fail_rate": get_pass_fail_rate(course_code, level, session, semester)
+        "class_average": get_class_average(course_code, level, session, semester, department),
+        "grade_distribution": get_grade_distribution(course_code, level, session, semester, department),
+        "pass_fail_rate": get_pass_fail_rate(course_code, level, session, semester, department)
     }
 
 @router.get("/top-students")
 def get_top_students_route(limit: int = 5, session: str = None, semester: str = None, auth_user_id: str = Header(None)):
-    level = get_adviser_level(auth_user_id)
-    return get_top_students(limit=limit, level=level, session=session, semester=semester)
+    adviser = get_adviser_info(auth_user_id) or {}
+    return get_top_students(limit=limit, level=adviser.get("level"), session=session, semester=semester, department=adviser.get("department"))
 
 @router.get("/at-risk")
 def get_at_risk_students_route(threshold: float = 2.5, session: str = None, semester: str = None, auth_user_id: str = Header(None)):
-    level = get_adviser_level(auth_user_id)
-    return get_at_risk_students(gpa_threshold=threshold, level=level, session=session, semester=semester)
+    adviser = get_adviser_info(auth_user_id) or {}
+    return get_at_risk_students(gpa_threshold=threshold, level=adviser.get("level"), session=session, semester=semester, department=adviser.get("department"))
 
 @router.get("/carryovers")
-def get_carryovers_route(auth_user_id: str = Header(None)):
-    level = get_adviser_level(auth_user_id)
-    return get_all_carryovers(level=level)
+def get_carryovers_route(session: str = None, semester: str = None, auth_user_id: str = Header(None)):
+    adviser = get_adviser_info(auth_user_id) or {}
+    return get_all_carryovers(level=adviser.get("level"), session=session, semester=semester, department=adviser.get("department"))
 
 @router.get("/courses")
 def get_courses(session: str = None, semester: str = None, auth_user_id: str = Header(None)):
-    level = get_adviser_level(auth_user_id)
-    profiles = _get_bulk_student_data(level, session, semester)
+    adviser = get_adviser_info(auth_user_id) or {}
+    profiles = _get_bulk_student_data(adviser.get("level"), session, semester, adviser.get("department"))
     active_courses = set()
     for p in profiles:
         for r in p.get("results", []):
@@ -80,8 +82,8 @@ def notify_carryovers_route(
     semester: str = None,
     auth_user_id: str = Header(None),
 ):
-    level = get_adviser_level(auth_user_id)
-    carryovers = get_all_carryovers(level=level, session=session, semester=semester)
+    adviser = get_adviser_info(auth_user_id) or {}
+    carryovers = get_all_carryovers(level=adviser.get("level"), session=session, semester=semester, department=adviser.get("department"))
     
     if not carryovers:
         return {"message": "No carryovers found"}
@@ -133,10 +135,11 @@ def notify_carryovers_route(
 def get_dashboard_summary(session: str = None, semester: str = None, auth_user_id: str = Header(None)):
     adviser_info = get_adviser_info(auth_user_id)
     level = adviser_info.get("level") if adviser_info else None
+    department = adviser_info.get("department") if adviser_info else None
     adviser_id = adviser_info.get("id") if adviser_info else None
 
     # Profiles & CGPA calculations
-    all_profiles = _get_bulk_student_data(level, session, semester)
+    all_profiles = _get_bulk_student_data(level, session, semester, department)
     
     # Filter out empty students (no results, no baselines)
     profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0]
@@ -177,16 +180,16 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
     average_cgpa = round(sum(all_gpas) / len(all_gpas), 2) if all_gpas else 0.0
 
     # 6. Top 5 students by GPA (reuse existing get_top_students)
-    top_students = get_top_students(limit=5, level=level)
+    top_students = get_top_students(limit=5, level=level, session=session, semester=semester, department=department)
 
     # 7. At-risk students with GPA < 2.0 (reuse existing get_at_risk_students)
-    at_risk_students = get_at_risk_students(gpa_threshold=2.0, level=level)
+    at_risk_students = get_at_risk_students(gpa_threshold=2.0, level=level, session=session, semester=semester, department=department)
 
     # 3. At-risk count
     at_risk_count = len(at_risk_students)
 
     # 4. Carryover count (unique students with carryovers)
-    carryovers = get_all_carryovers(level=level, session=session, semester=semester)
+    carryovers = get_all_carryovers(level=level, session=session, semester=semester, department=department)
     carryover_count = len(set(c["matric_number"] for c in carryovers if c.get("matric_number")))
 
     # 8. Recent uploads (last 5 uploads by this adviser)
@@ -222,12 +225,17 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
 @router.get("/filters")
 def get_available_filters(auth_user_id: str = Header(None)):
     # To get distinct sessions and semesters for the adviser's level
-    level = get_adviser_level(auth_user_id)
+    adviser = get_adviser_info(auth_user_id) or {}
+    level = adviser.get("level")
+    department = adviser.get("department")
     if not level:
         return {"sessions": [], "semesters": []}
     
     # 1. Get students for this level
-    students_res = supabase.table('students').select('id').eq('current_level', level).execute()
+    students_query = supabase.table('students').select('id').eq('current_level', level)
+    if department:
+        students_query = students_query.eq('department', department)
+    students_res = students_query.execute()
     if not students_res.data:
         return {"sessions": [], "semesters": []}
         

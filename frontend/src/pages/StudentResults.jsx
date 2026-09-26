@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabaseClient';
 
@@ -251,12 +251,7 @@ export default function StudentResults() {
         const session = c.session || 'Unknown Session';
         if (!acc[session]) acc[session] = { first: [], second: [] };
 
-        const digitsMatch = c.course_code.match(/\d{3}/);
-        let isSecond = false;
-        if (digitsMatch) {
-          const secondDigit = digitsMatch[0].charAt(1);
-          if (secondDigit === '1') isSecond = true;
-        }
+        const isSecond = (c.semester || '').trim().toLowerCase() === 'second semester';
 
         if (isSecond) {
           acc[session].second.push(c);
@@ -271,6 +266,16 @@ export default function StudentResults() {
     if (!studentData?.courses?.length) return [];
     return [...new Set(studentData.courses.map(c => c.session || 'Unknown Session'))].sort((a, b) => b.localeCompare(a));
   }, [studentData?.courses]);
+
+  useEffect(() => {
+    if (sessions.length > 0 && (selectedSession === 'All' || !sessions.includes(selectedSession))) {
+      setSelectedSession(sessions[0]);
+    }
+  }, [sessions, selectedSession]);
+
+  const selectedSessionIndex = Math.max(0, sessions.indexOf(selectedSession));
+  const newerSession = selectedSessionIndex > 0 ? sessions[selectedSessionIndex - 1] : null;
+  const olderSession = selectedSessionIndex < sessions.length - 1 ? sessions[selectedSessionIndex + 1] : null;
 
   const totalUnits = useMemo(() => {
     if (!studentData?.courses?.length) return 0;
@@ -413,32 +418,32 @@ export default function StudentResults() {
               </div>
             )}
 
-            {/* ── Session Filter Pills ─────────────────── */}
-            {sessions.length > 1 && (
-              <div className="mb-[24px] flex gap-[6px] overflow-x-auto pb-[4px] -mx-[4px] px-[4px] scrollbar-hide">
+            {/* ── One-session-at-a-time navigation ─────── */}
+            {sessions.length > 0 && (
+              <div className="mb-[24px] flex items-center justify-between gap-[12px] bg-surface rounded-[16px] border border-border/60 px-[12px] py-[10px]">
                 <button
-                  onClick={() => setSelectedSession('All')}
-                  className={`shrink-0 px-[14px] py-[7px] rounded-full text-[12px] font-semibold transition-all duration-200 ${
-                    selectedSession === 'All'
-                      ? 'bg-brand text-white shadow-sm'
-                      : 'bg-surface text-muted hover:bg-surface-2 border border-border/60'
-                  }`}
+                  type="button"
+                  onClick={() => olderSession && setSelectedSession(olderSession)}
+                  disabled={!olderSession}
+                  aria-label="Show previous academic session"
+                  className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  All Sessions
+                  <ChevronLeft size={19} />
                 </button>
-                {sessions.map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setSelectedSession(s)}
-                    className={`shrink-0 px-[14px] py-[7px] rounded-full text-[12px] font-semibold transition-all duration-200 ${
-                      selectedSession === s
-                        ? 'bg-brand text-white shadow-sm'
-                        : 'bg-surface text-muted hover:bg-surface-2 border border-border/60'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
+                <div className="min-w-0 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[1px] text-muted">Academic Session</p>
+                  <p className="mt-[2px] font-display text-[15px] font-bold text-ink">{selectedSession}</p>
+                  {sessions.length > 1 && <p className="mt-[1px] text-[10px] text-muted">{selectedSessionIndex + 1} of {sessions.length}</p>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => newerSession && setSelectedSession(newerSession)}
+                  disabled={!newerSession}
+                  aria-label="Show next academic session"
+                  className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-border/60 text-ink transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <ChevronRight size={19} />
+                </button>
               </div>
             )}
 

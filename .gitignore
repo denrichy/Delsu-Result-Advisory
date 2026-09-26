@@ -39,3 +39,9 @@ build/
 /backend/generate_docs.py
 /frontend/*.cjs
 /frontend/*.py
+
+# Heavy Media and QA Renders
+/documentation/qa/
+/documentation/*.docx
+/designs/
+/frontend/public/bg-loop.mp4

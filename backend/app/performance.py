@@ -69,21 +69,59 @@ def calculate_gpa(results_list, baseline_units=0, baseline_gps=0.0):
     details = calculate_gpa_details(results_list, baseline_units, baseline_gps)
     return details["gpa"]
 
+def get_cumulative_basis(matric_number: str, results_list=None, fallback_units=0, fallback_gps=0.0):
+    """Use the newest term baseline and only results not already represented by it."""
+    student_res = (
+        supabase.table("students")
+        .select("id, baseline_units, baseline_gps")
+        .eq("matric_number", matric_number)
+        .limit(1)
+        .execute()
+    )
+    if not student_res.data:
+        return results_list or [], fallback_units, fallback_gps
+
+    student = student_res.data[0]
+    if results_list is None:
+        results_list = get_student_results(matric_number)
+
+    baselines_res = (
+        supabase.table("student_session_baselines")
+        .select("session, semester, baseline_units, baseline_gps")
+        .eq("student_id", student["id"])
+        .execute()
+    )
+    baselines = baselines_res.data or []
+    if baselines:
+        latest = max(baselines, key=lambda b: parse_term(b.get("session", ""), b.get("semester", "")))
+        latest_term = parse_term(latest.get("session", ""), latest.get("semester", ""))
+        uncovered_results = [
+            result for result in results_list
+            if parse_term(result.get("session", ""), result.get("semester", "")) >= latest_term
+        ]
+        return (
+            uncovered_results,
+            latest.get("baseline_units") or 0,
+            latest.get("baseline_gps") or 0.0,
+        )
+
+    return (
+        results_list,
+        fallback_units or student.get("baseline_units") or 0,
+        fallback_gps or student.get("baseline_gps") or 0.0,
+    )
+
 def get_semester_gpa(matric_number: str, semester: str, session: str):
     results = get_student_results(matric_number)
     filtered = [r for r in results if r.get("semester") == semester and r.get("session") == session]
     return calculate_gpa(filtered)
 
 def get_cumulative_gpa(matric_number: str, baseline_units=0, baseline_gps=0.0):
-    # If not provided, fetch from database
-    if baseline_units == 0 and baseline_gps == 0.0:
-        student_res = supabase.table("students").select("baseline_units, baseline_gps").eq("matric_number", matric_number).execute()
-        if student_res.data:
-            baseline_units = student_res.data[0].get("baseline_units") or 0
-            baseline_gps = student_res.data[0].get("baseline_gps") or 0.0
-            
     results = get_student_results(matric_number)
-    return calculate_gpa(results, baseline_units, baseline_gps)
+    uncovered_results, basis_units, basis_gps = get_cumulative_basis(
+        matric_number, results, baseline_units, baseline_gps
+    )
+    return calculate_gpa(uncovered_results, basis_units, basis_gps)
 
 def get_course_breakdown(matric_number: str):
     return get_student_results(matric_number)
@@ -93,7 +131,8 @@ def parse_term(session: str, semester: str):
         year = int(session.split('/')[0].strip())
     except Exception:
         year = 0
-    sem = 1 if semester and semester.strip().lower() == 'first' else 2
+    normalized_semester = (semester or '').strip().lower()
+    sem = 1 if normalized_semester.startswith('first') else 2
     return (year, sem)
 
 def get_student_carryovers(matric_number: str):
@@ -133,9 +172,13 @@ def get_full_academic_record(matric_number: str):
     student = response.data[0]
     courses = get_student_results(matric_number)
     
-    baseline_units = student.get("baseline_units") or 0
-    baseline_gps = student.get("baseline_gps") or 0.0
-    gpa_details = calculate_gpa_details(courses, baseline_units, baseline_gps)
+    cumulative_results, baseline_units, baseline_gps = get_cumulative_basis(
+        matric_number,
+        courses,
+        student.get("baseline_units") or 0,
+        student.get("baseline_gps") or 0.0,
+    )
+    gpa_details = calculate_gpa_details(cumulative_results, baseline_units, baseline_gps)
     cgpa = gpa_details["gpa"]
     total_units = gpa_details["total_units"]
     total_quality_points = gpa_details["total_quality_points"]
@@ -265,14 +308,18 @@ def check_graduation_prospects(matric_number: str):
     if not student_res.data:
         return {"error": "Student not found."}
         
-    baseline_units = student_res.data[0].get("baseline_units") or 0
-    baseline_gps = student_res.data[0].get("baseline_gps") or 0.0
     current_level = student_res.data[0].get("current_level")
     
     if current_level is None:
         return {"error": "Current level is missing for this student; cannot calculate remaining semesters."}
         
     results = get_student_results(matric_number)
+    cumulative_results, baseline_units, baseline_gps = get_cumulative_basis(
+        matric_number,
+        results,
+        student_res.data[0].get("baseline_units") or 0,
+        student_res.data[0].get("baseline_gps") or 0.0,
+    )
     
     # Calculate current semester's units and GPS manually
     semester_gps = 0.0
@@ -288,6 +335,7 @@ def check_graduation_prospects(matric_number: str):
             if r_sem == "First Semester": has_first_semester = True
             elif r_sem == "Second Semester": has_second_semester = True
             
+    for r in cumulative_results:
         score = r.get("score")
         units = r.get("units")
         if score is None or units is None: continue
