@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -132,28 +132,6 @@ export default function AdviserDashboard() {
 
   const queryClient = useQueryClient();
 
-  const [syncStatus, setSyncStatus] = useState(null); // { type: 'success' | 'error', text: string }
-
-  const recalculateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch(`${API}/analytics/recalculate-aggregates`, {
-        method: 'POST',
-        headers: { 'auth-user-id': session.user.id }
-      });
-      if (!res.ok) throw new Error('Recalculation failed');
-      return res.json();
-    },
-    onSuccess: () => {
-      setSyncStatus({ type: 'success', text: 'Sync started!' });
-      setTimeout(() => setSyncStatus(null), 4000);
-    },
-    onError: (err) => {
-      setSyncStatus({ type: 'error', text: err.message || 'Failed to start sync' });
-      setTimeout(() => setSyncStatus(null), 4000);
-    }
-  });
-
-
   // Poll for verification if pending
   useEffect(() => {
     if (!session?.user?.id || !profile || profile.verified !== false) return;
@@ -280,58 +258,10 @@ export default function AdviserDashboard() {
       <div className="lg:ml-[260px] min-h-screen">
         <div className="max-w-[1200px] mx-auto px-5 pb-12 pt-20 lg:!pt-10">
 
-          {dashData?.has_orphaned_data && (
-            <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                <p className="text-sm text-yellow-800">
-                  <span className="font-semibold">Data sync delayed.</span> Dashboard numbers include stale data from a recently deleted upload.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                {syncStatus && (
-                  <span className={`text-sm font-medium ${syncStatus.type === 'error' ? 'text-red-600' : 'text-green-700'}`}>
-                    {syncStatus.text}
-                  </span>
-                )}
-                <button 
-                  onClick={() => {
-                    recalculateMutation.mutate();
-                    setTimeout(() => queryClient.invalidateQueries({ queryKey: ['adviserDashboard'] }), 3000);
-                  }}
-                  disabled={recalculateMutation.isLoading}
-                  className="text-sm font-medium px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 rounded-md transition-colors"
-                >
-                  {recalculateMutation.isLoading ? 'Fixing...' : 'Sync Now'}
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Global Filters */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <h2 className="text-xl font-bold text-neutral-900" style={{ fontFamily: "'Satoshi', sans-serif" }}>Class Overview</h2>
-              
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => {
-                    recalculateMutation.mutate();
-                    setTimeout(() => queryClient.invalidateQueries({ queryKey: ['adviserDashboard'] }), 3000);
-                  }}
-                  disabled={recalculateMutation.isLoading}
-                  className="p-1.5 text-neutral-400 hover:text-[#1944F1] hover:bg-neutral-100 rounded-md transition-colors"
-                  title="Recalculate Aggregates"
-                >
-                  <RefreshCw className={`w-5 h-5 ${recalculateMutation.isLoading ? 'animate-spin text-[#1944F1]' : ''}`} />
-                </button>
-                
-                {syncStatus && !dashData?.has_orphaned_data && (
-                  <span className={`text-xs font-medium ${syncStatus.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-                    {syncStatus.text}
-                  </span>
-                )}
-              </div>
             </div>
             <div className="flex items-center gap-3">
               <select
