@@ -180,7 +180,9 @@ export default function StudentResults() {
         courses: coursesData.courses || [],
         outstanding: coursesData.outstanding || [],
         previous_outstanding: coursesData.previous_outstanding || [],
-        current_outstanding: coursesData.current_outstanding || []
+        current_outstanding: coursesData.current_outstanding || [],
+        latest_uploaded_session: coursesData.latest_uploaded_session || null,
+        latest_uploaded_semester: coursesData.latest_uploaded_semester || null
       };
     },
     enabled: !!matric,
@@ -204,6 +206,7 @@ export default function StudentResults() {
       .channel('student-results-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, handleUpdate)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'student_session_baselines' }, handleUpdate)
       .subscribe();
 
     return () => {
@@ -372,7 +375,7 @@ export default function StudentResults() {
                   {studentData.previous_outstanding?.length > 0 && (
                     <div className={studentData.current_outstanding?.length > 0 ? 'mb-[16px]' : ''}>
                       <p className="text-[11px] font-bold text-muted uppercase tracking-[1px] mb-[12px]">
-                        Previous Outstanding
+                        Previous Outstanding · Earlier Sessions
                       </p>
                       <div className="flex flex-wrap gap-[8px]">
                         {studentData.previous_outstanding.map((o, idx) => (
@@ -386,7 +389,7 @@ export default function StudentResults() {
                   {studentData.current_outstanding?.length > 0 && (
                     <div>
                       <p className="text-[11px] font-bold text-muted uppercase tracking-[1px] mb-[12px]">
-                        Current Carryovers
+                        Current Carryovers{studentData.latest_uploaded_session ? ` · ${studentData.latest_uploaded_session}` : ''}
                       </p>
                       <div className="flex flex-wrap gap-[8px]">
                         {studentData.current_outstanding.map((o, idx) => (

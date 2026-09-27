@@ -1,5 +1,10 @@
 from app.db import supabase
-from app.performance import calculate_gpa
+from app.performance import (
+    calculate_gpa,
+    get_student_carryovers,
+    _is_passed_result,
+    _normalize_course_code,
+)
 from collections import defaultdict
 
 def _get_bulk_student_data(level: int = None, session: str = None, semester: str = None, department: str = None):
@@ -246,7 +251,6 @@ def parse_term(session: str, semester: str):
     return (year, sem)
 
 def get_all_carryovers(level: int = None, session: str = None, semester: str = None, department: str = None):
-    # Fetch students
     query = supabase.table('students').select('id, matric_number, current_level, department, outstanding_courses')
     if level:
         query = query.eq('current_level', level)
@@ -269,35 +273,12 @@ def get_all_carryovers(level: int = None, session: str = None, semester: str = N
         if res.data:
             all_results.extend(res.data)
             
-    # Fetch temporal baselines for carryovers
     all_baselines = []
     for i in range(0, len(student_ids), 50):
         chunk = student_ids[i:i + 50]
-        try:
-            b_res = supabase.table("student_session_baselines").select("*").in_("student_id", chunk).execute()
-            if b_res.data:
-                all_baselines.extend(b_res.data)
-        except Exception:
-            pass
-
-    # Attach baseline string to student based on session/semester
-    if session:
-        for s in students_data:
-            s_baselines = [b for b in all_baselines if b['student_id'] == s['id'] and b['session'] == session]
-            if semester:
-                s_baselines = [b for b in s_baselines if b['semester'] == semester]
-            if s_baselines:
-                s['temporal_outstanding'] = s_baselines[0].get('outstanding_courses', '')
-            else:
-                s['temporal_outstanding'] = ''
-    else:
-        for s in students_data:
-            s_baselines = [b for b in all_baselines if b['student_id'] == s['id']]
-            if s_baselines:
-                latest = max(s_baselines, key=lambda x: x['session'])
-                s['temporal_outstanding'] = latest.get('outstanding_courses', '')
-            else:
-                s['temporal_outstanding'] = s.get('outstanding_courses', '')
+        b_res = supabase.table("student_session_baselines").select("*").in_("student_id", chunk).execute()
+        if b_res.data:
+            all_baselines.extend(b_res.data)
 
     id_to_student = {s['id']: s for s in students_data}
     results_by_matric = defaultdict(list)
@@ -313,45 +294,53 @@ def get_all_carryovers(level: int = None, session: str = None, semester: str = N
         })
 
     all_carryovers = []
-    
+    selected_cutoff = parse_term(session, semester or "Second Semester") if session else None
+
     for student in students_data:
         matric = student['matric_number']
-        
-        # 1. Temporal Baseline carryovers
-        baseline_str = student.get("temporal_outstanding") or ""
-        prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', baseline_str)
-        outstanding = [{"course_code": c.upper().replace(" ", ""), "session": "Previous", "semester": "N/A"} for c in prev_courses]
-        
-        # 2. Dynamic carryovers from results
         results = results_by_matric.get(matric, [])
-        for r in results:
-            if session and r.get('session') != session:
-                continue
-            if semester and r.get('semester') != semester:
-                continue
-                
-            if r.get('grade') == 'F':
-                course_code = r.get('course_code')
-                failed_term = parse_term(r.get('session', ''), r.get('semester', ''))
-                
-                later_pass = False
-                for later_r in results:
-                    if later_r.get('course_code') == course_code and later_r.get('grade') != 'F':
-                        later_term = parse_term(later_r.get('session', ''), later_r.get('semester', ''))
-                        if later_term > failed_term:
-                            later_pass = True
-                            break
-                
-                if not later_pass:
-                    # check if already in outstanding
-                    norm_code = str(course_code).upper().replace(" ", "")
-                    if not any(o.get('course_code', '').upper().replace(" ", "") == norm_code for o in outstanding):
-                        outstanding.append({
-                            "course_code": course_code,
-                            "session": r.get('session'),
-                            "semester": r.get('semester')
-                        })
-                        
+        considered_results = [
+            result for result in results
+            if selected_cutoff is None
+            or parse_term(result.get('session', ''), result.get('semester', '')) <= selected_cutoff
+        ]
+
+        student_baselines = [b for b in all_baselines if b['student_id'] == student['id']]
+        eligible_baselines = [
+            baseline for baseline in student_baselines
+            if selected_cutoff is None
+            or parse_term(baseline.get('session', ''), baseline.get('semester', '')) <= selected_cutoff
+        ]
+        latest_baseline = max(
+            eligible_baselines,
+            key=lambda item: parse_term(item.get('session', ''), item.get('semester', '')),
+            default=None,
+        )
+        baseline_term = parse_term(
+            latest_baseline.get('session', '') if latest_baseline else '',
+            latest_baseline.get('semester', '') if latest_baseline else '',
+        )
+        baseline_str = (
+            latest_baseline.get('outstanding_courses') if latest_baseline else None
+        ) or student.get('outstanding_courses') or ''
+
+        outstanding = []
+        for raw_code in re.findall(r'[A-Za-z]{2,5}\s*\d{3}', baseline_str):
+            code = _normalize_course_code(raw_code)
+            cleared = any(
+                _normalize_course_code(result.get('course_code')) == code
+                and _is_passed_result(result)
+                and parse_term(result.get('session', ''), result.get('semester', '')) >= baseline_term
+                for result in considered_results
+            )
+            if not cleared and code not in {item['course_code'] for item in outstanding}:
+                outstanding.append({"course_code": code, "session": "Previous", "semester": "N/A"})
+
+        for carryover in get_student_carryovers(matric, considered_results):
+            code = _normalize_course_code(carryover.get('course_code'))
+            if code and code not in {item['course_code'] for item in outstanding}:
+                outstanding.append({**carryover, "course_code": code})
+
         for c in outstanding:
             all_carryovers.append({
                 "matric_number": matric,

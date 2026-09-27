@@ -82,7 +82,9 @@ def get_student_courses(matric_number: str, actor=Depends(require_student_or_adv
             "courses": record.get("courses", []),
             "outstanding": record.get("outstanding_courses", []),
             "previous_outstanding": record.get("previous_outstanding", []),
-            "current_outstanding": record.get("current_outstanding", [])
+            "current_outstanding": record.get("current_outstanding", []),
+            "latest_uploaded_session": record.get("latest_uploaded_session"),
+            "latest_uploaded_semester": record.get("latest_uploaded_semester"),
         }
     except HTTPException:
         raise
