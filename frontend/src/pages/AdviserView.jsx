@@ -14,9 +14,7 @@ import {
   ChevronDown, RefreshCw, Award, ArrowUpRight, Bell,
  } from 'lucide-react';
 import { cn } from '../lib/cn';
-import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
+
 import Tooltip from '../components/ui/Tooltip';
 
 const API = import.meta.env.VITE_API_BASE;
@@ -144,10 +142,10 @@ export default function AdviserDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      toast.success('Sync started. Dashboard will update shortly.');
+      console.log('Sync started. Dashboard will update shortly.');
     },
     onError: (err) => {
-      toast.error(err.message || 'Failed to start sync');
+      console.error(err.message || 'Failed to start sync');
     }
   });
 
@@ -312,7 +310,7 @@ export default function AdviserDashboard() {
                 className="p-1.5 text-neutral-400 hover:text-[#1944F1] hover:bg-neutral-100 rounded-md transition-colors"
                 title="Recalculate Aggregates"
               >
-                <ArrowPathIcon className={`w-5 h-5 ${recalculateMutation.isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-5 h-5 ${recalculateMutation.isLoading ? 'animate-spin' : ''}`} />
               </button>
             </div>
             <div className="flex items-center gap-3">
