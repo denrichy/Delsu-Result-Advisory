@@ -375,7 +375,7 @@ export default function StudentResults() {
                   {studentData.previous_outstanding?.length > 0 && (
                     <div className={studentData.current_outstanding?.length > 0 ? 'mb-[16px]' : ''}>
                       <p className="text-[11px] font-bold text-muted uppercase tracking-[1px] mb-[12px]">
-                        Previous Outstanding · Earlier Sessions
+                        Previous Sessions
                       </p>
                       <div className="flex flex-wrap gap-[8px]">
                         {studentData.previous_outstanding.map((o, idx) => (
@@ -389,7 +389,7 @@ export default function StudentResults() {
                   {studentData.current_outstanding?.length > 0 && (
                     <div>
                       <p className="text-[11px] font-bold text-muted uppercase tracking-[1px] mb-[12px]">
-                        Current Carryovers{studentData.latest_uploaded_session ? ` · ${studentData.latest_uploaded_session}` : ''}
+                        Current Session{studentData.latest_uploaded_session ? ` · ${studentData.latest_uploaded_session}` : ''}
                       </p>
                       <div className="flex flex-wrap gap-[8px]">
                         {studentData.current_outstanding.map((o, idx) => (

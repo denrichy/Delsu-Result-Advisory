@@ -108,7 +108,7 @@ function StudentView() {
               {studentData.previous_outstanding && studentData.previous_outstanding.length > 0 && (
                 <div>
                   <h2 className="font-sans text-[11px] font-medium uppercase tracking-widest text-brand-muted mb-4">
-                    Previous Outstanding Courses · Earlier Sessions
+                    Previous Sessions
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {studentData.previous_outstanding.map((o, idx) => (
@@ -122,7 +122,7 @@ function StudentView() {
               {studentData.current_outstanding && studentData.current_outstanding.length > 0 && (
                 <div>
                   <h2 className="font-sans text-[11px] font-medium uppercase tracking-widest text-brand-muted mb-4">
-                    Current Carryovers{studentData.latest_uploaded_session ? ` · ${studentData.latest_uploaded_session}` : ''}
+                    Current Session{studentData.latest_uploaded_session ? ` · ${studentData.latest_uploaded_session}` : ''}
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {studentData.current_outstanding.map((o, idx) => (
