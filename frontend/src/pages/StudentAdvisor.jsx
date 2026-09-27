@@ -738,7 +738,7 @@ export default function StudentAdvisor() {
             {/* â”€â”€ Chat Messages â”€â”€ */}
             {hasStartedChat && (
               <div className="flex-1 overflow-y-auto px-[16px] pb-[220px]">
-                <div className="w-full flex flex-col gap-[20px] pt-[calc(var(--header-height)+16px)]">
+                <div className="w-full flex flex-col gap-[20px] pt-[var(--header-height)]">
                   {messages.map((msg, idx) => (
                     <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                       {msg.role === 'user' ? (
