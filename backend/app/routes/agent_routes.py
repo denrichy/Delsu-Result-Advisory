@@ -1,22 +1,27 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+from typing import List, Literal, Optional
 from app.agent import run_agent, run_agent_stream
 from app.db import supabase_admin as supabase
 from app.security import require_student
 
 router = APIRouter(prefix="/agent", tags=["agent"], dependencies=[Depends(require_student)])
 
+class ConversationMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=8000)
+
+
 class ChatRequest(BaseModel):
-    matric_number: str
-    message: str
-    conversation_history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
+    matric_number: str = Field(min_length=1, max_length=100)
+    message: str = Field(min_length=1, max_length=8000)
+    conversation_history: List[ConversationMessage] = Field(default_factory=list, max_length=20)
 
 class StreamChatRequest(BaseModel):
-    matric_number: str
-    message: str
-    conversation_history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
+    matric_number: str = Field(min_length=1, max_length=100)
+    message: str = Field(min_length=1, max_length=8000)
+    conversation_history: List[ConversationMessage] = Field(default_factory=list, max_length=20)
     session_id: Optional[str] = None
 
 import traceback
@@ -29,7 +34,7 @@ def chat_with_agent(data: ChatRequest, actor=Depends(require_student)):
         response = run_agent(
             matric_number=data.matric_number,
             user_message=data.message,
-            conversation_history=data.conversation_history
+            conversation_history=[message.model_dump() for message in data.conversation_history]
         )
         return {"response": response}
     except HTTPException:
@@ -44,10 +49,12 @@ def stream_chat_with_agent(data: StreamChatRequest, background_tasks: Background
     try:
         if data.matric_number != actor["profile"]["matric_number"]:
             raise HTTPException(status_code=403, detail="You can only use the adviser for your own record")
+        if data.session_id:
+            _require_owned_session(data.session_id, data.matric_number)
         generator = run_agent_stream(
             matric_number=data.matric_number,
             user_message=data.message,
-            conversation_history=data.conversation_history,
+            conversation_history=[message.model_dump() for message in data.conversation_history],
             session_id=data.session_id
         )
         return StreamingResponse(generator, media_type="text/event-stream")
@@ -69,8 +76,8 @@ class UpdateSessionRequest(BaseModel):
     is_pinned: Optional[bool] = None
 
 class SaveMessageRequest(BaseModel):
-    role: str
-    content: str
+    role: Literal["user"] = "user"
+    content: str = Field(min_length=1, max_length=8000)
 
 
 @router.post("/sessions")
@@ -119,7 +126,7 @@ def save_message(session_id: str, data: SaveMessageRequest, actor=Depends(requir
         # Insert the message
         msg_res = supabase.table("chat_messages").insert({
             "session_id": session_id,
-            "role": data.role,
+            "role": "user",
             "content": data.content,
         }).execute()
 

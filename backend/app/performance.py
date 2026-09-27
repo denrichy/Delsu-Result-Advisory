@@ -223,12 +223,13 @@ def get_full_academic_record(matric_number: str):
         "courses": courses
     }
 
-def simulate_gpa(matric_number: str, course_code: str, hypothetical_input: str):
+def simulate_gpa(matric_number: str, course_code: str, hypothetical_input: str, session=None, semester=None):
     results = get_student_results(matric_number)
     if not results:
         return {"error": "Student not found or has no results."}
-    
-    current_gpa = calculate_gpa(results)
+
+    cumulative_results, baseline_units, baseline_gps = get_cumulative_basis(matric_number, results)
+    current_gpa = calculate_gpa(cumulative_results, baseline_units, baseline_gps)
     
     letter = str(hypothetical_input).upper().strip()
     if letter == 'A':
@@ -249,26 +250,49 @@ def simulate_gpa(matric_number: str, course_code: str, hypothetical_input: str):
         except ValueError:
             return {"error": f"Invalid hypothetical_input: {hypothetical_input}"}
     
-    course_found = False
-    current_grade = None
-    for r in results:
-        if r.get("course_code") and r.get("course_code").upper() == course_code.upper():
-            current_grade = r.get("grade")
-            r["score"] = hypothetical_score
-            course_found = True
-            break
-            
-    if not course_found:
+    normalized_code = str(course_code or "").upper().replace(" ", "")
+    all_matches = [
+        r for r in results
+        if str(r.get("course_code") or "").upper().replace(" ", "") == normalized_code
+    ]
+    matches = [r for r in cumulative_results if r in all_matches]
+    if session:
+        matches = [r for r in matches if r.get("session") == session]
+    if semester:
+        matches = [r for r in matches if r.get("semester") == semester]
+
+    if not all_matches:
         return {"error": f"Course {course_code} not found in student's record."}
-        
-    hypothetical_gpa = calculate_gpa(results)
+    if not matches:
+        return {
+            "error": "That attempt is already represented inside the cumulative baseline, so its individual effect cannot be recalculated reliably.",
+            "course": course_code,
+        }
+    if len(matches) > 1:
+        return {
+            "error": "Multiple attempts were found. Specify the academic session and semester.",
+            "course": course_code,
+            "attempts": [
+                {"session": r.get("session"), "semester": r.get("semester"), "grade": r.get("grade")}
+                for r in matches
+            ],
+        }
+
+    target = matches[0]
+    hypothetical_results = [dict(r) for r in cumulative_results]
+    target_index = cumulative_results.index(target)
+    hypothetical_results[target_index]["score"] = hypothetical_score
+    hypothetical_gpa = calculate_gpa(hypothetical_results, baseline_units, baseline_gps)
     
     return {
         "hypothetical_gpa": hypothetical_gpa,
         "current_gpa": current_gpa,
         "course": course_code,
-        "current_grade": current_grade,
-        "hypothetical_score": hypothetical_score
+        "current_grade": target.get("grade"),
+        "hypothetical_score": hypothetical_score,
+        "session": target.get("session"),
+        "semester": target.get("semester"),
+        "includes_cumulative_baseline": baseline_units > 0,
     }
 
 def simulate_gpa_uniform(matric_number: str, hypothetical_grade_letter: str):
@@ -276,7 +300,8 @@ def simulate_gpa_uniform(matric_number: str, hypothetical_grade_letter: str):
     if not results:
         return {"error": "Student not found or has no results."}
     
-    current_gpa = calculate_gpa(results)
+    cumulative_results, baseline_units, baseline_gps = get_cumulative_basis(matric_number, results)
+    current_gpa = calculate_gpa(cumulative_results, baseline_units, baseline_gps)
     
     # Map letter to canonical score
     letter = hypothetical_grade_letter.upper().strip()
@@ -293,15 +318,18 @@ def simulate_gpa_uniform(matric_number: str, hypothetical_grade_letter: str):
     else:
         return {"error": f"Invalid grade letter: {hypothetical_grade_letter}"}
         
-    for r in results:
+    hypothetical_results = [dict(r) for r in cumulative_results]
+    for r in hypothetical_results:
         r["score"] = score
-        
-    hypothetical_gpa = calculate_gpa(results)
+
+    hypothetical_gpa = calculate_gpa(hypothetical_results, baseline_units, baseline_gps)
     
     return {
         "hypothetical_gpa": hypothetical_gpa,
         "current_gpa": current_gpa,
-        "hypothetical_grade": letter
+        "hypothetical_grade": letter,
+        "scope": "All uploaded results not already represented by the newest cumulative baseline.",
+        "includes_cumulative_baseline": baseline_units > 0,
     }
 
 def check_graduation_prospects(matric_number: str):
@@ -383,10 +411,9 @@ def check_graduation_prospects(matric_number: str):
     
     breakdown = (
         f"Current Total Units: {total_current_units}. Current Total GPS: {total_current_gps}. Current CGPA: {current_cgpa}. "
-        f"Assuming {remaining_semesters} semester(s) remain in your program, registering for the maximum allowable {max_future_units} units "
+        f"Assuming an eight-semester programme, {remaining_semesters} semester(s) remain, 24 units are taken each semester, "
         f"and scoring straight A's ({max_future_gps} points), the final CGPA calculation would be "
-        f"({total_current_gps} + {max_future_gps}) / ({total_current_units} + {max_future_units}) = {max_possible_cgpa}. "
-        f"Therefore, graduating with a First Class (4.50) is {'POSSIBLE' if can_first_class else 'IMPOSSIBLE'}."
+        f"({total_current_gps} + {max_future_gps}) / ({total_current_units} + {max_future_units}) = {max_possible_cgpa}."
     )
     
     return {
@@ -394,5 +421,12 @@ def check_graduation_prospects(matric_number: str):
         "absolute_maximum_possible_cgpa": max_possible_cgpa,
         "is_first_class_possible": can_first_class,
         "is_second_class_upper_possible": can_second_upper,
-        "math_breakdown": breakdown
+        "math_breakdown": breakdown,
+        "is_official_eligibility_decision": False,
+        "assumptions": {
+            "programme_semesters": 8,
+            "future_units_per_semester": 24,
+            "future_grade": "A",
+            "note": "Programme duration, required courses, repeats and registered units may differ; confirm official eligibility with the department."
+        }
     }

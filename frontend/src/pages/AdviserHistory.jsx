@@ -105,7 +105,7 @@ export default function AdviserHistory() {
       <div className="lg:ml-[260px]" style={{ minHeight: '100vh' }}>
         <main
           className="max-w-4xl w-full mx-auto px-[24px] pb-[64px] lg:!pt-[40px]"
-          style={{ paddingTop: '80px' }}
+          style={{ paddingTop: 'calc(var(--header-height) + 24px)' }}
         >
           <div className="mb-[32px]">
             <h1 className="text-step-3xl font-bold text-midnight-ink">Upload History</h1>

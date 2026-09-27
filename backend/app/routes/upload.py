@@ -548,46 +548,9 @@ async def delete_upload(upload_id: str, background_tasks: BackgroundTasks, actor
         if not d_res.data:
             raise HTTPException(status_code=404, detail="Upload not found or already deleted")
             
-        # Clean up baseline data for students who no longer have any results
-        for sid in student_ids:
-            remain_res = supabase.table("results").select("id").eq("student_id", sid).limit(1).execute()
-            if not remain_res.data:
-                # No more results for this student, wipe their master baselines
-                supabase.table("students").update({
-                    "baseline_units": 0,
-                    "baseline_gps": 0.0,
-                    "outstanding_courses": ""
-                }).eq("id", sid).execute()
-                # Also wipe ALL temporal baselines for this student
-                try:
-                    supabase.table("student_session_baselines").delete().eq("student_id", sid).execute()
-                except Exception:
-                    pass
-            else:
-                # Student still has other results, only clean temporal baselines
-                # for session/semester combos that no longer have results
-                for (sess, sem) in upload_terms:
-                    remaining = (
-                        supabase.table("results")
-                        .select("id")
-                        .eq("student_id", sid)
-                        .eq("session", sess)
-                        .eq("semester", sem)
-                        .limit(1)
-                        .execute()
-                    )
-                    if not remaining.data:
-                        try:
-                            supabase.table("student_session_baselines").delete() \
-                                .eq("student_id", sid) \
-                                .eq("session", sess) \
-                                .eq("semester", sem) \
-                                .execute()
-                        except Exception:
-                            pass
-                
-        # Trigger background sweeping of any straggler phantom students
-        background_tasks.add_task(clean_all_phantoms)
+        # Fire background task instead of waiting for cleanup
+        if student_ids:
+            background_tasks.add_task(background_cleanup_orphans, student_ids, upload_terms)
             
         return {
             "success": True,

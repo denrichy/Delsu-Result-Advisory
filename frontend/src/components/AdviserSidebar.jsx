@@ -151,10 +151,11 @@ export default function AdviserSidebar({ profile }) {
 
       {/* Mobile Top Bar */}
       <div
-        className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between"
+        className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between pt-safe"
         style={{
-          height: '56px',
-          padding: '0 16px',
+          height: 'var(--header-height)',
+          paddingLeft: '16px',
+          paddingRight: '16px',
           background: '#FFFFFF',
           borderBottom: '1px solid #F3F4F6',
         }}

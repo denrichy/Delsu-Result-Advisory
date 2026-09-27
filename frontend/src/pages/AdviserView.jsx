@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -14,6 +14,9 @@ import {
   ChevronDown, RefreshCw, Award, ArrowUpRight, Bell,
  } from 'lucide-react';
 import { cn } from '../lib/cn';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import Tooltip from '../components/ui/Tooltip';
 
 const API = import.meta.env.VITE_API_BASE;
@@ -130,6 +133,24 @@ export default function AdviserDashboard() {
 
 
   const queryClient = useQueryClient();
+
+  const recalculateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`${API}/analytics/recalculate-aggregates`, {
+        method: 'POST',
+        headers: { 'auth-user-id': session.user.id }
+      });
+      if (!res.ok) throw new Error('Recalculation failed');
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success('Sync started. Dashboard will update shortly.');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to start sync');
+    }
+  });
+
 
   // Poll for verification if pending
   useEffect(() => {
@@ -257,9 +278,43 @@ export default function AdviserDashboard() {
       <div className="lg:ml-[260px] min-h-screen">
         <div className="max-w-[1200px] mx-auto px-5 pb-12 pt-20 lg:!pt-10">
 
+          {dashData?.has_orphaned_data && (
+            <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                <p className="text-sm text-yellow-800">
+                  <span className="font-semibold">Data sync delayed.</span> Dashboard numbers include stale data from a recently deleted upload.
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  recalculateMutation.mutate();
+                  setTimeout(() => queryClient.invalidateQueries({ queryKey: ['adviserDashboard'] }), 3000);
+                }}
+                disabled={recalculateMutation.isLoading}
+                className="text-sm font-medium px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 rounded-md transition-colors"
+              >
+                {recalculateMutation.isLoading ? 'Fixing...' : 'Sync Now'}
+              </button>
+            </div>
+          )}
+
           {/* Global Filters */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h2 className="text-xl font-bold text-neutral-900" style={{ fontFamily: "'Satoshi', sans-serif" }}>Class Overview</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-neutral-900" style={{ fontFamily: "'Satoshi', sans-serif" }}>Class Overview</h2>
+              <button 
+                onClick={() => {
+                  recalculateMutation.mutate();
+                  setTimeout(() => queryClient.invalidateQueries({ queryKey: ['adviserDashboard'] }), 3000);
+                }}
+                disabled={recalculateMutation.isLoading}
+                className="p-1.5 text-neutral-400 hover:text-[#1944F1] hover:bg-neutral-100 rounded-md transition-colors"
+                title="Recalculate Aggregates"
+              >
+                <ArrowPathIcon className={`w-5 h-5 ${recalculateMutation.isLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               <select
                 value={selectedSession}

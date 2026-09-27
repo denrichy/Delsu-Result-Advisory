@@ -273,8 +273,8 @@ export default function StudentDashboard() {
       <Navbar />
 
       {/* Content pushed below top header */}
-      <div className="px-[20px] pt-safe max-w-md mx-auto w-full">
-        <div style={{ paddingTop: '68px' }}>
+      <div className="px-[20px] max-w-md mx-auto w-full">
+        <div style={{ paddingTop: 'calc(var(--header-height) + 12px)' }}>
 
           {/* Greeting */}
           <div className="mb-[24px]">

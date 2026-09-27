@@ -80,8 +80,8 @@ export default function StudentSettings() {
     <div className="min-h-screen pb-[104px]" style={{ background: '#F5F3F3' }}>
       <Navbar />
 
-      <main className="mx-auto w-full max-w-md px-[20px] pt-safe">
-        <div style={{ paddingTop: '76px' }}>
+      <main className="mx-auto w-full max-w-md px-[20px]">
+        <div style={{ paddingTop: 'calc(var(--header-height) + 20px)' }}>
           <header className="mb-[24px]">
             <h1 style={{ color: '#0D1B3D', fontFamily: fontDisplay, fontSize: '30px', fontWeight: 900, letterSpacing: '-0.5px', lineHeight: 1.15, margin: 0 }}>
               Settings

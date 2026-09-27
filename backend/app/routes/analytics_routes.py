@@ -143,6 +143,10 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
     
     # Filter out empty students (no results, no baselines)
     profiles = [p for p in all_profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0]
+    
+    # Mismatch Check: Any student with 0 results but non-zero baselines is mathematically an orphan
+    has_orphaned_data = any(len(p.get("results", [])) == 0 and p.get("baseline_units", 0) > 0 for p in all_profiles)
+
     total_students = len(profiles)
     evaluated_students = sum(1 for p in profiles if len(p.get("results", [])) > 0 or p.get("baseline_units", 0) > 0)
 
@@ -229,7 +233,8 @@ def get_dashboard_summary(session: str = None, semester: str = None, auth_user_i
         "at_risk_students": at_risk_students,
         "recent_uploads": recent_uploads,
         "carryovers": carryovers,
-        "courses": active_courses
+        "courses": active_courses,
+        "has_orphaned_data": has_orphaned_data
     }
 
 @router.get("/filters")
@@ -268,3 +273,27 @@ def get_available_filters(auth_user_id: str = Header(None)):
         "sessions": sorted(list(sessions)),
         "semesters": sorted(list(semesters))
     }
+
+
+@router.post("/recalculate-aggregates")
+def recalculate_aggregates(background_tasks: BackgroundTasks, auth_user_id: str = Header(None)):
+    adviser = get_adviser_info(auth_user_id)
+    if not adviser:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    # 1. Find all students in this adviser's scope
+    query = supabase.table('students').select('id')
+    if adviser.get("level"): query = query.eq('current_level', adviser.get("level"))
+    if adviser.get("department"): query = query.eq('department', adviser.get("department"))
+    
+    s_res = query.execute()
+    if not s_res.data:
+        return {"success": True, "message": "No students found to recalculate."}
+
+    student_ids = [s["id"] for s in s_res.data]
+    
+    # 2. Safely delegate to the robust background task
+    from app.routes.upload import background_cleanup_orphans
+    background_tasks.add_task(background_cleanup_orphans, student_ids, set())
+    
+    return {"success": True, "message": "Recalculation started in the background"}

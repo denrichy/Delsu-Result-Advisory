@@ -171,7 +171,10 @@ export default function AdviserUpload() {
 
       <div className="lg:ml-[260px]" style={{ minHeight: '100vh' }}>
         {(loading || profileLoading) ? (
-          <main className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-[24px] py-[64px]">
+          <main 
+            className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-[24px] pb-[64px]"
+            style={{ paddingTop: 'calc(var(--header-height) + 32px)' }}
+          >
             <div className="w-full max-w-[480px] flex flex-col items-center text-center">
               <div className="mb-[40px] flex flex-col items-center">
                 <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-2"></div>
@@ -186,7 +189,10 @@ export default function AdviserUpload() {
             </div>
           </main>
         ) : (
-          <main className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-[24px] py-[64px]">
+          <main 
+            className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-[24px] pb-[64px]"
+            style={{ paddingTop: 'calc(var(--header-height) + 32px)' }}
+          >
             {/* Always show State 1: Form */}
             <div className="w-full max-w-[480px] flex flex-col items-center text-center">
               <div className="mb-[40px]">

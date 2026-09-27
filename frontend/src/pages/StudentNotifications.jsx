@@ -99,7 +99,10 @@ export default function StudentNotifications() {
 
   return (
     <div className="min-h-screen bg-canvas font-display">
-      <div className="max-w-2xl mx-auto w-full px-[20px] md:px-[24px] pt-[24px] pb-[80px]">
+      <div 
+        className="max-w-2xl mx-auto w-full px-[20px] md:px-[24px] pb-[80px]"
+        style={{ paddingTop: 'calc(var(--header-height) + 24px)' }}
+      >
         
         {/* ── Custom Header ───────────────────────────── */}
         <div className="flex items-center mb-[32px] animate-fade-in">
