@@ -278,7 +278,7 @@ export default function StudentResults() {
     <div className="min-h-screen bg-canvas font-display">
       <div 
         className="max-w-2xl mx-auto w-full px-[20px] md:px-[24px] pb-[80px]"
-        style={{ paddingTop: 'calc(var(--header-height) + 24px)' }}
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)' }}
       >
         
         {/* ── Custom Header ───────────────────────────── */}
