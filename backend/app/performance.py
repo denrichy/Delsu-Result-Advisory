@@ -135,21 +135,47 @@ def parse_term(session: str, semester: str):
     sem = 1 if normalized_semester.startswith('first') else 2
     return (year, sem)
 
+
+def _normalize_course_code(course_code):
+    return str(course_code or '').upper().replace(' ', '')
+
+
+def _is_failed_result(result):
+    grade = str(result.get('grade') or '').strip().upper()
+    if grade:
+        return grade == 'F'
+    try:
+        return float(result.get('score')) < 45
+    except (TypeError, ValueError):
+        return False
+
+
+def _is_passed_result(result):
+    grade = str(result.get('grade') or '').strip().upper()
+    if grade:
+        return grade != 'F'
+    try:
+        return float(result.get('score')) >= 45
+    except (TypeError, ValueError):
+        return False
+
 def get_student_carryovers(matric_number: str, results=None):
     if results is None:
         results = get_student_results(matric_number)
     outstanding = []
     
     for r in results:
-        if r.get('grade') == 'F':
-            course_code = r.get('course_code')
+        if _is_failed_result(r):
+            course_code = _normalize_course_code(r.get('course_code'))
+            if not course_code:
+                continue
             failed_term = parse_term(r.get('session', ''), r.get('semester', ''))
             
             later_pass = False
             for later_r in results:
-                if later_r.get('course_code') == course_code and later_r.get('grade') != 'F':
+                if _normalize_course_code(later_r.get('course_code')) == course_code and _is_passed_result(later_r):
                     later_term = parse_term(later_r.get('session', ''), later_r.get('semester', ''))
-                    if later_term > failed_term:
+                    if later_term >= failed_term:
                         later_pass = True
                         break
             
@@ -184,20 +210,75 @@ def get_full_academic_record(matric_number: str):
     total_units = gpa_details["total_units"]
     total_quality_points = gpa_details["total_quality_points"]
     
-    previous_outstanding_str = student.get("outstanding_courses") or ""
-    prev_courses = re.findall(r'[A-Za-z]{3}\s*\d{3}', previous_outstanding_str)
-    previous_outstanding = [{"course_code": c.upper().replace(" ", "")} for c in prev_courses]
+    baselines_res = (
+        supabase.table("student_session_baselines")
+        .select("session, semester, outstanding_courses")
+        .eq("student_id", student.get("id"))
+        .execute()
+    )
+    baselines = baselines_res.data or []
+    latest_baseline = max(
+        baselines,
+        key=lambda item: parse_term(item.get("session", ""), item.get("semester", "")),
+        default=None,
+    )
+    baseline_term = parse_term(
+        latest_baseline.get("session", "") if latest_baseline else "",
+        latest_baseline.get("semester", "") if latest_baseline else "",
+    )
+    previous_outstanding_str = (
+        latest_baseline.get("outstanding_courses") if latest_baseline else None
+    ) or student.get("outstanding_courses") or ""
+    prev_courses = re.findall(r'[A-Za-z]{2,5}\s*\d{3}', previous_outstanding_str)
+    previous_outstanding = []
+    for course in prev_courses:
+        normalized_course = _normalize_course_code(course)
+        cleared_after_baseline = any(
+            _normalize_course_code(result.get("course_code")) == normalized_course
+            and _is_passed_result(result)
+            and parse_term(result.get("session", ""), result.get("semester", "")) >= baseline_term
+            for result in courses
+        )
+        if not cleared_after_baseline and not any(
+            item["course_code"] == normalized_course for item in previous_outstanding
+        ):
+            previous_outstanding.append({
+                "course_code": normalized_course,
+                "session": latest_baseline.get("session") if latest_baseline else "Previous",
+                "semester": latest_baseline.get("semester") if latest_baseline else "N/A",
+            })
     outstanding = list(previous_outstanding)
-    
+    previous_codes = {item["course_code"] for item in previous_outstanding}
+
+    valid_terms = [
+        course for course in courses
+        if parse_term(course.get("session", ""), course.get("semester", ""))[0] > 0
+    ]
+    latest_result = max(
+        valid_terms,
+        key=lambda course: parse_term(course.get("session", ""), course.get("semester", "")),
+        default=None,
+    )
+    latest_session = latest_result.get("session") if latest_result else None
+    latest_semester = latest_result.get("semester") if latest_result else None
+
     current_outstanding = []
+    older_dynamic_outstanding = []
     if courses:
         dynamic_carryovers = get_student_carryovers(matric_number, courses)
         for dc in dynamic_carryovers:
-            # Normalize the dynamic course code (remove spaces) for comparison
-            normalized_dc = str(dc.get("course_code", "")).upper().replace(" ", "")
-            if not any(o.get("course_code", "").upper().replace(" ", "") == normalized_dc for o in outstanding):
-                outstanding.append(dc)
-                current_outstanding.append(dc)
+            normalized_dc = _normalize_course_code(dc.get("course_code"))
+            if normalized_dc in previous_codes:
+                continue
+            normalized_item = {**dc, "course_code": normalized_dc}
+            if not any(_normalize_course_code(o.get("course_code")) == normalized_dc for o in outstanding):
+                outstanding.append(normalized_item)
+                if dc.get("session") == latest_session:
+                    current_outstanding.append(normalized_item)
+                else:
+                    older_dynamic_outstanding.append(normalized_item)
+
+    previous_outstanding.extend(older_dynamic_outstanding)
                 
     at_risk_courses = [
         c for c in courses 
@@ -219,6 +300,8 @@ def get_full_academic_record(matric_number: str):
         "outstanding_courses": outstanding,
         "previous_outstanding": previous_outstanding,
         "current_outstanding": current_outstanding,
+        "latest_uploaded_session": latest_session,
+        "latest_uploaded_semester": latest_semester,
         "at_risk_courses": at_risk_courses,
         "courses": courses
     }

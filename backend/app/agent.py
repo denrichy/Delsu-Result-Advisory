@@ -116,6 +116,47 @@ def _requires_record_tool(message):
     return bool(personal and academic)
 
 
+def _is_carryover_question(message):
+    return bool(re.search(r"\b(carryovers?|carry[ -]?overs?|outstanding courses?)\b", str(message or "").lower()))
+
+
+def _format_carryover_response(record):
+    if not isinstance(record, dict):
+        return "I could not verify your carryover record right now."
+
+    def unique_codes(courses):
+        codes = []
+        for course in courses:
+            code = str(course.get("course_code") or "").upper().replace(" ", "")
+            if code and code not in codes:
+                codes.append(code)
+        return codes
+
+    def readable_list(codes):
+        if len(codes) == 1:
+            return codes[0]
+        return f"{', '.join(codes[:-1])} and {codes[-1]}"
+
+    codes = unique_codes(record.get("outstanding_courses", []))
+    previous_codes = unique_codes(record.get("previous_outstanding", []))
+    current_codes = unique_codes(record.get("current_outstanding", []))
+    if not codes:
+        return "Your verified academic record currently shows no unresolved carryover courses."
+
+    sections = []
+    if previous_codes:
+        sections.append(f"Previous sessions: {readable_list(previous_codes)}.")
+    if current_codes:
+        latest_session = record.get("latest_uploaded_session")
+        label = f"Current carryovers from {latest_session}" if latest_session else "Current carryovers"
+        sections.append(f"{label}: {readable_list(current_codes)}.")
+    if sections:
+        return " ".join(sections)
+
+    # Defensive fallback for an older payload shape.
+    return f"Your unresolved carryover courses are {readable_list(codes)}."
+
+
 def _tool_content(function_name, result):
     if result is None:
         result = {"status": "No verified record was found for this query."}
@@ -134,6 +175,21 @@ def _parse_tool_arguments(raw_arguments):
         return parsed if isinstance(parsed, dict) else {}
     except (json.JSONDecodeError, TypeError):
         return {}
+
+
+def _humanize_response(text):
+    """Prevent internal schema vocabulary from leaking into student-facing text."""
+    cleaned = str(text or "")
+    replacements = {
+        "outstanding_courses": "outstanding courses",
+        "previous_outstanding": "earlier carryovers",
+        "current_outstanding": "newly recorded carryovers",
+        "at_risk_courses": "courses needing attention",
+        "student_info": "academic record",
+    }
+    for internal_name, friendly_name in replacements.items():
+        cleaned = re.sub(re.escape(internal_name), friendly_name, cleaned, flags=re.IGNORECASE)
+    return cleaned.replace('*', '').replace('#', '').replace('|', '').replace('`', '')
 
 def run_agent(matric_number: str, user_message: str, conversation_history=None):
     if conversation_history is None:
@@ -375,6 +431,7 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
     max_iterations = 5
     iterations = 0
     last_tool_result = None
+    carryover_record = None
     
     while response_message.tool_calls and iterations < max_iterations:
         iterations += 1
@@ -389,6 +446,8 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
             
             result = _execute_tool(function_name, function_args, matric_number)
             last_tool_result = result
+            if function_name == "get_full_academic_record":
+                carryover_record = result
             print(f"[DIAGNOSTIC] Executed tool: {function_name}; success={not (isinstance(result, dict) and 'error' in result)}")
             tool_response_content = _tool_content(function_name, result)
                 
@@ -411,6 +470,8 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
 
     # 4. Final Text Extraction & Fallback
     final_text = response_message.content
+    if _is_carryover_question(user_message) and isinstance(carryover_record, dict):
+        final_text = _format_carryover_response(carryover_record)
     
     if not final_text or not final_text.strip():
         print("[DIAGNOSTIC] Final response is empty. Forcing a retry with explicit instructions.")
@@ -445,7 +506,7 @@ def run_agent(matric_number: str, user_message: str, conversation_history=None):
                 
     # Programmatically strip markdown symbols just in case the model ignores prompt rules
     if final_text:
-        final_text = final_text.replace('*', '').replace('#', '').replace('|', '').replace('`', '')
+        final_text = _humanize_response(final_text)
         
     print("[DIAGNOSTIC] Agent response completed")
     return final_text
@@ -713,6 +774,8 @@ def run_agent_stream(matric_number: str, user_message: str, conversation_history
     # 3. Tool Execution Loop
     max_iterations = 5
     iterations = 0
+    last_tool_result = None
+    carryover_record = None
     
     while response_message.tool_calls and iterations < max_iterations:
         iterations += 1
@@ -724,6 +787,9 @@ def run_agent_stream(matric_number: str, user_message: str, conversation_history
             function_args = _parse_tool_arguments(tool_call.function.arguments)
             
             result = _execute_tool(function_name, function_args, matric_number)
+            last_tool_result = result
+            if function_name == "get_full_academic_record":
+                carryover_record = result
             
             tool_response_content = _tool_content(function_name, result)
                 
@@ -749,8 +815,10 @@ def run_agent_stream(matric_number: str, user_message: str, conversation_history
     # The final answer already came from the grounded model call. Reusing it avoids
     # a second generation that added latency and could contradict the first answer.
     full_response = (response_message.content or "").strip()
+    if _is_carryover_question(user_message) and isinstance(carryover_record, dict):
+        full_response = _format_carryover_response(carryover_record)
     if full_response:
-        full_response = full_response.replace('*', '').replace('#', '').replace('|', '').replace('`', '')
+        full_response = _humanize_response(full_response)
         yield f"data: {json.dumps({'content': full_response})}\n\n"
             
     if not full_response.strip():
