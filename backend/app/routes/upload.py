@@ -524,6 +524,77 @@ def clean_all_phantoms():
     except Exception as e:
         print(f"Background phantom cleanup failed: {e}")
 
+
+def background_cleanup_orphans(student_ids: list, upload_terms: set = None):
+    try:
+        from app.db import supabase
+        from app.analytics import parse_term
+        
+        if not student_ids:
+            return
+            
+        chunk_size = 50
+        
+        # 1. Delete temporal baselines associated with the deleted terms
+        if upload_terms:
+            for session, semester in upload_terms:
+                for i in range(0, len(student_ids), chunk_size):
+                    chunk = student_ids[i:i+chunk_size]
+                    supabase.table("student_session_baselines")\
+                        .delete()\
+                        .in_("student_id", chunk)\
+                        .eq("session", session)\
+                        .eq("semester", semester)\
+                        .execute()
+                        
+        # 2. Recalculate baseline values for all affected students
+        for i in range(0, len(student_ids), chunk_size):
+            chunk = student_ids[i:i+chunk_size]
+            
+            res_results = supabase.table("results").select("student_id").in_("student_id", chunk).execute()
+            has_results = set(r["student_id"] for r in res_results.data) if res_results.data else set()
+            
+            res_baselines = supabase.table("student_session_baselines").select("*").in_("student_id", chunk).execute()
+            baselines_by_student = {}
+            if res_baselines.data:
+                for b in res_baselines.data:
+                    sid = b["student_id"]
+                    if sid not in baselines_by_student:
+                        baselines_by_student[sid] = []
+                    baselines_by_student[sid].append(b)
+                    
+            updates = []
+            for sid in chunk:
+                if sid not in has_results and sid not in baselines_by_student:
+                    updates.append({
+                        "id": sid,
+                        "baseline_units": 0,
+                        "baseline_gps": 0.0,
+                        "outstanding_courses": ""
+                    })
+                else:
+                    latest_baseline = None
+                    if sid in baselines_by_student:
+                        student_bls = baselines_by_student[sid]
+                        latest_baseline = max(
+                            student_bls,
+                            key=lambda item: parse_term(item.get('session', ''), item.get('semester', '')),
+                            default=None
+                        )
+                        
+                    updates.append({
+                        "id": sid,
+                        "baseline_units": latest_baseline.get("baseline_units", 0) if latest_baseline else 0,
+                        "baseline_gps": latest_baseline.get("baseline_gps", 0.0) if latest_baseline else 0.0,
+                        "outstanding_courses": latest_baseline.get("outstanding_courses", "") if latest_baseline else ""
+                    })
+                    
+            if updates:
+                supabase.table("students").upsert(updates).execute()
+                
+    except Exception as e:
+        print(f"Background orphan cleanup failed: {e}")
+
 @router.delete("/{upload_id}")
 async def delete_upload(upload_id: str, background_tasks: BackgroundTasks, actor=Depends(require_verified_adviser)):
     try:
